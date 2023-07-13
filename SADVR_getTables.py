@@ -8,10 +8,9 @@ mapping = {
     'departements': f'{baseURI}/ressource/departement',
     'unitesAdministratives': f'{baseURI}/ressource/uniteadmin',
     'fonctions': f'{baseURI}/ressource/fonction',
+    'individus' : f'{baseURI}/id/individu',
     "programmesEtude": f'{baseURI}/ressource/programme',
-    "individus" : f'{baseURI}/id/individu',
     "domainesEtude": f'{baseURI}/ressource/domaineetude',
-    "expertisesRecherche": f'{baseURI}/ressource/expertiserech',
     "secteursRecherche": f'{baseURI}/ressource/secteurrech',
     "disciplines": f'{baseURI}/ressource/discipline',
     "etablissementsAffilies": f'{baseURI}/ressource/etablaffilie',
@@ -42,3 +41,71 @@ def getAllTables(mapping=mapping):
         output = getTable(ressource)
         if type(output) == pd.DataFrame:
             output.to_csv(f'tables/SADVR_{ressource}.csv', index=False)
+
+def getInfoIndividus(id_individus: list, CSVexport=False) -> pd.DataFrame :
+    """ 
+    Cette fonction prend en paramètre une liste d'identifiants associés à des individus inscrits dans le SADVR
+    et retourne un DataFrame contenant les informations pour chacun de ces individus.\nNormalement, la liste d'individu
+    a été obtenue par une première requête envoyée l'URI 'id/individu'
+    """
+    baseURI = 'https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal'
+
+    output = []
+    for id in id_individus:
+        try:
+            uri = f'{baseURI}/info/individu?idsadvr={id}'
+            output.append(json.loads(requests.get(uri).text)['data'][0])
+
+        except Exception as e:
+            print(id, e)
+
+    output = pd.DataFrame(output).drop_duplicates()
+
+    if(CSVexport):
+        output.to_csv('tables/SADVR_infoIndividus.csv', index=False)
+    return output
+
+def updateInfoIndividus(tableInfoIndividus: pd.DataFrame = pd.read_csv('tables/SADVR_infoIndividus.csv')) -> pd.DataFrame:
+    """
+    Cette fonction prend en paramètre un dataframe contenant les informations sur les individus du SADVR
+    et retourne une version actualisée de celui-ci en y ajoutant l'information associée aux individus
+    dernièrement ajoutés.\nNormalement, le dataframe d'entrée a été obtenu par l'exécution de la 
+    fonction getInfoIndividus sur l'ensemble des individus. La requête étant relativement longue à exécuter sur 
+    tous les individus à la fois, la présente fonction est conçue pour éviter d'avoir à extraire toutes les
+    données à chaque fois et plutôt n'extraire que les nouvelles informations.
+    """
+    all_ids = [x['idsadvr'] for x in getTable('individus').to_dict('records')]
+    current_ids = tableInfoIndividus['idsadvr'].tolist()
+
+    # Extraire la liste des ids qui ne se trouvent pas dans la table SADVR_infoIndividus
+    ids = [x for x in all_ids if not x in current_ids]
+
+    # Ajouter les nouveaux ids à la table
+    if (len(ids) > 0):
+        new_info = getInfoIndividus(ids)
+        output = pd.concat([tableInfoIndividus, new_info]).drop_duplicates()
+        output.to_csv('tables/SADVR_infoIndividus.csv', index=False)
+
+        return output
+
+def getAllProfs() -> pd.DataFrame:
+    """
+    Cette fonction envoie une requête SOLR dans le répertoire des professeurs de l'API SADVR, récupère les informations 
+    relatives à tous les professeurs dans un DataFrame et les exporte dans un fichier tabulaire (CSV).
+    """
+    index = 0
+    res = json.loads(requests.get(f'{baseURI}/recherche/professeur/select?q=ID:*&start={index}').text)
+    nbResults = res['paginationSOLR']['numFound']
+
+    dataProfs = []
+    for i in range(0, nbResults, 20):
+        res = json.loads(requests.get(
+            f'{baseURI}/recherche/professeur/select?q=ID:*&start={index}&rows=20'
+            ).text)['data']
+        
+        dataProfs += res
+        index += 20
+
+    output = pd.DataFrame(dataProfs)
+    output.to_csv('tables/SADVR_professeurs.csv', index=False)
+    
