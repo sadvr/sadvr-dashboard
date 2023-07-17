@@ -127,23 +127,22 @@ def getAllProfs() -> pd.DataFrame:
 ###### Fonctions pour nettoyer, normaliser ou filtrer les données
 
 # Séparer les colonnes qui contiennent des données structurées en JSON en muliples colonnes distinctes
-def explodeNormalize(df: pd.DataFrame, columns: list):
+def explodeNormalize(df: pd.DataFrame, column: str):
     """
-    Cette fonction prend en paramètre un DataFrame et une liste contenant les noms des colonnes à normaliser.
-    Elle retourne le DataFrame modifié, où les colonnes spécifiées ont été normalisées. 
+    Cette fonction prend en paramètre un DataFrame et le nom d'une colonne à normaliser.
+    Elle retourne le DataFrame modifié, où la colonne spécifiée a été normalisée. 
     """
-    for col in columns:
-        try:
-            df.loc[:, col] = df[col].transform(lambda x: literal_eval(str(x)))
-        except:
-            df.loc[:, col] = df[col].fillna('[]').transform(lambda x: literal_eval(str(x)))
-        
-        dTypeCol = Counter(df[col].apply(lambda x: type(literal_eval(str(x)))).tolist()).most_common(1)[0][0]
-        if dTypeCol == list:
-            df = df.explode(col).reset_index(drop=True)
-        
-        dfTemp = pd.json_normalize(df[col]).add_prefix(f'{col}.') 
-        
-        df = pd.concat([df, dfTemp], axis=1).drop(col, axis=1)
+    try:
+        df.loc[:, column] = df[column].transform(lambda x: literal_eval(str(x)))
+    except:
+        df.loc[:, column] = df[column].fillna('[]').transform(lambda x: literal_eval(str(x)))
+    
+    dTypeCol = Counter(df[column].apply(lambda x: type(literal_eval(str(x)))).tolist()).most_common(1)[0][0]
+    if dTypeCol == list:
+        df = df.explode(column).reset_index(drop=True)
+    
+    dfTemp = pd.json_normalize(df[column]).add_prefix(f'{column}.') 
+    
+    df = pd.concat([df, dfTemp], axis=1).drop(column, axis=1)
 
     return df
