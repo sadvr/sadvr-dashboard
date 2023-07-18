@@ -51,7 +51,7 @@ def getAllTables(mapping: dict = mapping):
         if type(output) == pd.DataFrame:
             output.to_csv(f'tables/SADVR_{ressource}.csv', index=False)
 
-def getInfoIndividus(id_individus: list, CSVexport=False) -> pd.DataFrame :
+def getInfoIndividus(id_individus: list, titre: str, CSVexport : bool = False) -> pd.DataFrame :
     """ 
     Cette fonction prend en paramètre une liste d'identifiants associés à des individus inscrits dans le SADVR
     et retourne un DataFrame contenant les informations pour chacun de ces individus.\nNormalement, la liste d'individu
@@ -71,7 +71,7 @@ def getInfoIndividus(id_individus: list, CSVexport=False) -> pd.DataFrame :
     output = pd.DataFrame(output).drop_duplicates()
 
     if(CSVexport):
-        output.to_csv('tables/SADVR_infoIndividus.csv', index=False)
+        output.to_csv(f'tables/SADVR_{titre}.csv', index=False)
     return output
 
 def updateInfoIndividus(tableInfoIndividus: pd.DataFrame = pd.read_csv('tables/SADVR_infoIndividus.csv')) -> pd.DataFrame:
@@ -91,16 +91,16 @@ def updateInfoIndividus(tableInfoIndividus: pd.DataFrame = pd.read_csv('tables/S
 
     # Ajouter les nouveaux ids à la table
     if (len(ids) > 0):
-        new_info = getInfoIndividus(ids)
         output = pd.concat([tableInfoIndividus, new_info]).drop_duplicates()
-        output.to_csv('tables/SADVR_infoIndividus.csv', index=False)
-
+        new_info = getInfoIndividus(ids, titre = 'infoIndividus', CSVexport=True)
+    
         return output
     
     else:
         return tableInfoIndividus
+    
 
-def getAllProfs() -> pd.DataFrame:
+def getAllProfsSOLR() -> pd.DataFrame:
     """
     Cette fonction envoie une requête SOLR dans le répertoire des professeurs de l'API SADVR, récupère les informations 
     relatives à tous les professeurs dans un DataFrame et les exporte dans un fichier tabulaire (CSV).
@@ -123,11 +123,25 @@ def getAllProfs() -> pd.DataFrame:
 
     return output
 
+def getInfoProfs(dataProfs: str) -> pd.DataFrame:
+    """ 
+    Cette fonction prends en paramètre le nom du fichier où sont stockées les informations du répertoire de professeur
+    obtenues par l'exécution de la fonction getAllProfsSOLR, extrait les identifiants SADVR associés aux professeurs 
+    et envoie une requête au endoint "info/individus" pour obtenir les autres informations (ex. Sexe, langues, etc.) 
+    relatives aux individus qui sont des professeurs  
+    """
+    idProfs = pd.read_csv(dataProfs)['idsadvr'].tolist()
+    dataProfs = getInfoIndividus(idProfs, titre='infoProfs', CSVexport=True)
+
+    return dataProfs
+
+#getInfoProfs('tables/SADVR_professeurs.csv')
+
 #################################################################
-###### Fonctions pour nettoyer, normaliser ou filtrer les données
+###### Fonctions pour nettoyer, normaliser, mettre en forme ou filtrer les données
 
 # Séparer les colonnes qui contiennent des données structurées en JSON en muliples colonnes distinctes
-def explodeNormalize(df: pd.DataFrame, column: str):
+def explodeNormalize(df: pd.DataFrame, column: str) -> pd.DataFrame:
     """
     Cette fonction prend en paramètre un DataFrame et le nom d'une colonne à normaliser.
     Elle retourne le DataFrame modifié, où la colonne spécifiée a été normalisée. 
@@ -146,3 +160,56 @@ def explodeNormalize(df: pd.DataFrame, column: str):
     df = pd.concat([df, dfTemp], axis=1).drop(column, axis=1)
 
     return df
+
+def groupOtherValues(df: pd.DataFrame, threshold: int = 6) -> pd.DataFrame:
+    """
+    Cette fonction prend en paramètre un objet DataFrame contenant une distirbution de fréquences et un nombre entier 
+    représentant le nombre de valeurs à représenter dans un graphique. Elle retourne le DataFrame modifié en regroupant toutes 
+    les autres valeurs dans une catégorie "Autre", permettant ainsi d'alléger la visualisaiton en réduisant le nombre de 
+    catégories qui seornt affichées dans une visualisation.
+
+    Par défaut, la fonction prend les 6 principales valeurs et groupe les autres dans la catégorie "Autre".
+    
+    À noter que la colonne contenant les fréquences associées aux catégories doit s'appeler 'count'.
+    """
+    top_values = df.head(threshold)
+    other_values_count = df[threshold:]['count'].sum()
+    col = df.columns[0]
+    other_values = pd.DataFrame({col: ['Autre'], 'count': [other_values_count]})
+    
+    return pd.concat([top_values, other_values])
+
+def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
+    """
+    Cette fonction prend en paramètre un objet DataFrame et un champ d'intérêt à visualiser dans un graphique.
+    Elle calcule les fréquences associées aux différentes catégories de la variable d'intérêt et retourne un objet 
+    dictionnaire contenant les champs suivants:  
+    - Labels: les noms des catégories de données
+    - Values: les fréquences associées aux catégories de données
+
+    Un paramètre optionnel permet de spécifier un mapping à effectuer entre les noms des catégories et d'autres étiquettes.
+    Par exemple, pour le genre, on pourrait avoir un mapping spécifiant 'M' -> 'Hommes', 'F' -> 'Femmes'. Un mapping peut
+    également être spécifié pour les noms des fonctions de professeurs associés à un codeSad.
+
+    À noter que le DataFrame doit contenir une colonne appelée 'idsadvr'.
+    """
+
+    data = df[['idsadvr', variable]].drop_duplicates()
+    frequences = pd.DataFrame(data[variable].value_counts()).reset_index()
+    
+    labels = frequences[variable].tolist()
+
+    if(mapping):
+        labels = frequences[variable].map(mapping).tolist()
+        frequences['mapping'] = frequences[variable].map(mapping)
+                
+    frequences.to_csv(f'tables/demographics/{variable}.csv', index=False)                
+    
+    values = frequences['count'].tolist()
+
+    output = {
+        'labels': labels, 
+        'count': values
+    }
+
+    return output
