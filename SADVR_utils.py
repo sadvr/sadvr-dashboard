@@ -4,7 +4,7 @@ import pandas as pd
 from ast import literal_eval
 from collections import Counter
 
-#################################################################
+
 ##### Fonctions pour importer/updater les données
 
 baseURI = 'https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal'
@@ -51,11 +51,11 @@ def getAllTables(mapping: dict = mapping):
         if type(output) == pd.DataFrame:
             output.to_csv(f'tables/SADVR_{ressource}.csv', index=False)
 
-def getInfoIndividus(id_individus: list, titre: str, CSVexport : bool = False) -> pd.DataFrame :
+def getInfoIndividus(id_individus: list) -> pd.DataFrame :
     """ 
     Cette fonction prend en paramètre une liste d'identifiants associés à des individus inscrits dans le SADVR
     et retourne un DataFrame contenant les informations pour chacun de ces individus.\nNormalement, la liste d'individu
-    a été obtenue par une première requête envoyée l'URI 'id/individu'
+    a été obtenue par une première requête envoyée à l'URI 'id/individu'
     """
     baseURI = 'https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal'
 
@@ -68,37 +68,12 @@ def getInfoIndividus(id_individus: list, titre: str, CSVexport : bool = False) -
         except Exception as e:
             print(id, e)
 
-    output = pd.DataFrame(output).drop_duplicates()
-
-    if(CSVexport):
-        output.to_csv(f'tables/SADVR_{titre}.csv', index=False)
+    output = pd.DataFrame(output)
+    output = output[
+        ['idsadvr', 'sexe', 'langues', 'institution', 'unitesRecherche', 'paysCode', 
+        'paysNom', 'formations', 'prix', 'publication', 'communication']]
+    
     return output
-
-def updateInfoIndividus(tableInfoIndividus: pd.DataFrame = pd.read_csv('tables/SADVR_infoIndividus.csv')) -> pd.DataFrame:
-    """
-    Cette fonction prend en paramètre un dataframe contenant les informations sur les individus du SADVR
-    et retourne une version actualisée de celui-ci en y ajoutant l'information associée aux individus
-    dernièrement ajoutés.\nNormalement, le dataframe d'entrée a été obtenu par l'exécution de la 
-    fonction getInfoIndividus sur l'ensemble des individus. La requête étant relativement longue à exécuter sur 
-    tous les individus à la fois, la présente fonction est conçue pour éviter d'avoir à extraire toutes les
-    données à chaque fois et plutôt n'extraire que les nouvelles informations.
-    """
-    all_ids = [x['idsadvr'] for x in getTable('individus').to_dict('records')]
-    current_ids = tableInfoIndividus['idsadvr'].tolist()
-
-    # Extraire la liste des ids qui ne se trouvent pas dans la table SADVR_infoIndividus
-    ids = [x for x in all_ids if not x in current_ids]
-
-    # Ajouter les nouveaux ids à la table
-    if (len(ids) > 0):
-        output = pd.concat([tableInfoIndividus, new_info]).drop_duplicates()
-        new_info = getInfoIndividus(ids, titre = 'infoIndividus', CSVexport=True)
-    
-        return output
-    
-    else:
-        return tableInfoIndividus
-    
 
 def getAllProfsSOLR() -> pd.DataFrame:
     """
@@ -123,23 +98,51 @@ def getAllProfsSOLR() -> pd.DataFrame:
 
     return output
 
-def getInfoProfs(dataProfs: str) -> pd.DataFrame:
-    """ 
-    Cette fonction prends en paramètre le nom du fichier où sont stockées les informations du répertoire de professeur
-    obtenues par l'exécution de la fonction getAllProfsSOLR, extrait les identifiants SADVR associés aux professeurs 
-    et envoie une requête au endoint "info/individus" pour obtenir les autres informations (ex. Sexe, langues, etc.) 
-    relatives aux individus qui sont des professeurs  
+def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('tables/SADVR_professeurs.csv')) -> pd.DataFrame:
     """
-    idProfs = pd.read_csv(dataProfs)['idsadvr'].tolist()
-    dataProfs = getInfoIndividus(idProfs, titre='infoProfs', CSVexport=True)
+    Cette fonction prend en paramètre un dataframe contenant les informations sur les professeurs du SADVR
+    et retourne une version actualisée de celui-ci en y ajoutant l'information associée aux professeurs
+    dernièrement ajoutés.\nNormalement, le dataframe d'entrée a été obtenu par l'exécution de la 
+    fonction getInfoProfs sur l'ensemble des individus. La requête étant relativement longue à exécuter sur 
+    tous les professeurs à la fois, la présente fonction est conçue pour éviter d'avoir à extraire toutes les
+    données à chaque fois et plutôt n'extraire que les nouvelles informations.
+    """
 
-    return dataProfs
+    # Vérifier s'il y a des nouvelles informations en comparant le nombre d'enregistrements dans le répertoire des 
+    # professeurs au nombre d'enregistrement dans la table actuelle.
+    current_ids = tableInfoProfs['idsadvr'].tolist()
+    nbActualData = len(current_ids)
 
-#getInfoProfs('tables/SADVR_professeurs.csv')
+    res = json.loads(requests.get(f'{baseURI}/recherche/professeur/select?q=ID:*').text)
+    nbResultsSOLR = res['paginationSOLR']['numFound']
 
-#################################################################
-###### Fonctions pour nettoyer, normaliser, mettre en forme ou filtrer les données
+    # Si de nouveaux professeurs ont été ajoutés au répertoire depuis le dernier import, nous allons les ajouter à la table
+    if(nbResultsSOLR > nbActualData):
+        dataProfs = getAllProfsSOLR()
+        all_ids = dataProfs['idsadvr'].tolist()
 
+        # Extraire la liste des ids qui ne se trouvent pas dans la table SADVR_infoIndividus
+        ids = [x for x in all_ids if not (x in current_ids)]
+
+        # Ajouter les nouveaux ids à la table
+        new_info = getInfoIndividus(ids)
+        new_info = dataProfs.merge(new_info, on='idsadvr')
+
+        output = pd.concat([tableInfoProfs, new_info])
+        output = output[output['nom'] != '?_?']
+
+        columns = pd.read_csv('columns.csv')['columns'].tolist()
+        output = output[[x for x in output.columns if x in columns]]
+        
+        # Réexporter la table contenant les informations pour les nouveaux individus
+        output.sort_values(by='idsadvr').to_csv('tables/SADVR_professeurs.csv', index=False)
+        return output
+        
+    else:
+        return tableInfoProfs
+    
+
+##### Fonctions pour nettoyer, normaliser, mettre en forme ou filtrer les données
 # Séparer les colonnes qui contiennent des données structurées en JSON en muliples colonnes distinctes
 def explodeNormalize(df: pd.DataFrame, column: str) -> pd.DataFrame:
     """
@@ -205,11 +208,13 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
                 
     frequences.to_csv(f'tables/demographics/{variable}.csv', index=False)                
     
-    values = frequences['count'].tolist()
+    # values = frequences['count'].tolist()
 
-    output = {
-        'labels': labels, 
-        'count': values
-    }
+    # output = {
+    #     'labels': labels, 
+    #     'count': values
+    # }
 
-    return output
+    # return output
+
+    return frequences
