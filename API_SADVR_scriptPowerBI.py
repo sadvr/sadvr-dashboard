@@ -1,11 +1,17 @@
+### Script pour l'imprt des tables liées aux expertises de recherche
 import requests
 import json
 import pandas as pd
 from ast import literal_eval
 from collections import Counter
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-
+##### Définition de fonctions
 ##### Fonctions pour importer/updater les données
+
+folder = 'C:/Users/camil/OneDrive - Universite de Montreal/CENR/SADVR/CENR__SADVR_Dashboard'
 
 baseURI = 'https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal'
 mapping = {
@@ -49,7 +55,7 @@ def getAllTables(mapping: dict = mapping):
     for ressource in mapping:
         output = getTable(ressource)
         if type(output) == pd.DataFrame:
-            output.to_csv(f'tables/SADVR_{ressource}.csv', index=False)
+            output.to_csv(f'{folder}/tables/SADVR_{ressource}.csv', index=False)
 
 def getInfoIndividus(id_individus: list) -> pd.DataFrame :
     """ 
@@ -94,11 +100,11 @@ def getAllProfsSOLR() -> pd.DataFrame:
         index += 20
 
     output = pd.DataFrame(dataProfs)
-    output.to_csv('tables/SADVR_professeurs.csv', index=False)
+    output.to_csv(f'{folder}/tables/SADVR_professeurs.csv', index=False)
 
     return output
 
-def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('tables/SADVR_professeurs.csv')) -> pd.DataFrame:
+def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv(f'{folder}/tables/SADVR_professeurs.csv')) -> pd.DataFrame:
     """
     Cette fonction prend en paramètre un dataframe contenant les informations sur les professeurs du SADVR
     et retourne une version actualisée de celui-ci en y ajoutant l'information associée aux professeurs
@@ -135,14 +141,13 @@ def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('tables/SADVR_pro
         output = output[[x for x in output.columns if x in columns]]
         
         # Réexporter la table contenant les informations pour les nouveaux individus
-        output.sort_values(by='idsadvr').to_csv('tables/SADVR_professeurs.csv', index=False)
+        output.sort_values(by='idsadvr').to_csv(f'{folder}/tables/SADVR_professeurs.csv', index=False)
         return output
         
     else:
         return tableInfoProfs
     
-
-##### Fonctions pour nettoyer, normaliser, mettre en forme ou filtrer les données
+# ##### Fonctions pour nettoyer, normaliser, mettre en forme ou filtrer les données
 # Séparer les colonnes qui contiennent des données structurées en JSON en muliples colonnes distinctes
 def explodeNormalize(df: pd.DataFrame, column: str) -> pd.DataFrame:
     """
@@ -199,23 +204,42 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
 
     data = df[['idsadvr', variable]].drop_duplicates()
     frequences = pd.DataFrame(data[variable].value_counts()).reset_index()
-    
-    labels = frequences[variable].tolist()
 
     if(mapping):
-        labels = frequences[variable].map(mapping).tolist()
         frequences['mapping'] = frequences[variable].map(mapping)
                 
-    frequences.to_csv(f'tables/demographics/{variable}.csv', index=False)                
-    
-    values = frequences['count'].tolist()
+    frequences.to_csv(f'{folder}/tables/demographics/{variable}.csv', index=False)                
 
-    output = {
-        'labels': labels, 
-        'count': values
-    }
+    return frequences
 
-    return output
+# Chargement des données
+data = updateInfoProfs()
 
-    
-    
+# Expertises 
+expertises = data[['idsadvr', 'affiliations', 'etablissementsAffilies', 'expertise']]
+
+toNormalize = ['affiliations', 'etablissementsAffilies', 'expertise', 'expertise.secteursRecherche',
+                'expertise.disciplines', 'expertise.pays', 
+                'expertise.continents', 'expertise.periodesChronologiques']
+
+for c in toNormalize:
+    expertises = explodeNormalize(expertises, c)
+
+drop = ['affiliations.courrielInstitutionnel', 'affiliations.immeuble',
+        'affiliations.fonction.codeSad', 'affiliations.fonction.nom', 'affiliations.local', 
+        'affiliations.exclusion', 'affiliations.exclusionTel','affiliations.uniteAdministrative.codeSad', 
+        'affiliations.uniteAdministrative.nom', 'affiliations.telephone.numero', 'affiliations.telephone.poste']
+
+expertises = expertises.drop(columns=drop)
+
+# Facultes
+facultes = pd.DataFrame(plotVariable(expertises, 'affiliations.faculte.nom'))[:-2]
+
+# Etablissements affiliés
+etablissementsAffilies = expertises.dropna(subset='etablissementsAffilies.nom')
+etablissementsAffilies = etablissementsAffilies.drop_duplicates(subset=(['idsadvr', 'etablissementsAffilies.nom']))
+etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etablissementsAffilies.nom'))
+
+# Secteurs de la recherche 
+secteursRecherche = expertises[expertises['expertise.secteursRecherche.codeLangue'] == 'fre']
+secteursRecherche = pd.DataFrame(plotVariable(secteursRecherche, 'expertise.secteursRecherche.nom'))
