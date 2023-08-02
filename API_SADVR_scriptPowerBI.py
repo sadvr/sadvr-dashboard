@@ -149,6 +149,18 @@ def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv(f'{folder}/tables
     
 # ##### Fonctions pour nettoyer, normaliser, mettre en forme ou filtrer les données
 # Séparer les colonnes qui contiennent des données structurées en JSON en muliples colonnes distinctes
+def filtrerLangue(df: pd.DataFrame, lang: str = 'fre') -> pd.DataFrame:
+    """
+        Cette fonction prend en paramètre un dataframe pour lequel on veut filtrer la langue des colonnes qui
+        contiennent des valeurs en français ou en anglais. Par défaut, c'est le français qui est conservé, 
+        mais on peut changer la valeur de l'attribut 'lang' pour 'eng' pour l'anglais.
+    """
+    columns = [x for x in df.columns if x.endswith('codeLangue')]
+    for col in columns:
+        df = df[df[col] == 'fre']
+
+    return df
+
 def explodeNormalize(df: pd.DataFrame, column: str) -> pd.DataFrame:
     """
     Cette fonction prend en paramètre un DataFrame et le nom d'une colonne à normaliser.
