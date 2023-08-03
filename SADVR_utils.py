@@ -217,9 +217,7 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
     if(mapping):
         labels = frequences[variable].map(mapping).tolist()
         frequences['mapping'] = frequences[variable].map(mapping)
-                
-    frequences.to_csv(f'tables/demographics/{variable}.csv', index=False)                
-    
+                    
     values = frequences['count'].tolist()
 
     # output = {
