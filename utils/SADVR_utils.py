@@ -220,12 +220,11 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
                     
     values = frequences['count'].tolist()
 
-    # output = {
-    #     'labels': labels, 
-    #     'count': values,
-    # }
+    output = {
+        'labels': labels, 
+        'count': values,
+    }
 
-    # return output
-    return frequences
+    return output
 
     
