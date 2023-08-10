@@ -98,7 +98,7 @@ def getAllProfsSOLR() -> pd.DataFrame:
 
     return output
 
-def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('tables/SADVR_professeurs.csv')) -> pd.DataFrame:
+def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('./tables/SADVR_professeurs.csv')) -> pd.DataFrame:
     """
     Cette fonction prend en paramètre un dataframe contenant les informations sur les professeurs du SADVR
     et retourne une version actualisée de celui-ci en y ajoutant l'information associée aux professeurs
@@ -121,21 +121,22 @@ def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('tables/SADVR_pro
         dataProfs = getAllProfsSOLR()
         all_ids = dataProfs['idsadvr'].tolist()
 
-        # Extraire la liste des ids qui ne se trouvent pas dans la table SADVR_infoIndividus
+        # Extraire la liste des ids qui ne se trouvent pas dans la table
         ids = [x for x in all_ids if not (x in current_ids)]
 
         # Ajouter les nouveaux ids à la table
         new_info = getInfoIndividus(ids)
-        new_info = dataProfs.merge(new_info, on='idsadvr')
+        new_info = new_info.merge(dataProfs, on='idsadvr')
 
         output = pd.concat([tableInfoProfs, new_info])
         output = output[output['nom'] != '?_?']
 
-        columns = pd.read_csv('columns.csv')['columns'].tolist()
+
+        columns = pd.read_csv('utils/columns.csv')['columns'].tolist()
         output = output[[x for x in output.columns if x in columns]]
         
         # Réexporter la table contenant les informations pour les nouveaux individus
-        output.sort_values(by='idsadvr').to_csv('tables/SADVR_professeurs.csv', index=False)
+        output.sort_values(by='idsadvr').to_csv('./tables/SADVR_professeurs.csv', index=False)
         return output
         
     else:
@@ -162,7 +163,7 @@ def explodeNormalize(df: pd.DataFrame, column: str) -> pd.DataFrame:
     Elle retourne le DataFrame modifié, où la colonne spécifiée a été normalisée. 
     """
     try:
-        df.loc[:, column] = df[column].transform(lambda x: literal_eval(str(x)))
+        df.loc[:, column] = df[column].apply(lambda x: literal_eval(str(x)))
     except:
         df.loc[:, column] = df[column].fillna('[]').transform(lambda x: literal_eval(str(x)))
     
@@ -211,13 +212,13 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
 
     data = df[['idsadvr', variable]].drop_duplicates()
     frequences = pd.DataFrame(data[variable].value_counts()).reset_index()
-    
-    labels = frequences[variable].tolist()
 
     if(mapping):
         labels = frequences[variable].map(mapping).tolist()
         frequences['mapping'] = frequences[variable].map(mapping)
-                    
+    
+    labels = frequences[variable].tolist()
+
     values = frequences['count'].tolist()
 
     output = {
