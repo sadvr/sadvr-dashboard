@@ -1,0 +1,233 @@
+codeSad,nom
+010A00,Cabinet du recteur
+010C00,"Vice-rectorat à la recherche, à la découverte, à la création et à l'innovation"
+010D00,Vice-rectorat aux ressources humaines et à la planification
+010D01,Vice-rectorat aux ressources humaines et aux affaires professorales - Dir
+010E00,Vice-rectorat aux finances et aux infrastructures
+010F00,Vice-rectorat aux affaires étudiantes et aux études
+010H00,Vice-rectorat aux partenariats communautaires et internationaux
+010H01,Vice-rectorat aux partenariats communautaires et internationaux
+010J01,Vice-rectorat aux relations avec les diplômés et à la philanthropie
+015A00,Normes & intégrité
+015A01,Bureau de la conduite responsable en recherche
+022A00,Services de soutien à l'enseignement
+022A01,Services de soutien à l'enseignement - Direction
+026B01,IVADO - Administration
+062A00,Service de l'admission  - Direction
+062A02,Service de l'admission - Analyse des candidatures
+062C00,Service de l'admission et du recrutement
+100A01,Secrétariat général - Division des instances
+100D00,Secrétariat général - Division des affaires juridiques
+100E00,Secrétariat général - Division gestion de documents et des archives
+200C00,Bureau des communications et des relations publiques - Protocole et relations publiques
+200F00,Bureau des communications et des relations publiques - Web et communications institutionnelles
+320D00,Bureau du registraire - Académique - soutien aux étudiants
+330C00,Direction des bibliothèques - Direction des technologies
+330D00,Direction des bibliothèques - Traitement documentaire et métadonnées
+330D01,Direction des bibliothèques - Catalogage
+330E01,Bibliothèques des lettres et sciences humaines 1
+330G04,Bibliothèque de musique
+330G06,Bibliothèque du campus Laval
+330I04,Bibliothèque paramédicale
+330I07,Bibliothèque de mathématiques et informatique
+350E04,TI - Architecture sécurité
+350E05,TI - Architecture de l'infrastructure
+350H01,TI - Solution affaires institutionnelles
+350H03,TI - Solution affaires institutionnelles  - Gestion académique
+350H05,TI - Solution affaires institutionnelles  - Technopédagogique
+350H06,TI - Solution affaires institutionnelles  - Web et Portail
+350I03,TI - Explotation et soutien aux Utilisateurs - Exploitation des communications
+350I05,TI - Explotation et soutien aux Utilisateurs - Services techniques
+350I06,TI - Exploitation et soutien aux utilisateurs - Centre de services - Soutien informatique
+350I10,TI - Exploitation et soutien aux utilisateurs - Bibliothèques
+350I14,TI - ESU - Centre de services - Soutien distant
+373D01,Direction des ressources humaines - Rémunération - Direction
+373I00,Direction des ressources humaines - Centre des services administratifs
+420B00,BDRD - Direction développement philanthropique
+420B03,BDRD - Direction développement philanthropique - Campagnes annuelles
+420C00,BDRD - Direction relations avec les diplômés
+456C04,Résidences - Vie étudiante
+457B00,Direction des immeubles - Division administration
+457J12,Direction des immeubles - Services à la communauté - Support Régie
+458C01,Direction des projets majeurs d'infrastructures - MIL Phase 2 - Projets de réaffectation - Équipe
+503A00,Direction des affaires internationales
+504A00,Centre d'études et de recherches internationales
+601A00,Bureau de recherche institutionnelle
+604A00,Centre interuniversitaire de recherche en économie quantitative (CIREQ)
+605A00,Groupe de recherche sur l'inadaptation psychosociale chez l'enfant (GRIP)
+606A00,Centre de recherches mathématiques (CRM)
+606A01,Centre de recherches mathématiques (CRM) - Soutien
+607A00,"Centre interuniversitaire de recherche - Réseaux d'entreprise, logistique, transport (CIRRELT)"
+609A00,Centre international de criminologie comparée
+620A00,Bureau Recherche - Développement - Valorisation (BRDV) - Administration
+620A01,Bureau Recherche - Développement - Valorisation (BRDV) - Recherche subventionné
+620B00,Bureau Recherche – Développement – Valorisation (BRDV) - Centre d'expertise numérique pour la recherche (CEN-R) - Production numérique
+620B01,BRDV - Centre d'expertise numérique - recherche (CENR) - Recherche et développement numérique
+620E00,Bureau Recherche - Développement - Valorisation (BRDV) - Érudit
+625A00,Centre d'études ethniques des universités montréalaises (CEETUM)
+627A00,IRIC - Direction générale
+627B01,IRIC - Technologie de l'information
+627B03,IRIC - Communications
+627C12,IRIC - Animalerie
+720C00,Service aux étudiants - Centre de santé et de consultation psychologique (CSCP)
+720C01,Service aux étudiants - CSCP - Consultation psychologique
+720E01,Services aux étudiants - Accueil et intégration - Accueil
+740F00,CEPSUM - Sport excellence
+A100A0,Faculté de l'aménagement - Direction
+A200A0,Faculté de l'aménagement - École d'architecture
+A400A0,Faculté de l'aménagement - École de design
+A500A0,Faculté de l'aménagement - École d'urbanisme et d'architecture de paysage 
+B100A0,Faculté de médecine dentaire - Direction
+B200A0,Faculté de médecine dentaire - Département de santé buccale
+B300A0,Faculté de médecine dentaire - Département de dentisterie de restauration
+B400A0,Faculté de médecine dentaire - Département de stomatologie
+C000A0,Faculté de droit
+C000A1,Faculté de droit notarial
+C000E0,Faculté de droit - Secrétariat fac
+C010A0,Faculté de droit - CRDP
+D00000,Faculté de médecine
+D100A0,Faculté de médecine - Direction
+D100A1,Faculté de médecine - Direction - Communication
+D100B2,Faculté de médecine - Vice-décanat exécutif - Réseau universitaire intégré de santé
+D100C0,Faculté de médecine - Vice-décanat à la recherche et au développement
+D100D0,Faculté de médecine - Vice-décanat aux études médicales de 1er cycle
+D100E1,Faculté de médecine - Vice-décanat au développement continu des compétences professionnelles
+D100G0,"Faculté de médecine - Vice-décanat, études médicales postdoctorales"
+D100J0,Faculté de médecine - Technologies de l'information
+D201A0,Faculté de médecine - Département d'anesthésiologie et de médecine de la douleur
+D202A0,Faculté de médecine - Département de chirurgie
+D203A0,Faculté de médecine - Département de médecine
+D204A0,Faculté de médecine - Département de médecine de famille et de médecine d'urgence
+D205A0,Faculté de médecine - Département d'obstétrique-gynécologie
+D206A0,Faculté de médecine - Département d'ophtalmologie
+D207A0,Faculté de médecine - Département de pédiatrie
+D208A0,Faculté de médecine - Département de psychiatrie et d’addictologie
+D209A0,"Faculté de médecine - Département de radiologie, radio-oncologie et médecine nucléaire"
+D401A0,Faculté de médecine - Département de nutrition
+D402A0,Faculté de médecine - École de réadaptation
+D402B0,Faculté de médecine - École de réadaptation - Physiothérapie et enseignement clinique
+D402C0,Faculté de médecine - École de réadaptation - Ergothérapie
+D403A0,Faculté de médecine - École d'orthophonie et d'audiologie
+D404A0,Faculté de médecine - École de kinésiologie et des sciences de l'activité physique
+D501A0,Faculté de médecine - Département de biochimie et médecine moléculaire
+D502A0,"Faculté de médecine - Département de microbiologie, infectiologie et immunologie"
+D503A0,Faculté de médecine - Département de pathologie et biologie cellulaire
+D504A0,Faculté de médecine - Département de pharmacologie
+D506A0,Faculté de médecine - Département de pharmacologie et physiologie
+D507A0,Faculté de médecine - Département de neurosciences
+G100A0,Faculté de médecine vétérinaire - Direction
+G100D0,Faculté de médecine vétérinaire - Vice-doyen à la recherche et aux études supérieures
+G100F0,Faculté de médecine vétérinaire - Vice-doyen aux affaires étudiantes et aux études de premier cycle
+G100G0,Faculté de médecine vétérinaire - Direction administrative
+G100J0,FMV Vice-décanat personnel enseignant
+G200A0,Faculté de médecine vétérinaire - Département de biomédecine vétérinaire
+G300A0,Faculté de médecine vétérinaire - Département de pathologie et microbiologie
+G400A0,Faculté de médecine vétérinaire - Département de sciences cliniques
+G601A0,Faculté de médecine vétérinaire - Centre de recherche en reproduction animale (CRRA)
+G602A0,Faculté de médecine vétérinaire - Groupe de recherche sur les maladies infectieuses du porc (GREMIP)
+G603A0,Faculté de médecine vétérinaire - Réseau canadien de recherche sur la mammite bovine (RCRMB)
+G700A0,Faculté de médecine vétérinaire - Service diagnostic
+H000A0,Faculté de musique
+H000A1,Faculté de musique - Direction
+H000B1,Faculté de musique - Secteur académique
+H000E0,Faculté de musique - Observatoire interdisciplinaire de création et de recherche en musique
+J000A0,Faculté des sciences infirmières
+J000A1,Faculté des sciences infirmières - Direction
+J000B0,Faculté des sciences infirmières - 1er cycle et formation continue
+J000B2,Faculté des sciences infirmières - Cycles supérieurs
+J000C0,Faculté des sciences infirmières - Recherche
+K000A0,Faculté de pharmacie
+K000A1,Faculté de pharmacie
+K000C0,Faculté de pharmacie - Perfectionnement et communication
+L100A0,Faculté des sciences de l'éducation - Direction
+L100A1,Faculté des sciences de l'éducation - Direction - Recherche
+L200A0,Faculté des sciences de l'éducation - Département de didactique
+L300A0,Faculté des sciences de l'éducation - Département de psychopédagogie et d'andragogie
+L300A1,Faculté des sciences de l'éducation - Département de psychopédagogie et d'andragogie - Recherche
+L40000,FSE - Adm & fond éducation
+L400A0,Faculté des sciences de l'éducation - Département d'administration et fondements de l'éducation
+L500A0,Faculté des sciences de l'éducation - Centre de formation initiale des maîtres
+N100A0,Faculté des arts et des sciences - Direction
+N101A0,Faculté des arts et des sciences - SAFIRE
+N102A0,Faculté des arts et des sciences - Centre de langues
+N103A0,Faculté des arts et des sciences - SAFIRE - Programme facultaire études supérieures
+N202A0,Faculté des arts et des sciences - Département d'histoire
+N202R0,Faculté des arts et des sciences - Département d'histoire - Recherche
+N203A0,Faculté des arts et des sciences - Département d'histoire de l'art et d'études cinématographiques
+N204A0,Faculté des arts et des sciences - Département de linguistique et de traduction
+N206A0,Faculté des arts et des sciences - Département des littératures de langue française
+N206R0,Faculté des arts et des sciences - Département des littératures de langue française
+N208A0,Faculté des arts et des sciences - Département de philosophie
+N209A0,Faculté des arts et des sciences - Département de littératures et de langues du monde
+N209R0,Faculté des arts et des sciences - Département de littératures et de langues du monde - recherche
+N210A0,Faculté des arts et des sciences - Institut d'études religieuses
+N301A0,Faculté des arts et des sciences - Département d'anthropologie
+N302A0,Faculté des arts et des sciences - École de bibliothéconomie et des sciences de l'information
+N303A0,Faculté des arts et des sciences - Département de communication
+N304A0,Faculté des arts et des sciences - École de criminologie
+N305A0,Faculté des arts et des sciences - Département de démographie
+N305R0,Faculté des arts et des sciences - Département de démographie - Recherche
+N306A0,Faculté des arts et des sciences - École de psychoéducation
+N307A0,Faculté des arts et des sciences - Département de psychologie
+N307R0,Faculté des arts et des sciences - Département de psychologie - Recherche - A
+N308A0,Faculté des arts et des sciences - École de relations industrielles
+N309A0,Faculté des arts et des sciences - Département de science politique
+N309R0,Faculté des arts et des sciences - Département de science politique - Recherche
+N310A0,Faculté des arts et des sciences - Département de sciences économiques
+N311A0,Faculté des arts et des sciences - École de travail social
+N312A0,Faculté des arts et des sciences - Département de sociologie
+N401A0,Faculté des arts et des sciences - Département de chimie
+N401R0,Faculté des arts et des sciences - Département de chimie - Recherche
+N402A0,Faculté des arts et des sciences - Département de géographie
+N403A0,Faculté des arts et des sciences - Département d'informatique et de recherche opérationnelle
+N403B0,Faculté des arts et des sciences - Direction de l'enseignement de service en informatique (DESI)
+N403R0,Faculté des arts et des sciences - Département informatique & recherche opérationnelle - Recherche
+N40400,Faculté des arts et des sciences - Département de mathématiques et de statistique
+N404A0,Faculté des arts et des sciences - Département de mathématiques et de statistique
+N405A0,Faculté des arts et des sciences - Département de physique
+N405R0,Faculté des arts et des sciences - Département de physique - Recherche
+N406A0,Faculté des arts et des sciences - Département de sciences biologiques
+N501A0,Faculté des arts et des sciences - CIQSS
+N502A0,Institut rech bio-végétale
+N601A0,Faculté des arts et des sciences - Centre d'études médiévales
+N602A0,Faculté des arts et des sciences - Centre d'études classiques
+N603A0,Faculté des arts et des sciences – Centre d'études asiatiques
+N604A0,Faculté des arts et des sciences - Centre d'études et de recherches internationales
+P00000,Faculté de l'éducation permanente
+P000A0,Faculté de l'éducation permanente - Direction
+P001A6,Faculté de l'éducation permanente - Gestion des programmes
+P010E1,Faculté de l'éducation permanente - Communication appliquée
+P010E3,Faculté de l'éducation permanente - Information et journalisme
+P010E4,Faculté de l'éducation permanente - Rédaction
+P010E5,Faculté de l'éducation permanente - Relations publiques
+P010E6,Faculté de l'éducation permanente - Traduction
+P010E7,Faculté de l'éducation permanente - Publicité
+P010F1,Faculté de l'éducation permanente - Gestion appliquée à la police et à la sécurité
+P010F2,Faculté de l'éducation permanente - Gestion philanthropique
+P010F3,Faculté de l'éducation permanente - Gestion des services de santé et des services sociaux
+P010F4,Faculté de l'éducation permanente - Relations industrielles
+P010G1,Faculté de l'éducation permanente - Criminologie
+P010G2,Faculté de l'éducation permanente - Droit
+P010G3,Faculté de l'éducation permanente - Intervention auprès des jeunes
+P010G4,Faculté de l'éducation permanente - Déficience intellectuelle
+P010G5,Faculté de l'éducation permanente - Petite enfance et famille
+P010G6,Faculté de l'éducation permanente - Toxicomanies
+P010H1,Faculté de l'éducation permanente - Gérontologie
+P010H2,Faculté de l'éducation permanente - Santé communautaire
+P010H3,Faculté de l'éducation permanente - Santé et sécurité du travail
+P010H4,Faculté de l'éducation permanente - Santé mentale
+P010I3,Faculté de l'éducation permanente - Coopération internationale
+P010I4,Faculté de l'éducation permanente - ACCÈS
+P03221,"Faculté de l'éducation permanente -  Centre de formation continue, permanente ou professionnelle"
+Q00000,Études supérieures et postdoctorales
+Q000A0,Études supérieures et postdoctorales - Décanat
+Q000B1,Études supérieures et postdoctorales (ESP) - Gestion des études
+R000A0,École d'optométrie
+R000A1,École d'optométrie - Direction
+R000B0,École d'optométrie - Clinique universitaire de la vision
+T100A0,École de santé publique - Direction
+T200A0,"École de santé publique - Département de gestion, d’évaluation et de politique de santé"
+T300A0,École de santé publique - Département de médecine sociale et préventive
+T400A0,École de santé publique - Département de santé environnementale et santé au travail
+T500A0,ESPUM - IRSPUM - Institut de recherche en santé publique de l'Université de Montréal
+T600A0,ESPUM - USI - Unité de santé internationnale

@@ -1,0 +1,51 @@
+id,niveau,noms.codeLangue,noms.nom
+1,1,fre,Sciences naturelles et génie
+1,1,eng,Natural Sciences and Engineering
+2,2,fre,Génie
+2,2,eng,Engineering
+3,2,fre,Sciences appliquées
+3,2,eng,Applied Sciences
+4,2,fre,Sciences de la vie
+4,2,eng,Life Sciences
+5,2,fre,Sciences pures
+5,2,eng,Fundamental Sciences
+6,1,fre,Sciences de la santé
+6,1,eng,Health Sciences
+7,2,fre,Sciences médicales
+7,2,eng,Medical Sciences
+8,2,fre,Sciences infirmières
+8,2,eng,Nursing
+9,2,fre,Sciences de l’activité physique et réadaptation
+9,2,eng,Physical Education and Rehabilitation
+10,1,fre,Sciences sociales et humaines
+10,1,eng,Social Sciences and Humanities
+11,2,fre,Sciences de l’éducation
+11,2,eng,Education
+12,2,fre,Sciences de l’administration et de la gestion
+12,2,eng,Administration and Management Sciences
+13,2,fre,Sciences humaines
+13,2,eng,Humanities
+14,2,fre,Sciences sociales
+14,2,eng,Social Sciences
+15,1,fre,Arts et lettres
+15,1,eng,Arts and Literature
+16,2,fre,Arts et musique
+16,2,eng,Arts and Music
+17,2,fre,Lettres et langues
+17,2,eng,Literature and Languages
+18,2,fre,Aménagement
+18,2,eng,Environmental Planning and Design
+19,2,fre,Communication
+19,2,eng,Communication
+20,2,fre,Droit
+20,2,eng,Law
+21,2,fre,Économie et politique
+21,2,eng,Economics and Politics
+22,2,fre,Environnement et développement durable
+22,2,eng,Environment and Sustainable Development
+23,2,fre,Sciences sociales : intervention
+23,2,eng,Social Sciences and Social Action
+24,2,fre,Technologies de l’information et des communications
+24,2,eng,Information and Communication Technologies
+25,2,fre,Théologie et sciences des religions
+25,2,eng,Theology and Religious Sciences

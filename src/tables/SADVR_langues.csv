@@ -1,0 +1,111 @@
+id,code,oral,ecrit,noms.codeLangue,noms.nom
+1,aar,True,False,eng,Afar
+1,aar,True,False,fre,Afar
+6,ady,True,False,eng,Adyghe; Adygei
+6,ady,True,False,fre,Adyghé
+21,ara,True,True,eng,Arabic
+21,ara,True,True,fre,Arabe
+24,arm,True,True,eng,Armenian
+24,arm,True,True,fre,Arménien
+50,ben,True,True,eng,Bengali
+50,ben,True,True,fre,Bengali
+58,bnt,True,False,eng,Bantu languages
+58,bnt,True,False,fre,"Bantou, langues"
+71,cat,True,True,eng,Catalan; Valencian
+71,cat,True,True,fre,Catalan; valencien
+79,chi,True,True,eng,Chinese
+79,chi,True,True,fre,Chinois
+101,cze,True,False,eng,Czech
+101,cze,True,False,fre,Tchèque
+103,dan,False,True,eng,Danish
+103,dan,False,True,fre,Danois
+116,dut,True,True,eng,Dutch; Flemish
+116,dut,True,True,fre,Néerlandais; flamand
+123,eng,True,True,eng,English
+123,eng,True,True,fre,Anglais
+124,enm,True,True,eng,"English, Middle (1100-1500)"
+124,enm,True,True,fre,Anglais moyen (1100-1500)
+126,est,False,True,eng,Estonian
+126,est,False,True,fre,Estonien
+136,fon,True,False,eng,Fon
+136,fon,True,False,fre,Fon
+137,fre,True,True,eng,French
+137,fre,True,True,fre,Français
+138,frm,False,True,eng,"French, Middle (ca.1400-1600)"
+138,frm,False,True,fre,Français moyen (1400-1600)
+139,fro,False,True,eng,"French, Old (842-ca.1400)"
+139,fro,False,True,fre,Français ancien (842-ca.1400)
+143,ful,True,False,eng,Fulah
+143,ful,True,False,fre,Peul
+144,fur,True,False,eng,Friulian
+144,fur,True,False,fre,Frioulan
+150,ger,True,True,eng,German
+150,ger,True,True,fre,Allemand
+155,glg,True,False,eng,Galician
+155,glg,True,False,fre,Galicien
+163,grc,False,True,eng,"Greek, Ancient (to 1453)"
+163,grc,False,True,fre,Grec ancien (jusqu’à 1453)
+164,gre,True,True,eng,"Greek, Modern (1453-)"
+164,gre,True,True,fre,Grec moderne (après 1453)
+166,gsw,True,False,eng,Swiss German; Alemannic; Alsatian
+166,gsw,True,False,fre,Suisse alémanique; alémanique; alsacien
+170,hat,True,True,eng,Haitian; Haitian Creole
+170,hat,True,True,fre,Haïtien; créole haïtien
+173,heb,True,True,eng,Hebrew
+173,heb,True,True,fre,Hébreu
+177,hin,True,True,eng,Hindi
+177,hin,True,True,fre,Hindi
+183,hun,True,True,eng,Hungarian
+183,hun,True,True,fre,Hongrois
+200,ira,False,True,eng,Iranian languages
+200,ira,False,True,fre,"Iraniennes, langues"
+202,ita,True,True,eng,Italian
+202,ita,True,True,fre,Italien
+205,jpn,True,True,eng,Japanese
+205,jpn,True,True,fre,Japonais
+230,kon,True,False,eng,Kongo
+230,kon,True,False,fre,Kongo
+246,lat,False,True,eng,Latin
+246,lat,False,True,fre,Latin
+250,lin,True,False,eng,Lingala
+250,lin,True,False,fre,Lingala
+291,mul,False,True,eng,Multiple languages
+291,mul,False,True,fre,Multilingue
+338,pan,True,True,eng,Panjabi; Punjabi
+338,pan,True,True,fre,Pendjabi
+342,per,True,True,eng,Persian
+342,per,True,True,fre,Persan
+346,pol,True,True,eng,Polish
+346,pol,True,True,fre,Polonais
+348,por,True,True,eng,Portuguese
+348,por,True,True,fre,Portugais
+353,que,True,False,eng,Quechua
+353,que,True,False,fre,Quechua
+360,rum,True,True,eng,Romanian; Moldavian; Moldovan
+360,rum,True,True,fre,Roumain; moldave
+363,rus,True,True,eng,Russian
+363,rus,True,True,fre,Russe
+378,sgn,True,False,eng,Sign Languages
+378,sgn,True,False,fre,Langues des signes
+385,slo,True,False,eng,Slovak
+385,slo,True,False,fre,Slovaque
+401,spa,True,True,eng,Spanish; Castilian
+401,spa,True,True,fre,Espagnol; castillan
+410,sus,True,False,eng,Susu
+410,sus,True,False,fre,Soussou
+412,swa,True,False,eng,Swahili
+412,swa,True,False,fre,Swahili
+413,swe,True,True,eng,Swedish
+413,swe,True,True,fre,Suédois
+418,tam,True,False,eng,Tamil
+418,tam,True,False,fre,Tamoul
+444,tur,True,True,eng,Turkish
+444,tur,True,True,fre,Turc
+452,ukr,True,True,eng,Ukrainian
+452,ukr,True,True,fre,Ukrainien
+455,urd,True,True,eng,Urdu
+455,urd,True,True,fre,Ourdou
+459,vie,True,True,eng,Vietnamese
+459,vie,True,True,fre,Vietnamien
+469,wol,True,True,eng,Wolof
+469,wol,True,True,fre,Wolof

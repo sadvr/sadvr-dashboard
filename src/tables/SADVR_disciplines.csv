@@ -1,0 +1,449 @@
+id,noms.codeLangue,noms.nom
+1,fre,Actuariat (gestion)
+1,eng,Actuarial Science (Management)
+2,fre,Actuariat (sciences mathématiques)
+2,eng,Actuarial Science (Mathematical Sciences)
+3,fre,Administration de la santé
+3,eng,Health Administration
+4,fre,Administration des affaires
+4,eng,Business Administration
+5,fre,Administration publique
+5,eng,Public Administration
+6,fre,Administration scolaire
+6,eng,School Administration
+7,fre,Agronomie
+7,eng,Agronomy
+8,fre,Anatomo-pathologie
+8,eng,Anatomical Pathology
+9,fre,Andragogie
+9,eng,Andragogy
+10,fre,Anesthésiologie
+10,eng,Anesthesiology
+11,fre,Anthropologie
+11,eng,Anthropology
+12,fre,Archéologie
+12,eng,Archaeology
+13,fre,Archéologie classique
+13,eng,Classical Archaeology
+14,fre,Aménagement
+14,eng,Environmental Planning and Design
+15,fre,Archivistique et bibliothéconomie
+15,eng,Archive and Library Sciences
+16,fre,Arts visuels et médiatiques
+16,eng,Media and Visual Arts
+17,fre,Assurances
+17,eng,Insurances
+18,fre,Astronomie et astrophysique
+18,eng,Astronomy and Astrophysics
+19,fre,Biochimie
+19,eng,Biochemistry
+20,fre,Biologie cellulaire
+20,eng,Cell Biology
+21,fre,Biologie et autres sciences connexes
+21,eng,Biology and Related Sciences
+22,fre,Biologie moléculaire
+22,eng,Molecular Biology
+23,fre,Cardiologie
+23,eng,Cardiology
+24,fre,Chimie
+24,eng,Chemistry
+25,fre,Chiropratique
+25,eng,Chiropractic
+26,fre,Chirurgie générale
+26,eng,General Surgery
+27,fre,Climatologie et météorologie
+27,eng,Climatology and Meteorology
+28,fre,Communication
+28,eng,Communication
+29,fre,Comptabilité
+29,eng,Accounting
+30,fre,Criminologie
+30,eng,Criminology
+31,fre,Danse
+31,eng,Dance
+32,fre,Démographie
+32,eng,Demography
+33,fre,Dermatologie
+33,eng,Dermatology
+34,fre,Design
+34,eng,Design
+35,fre,Didactique
+35,eng,Didactics
+36,fre,Diététique
+36,eng,Dietetics
+37,fre,Droit
+37,eng,Law
+38,fre,Eau et environnement
+38,eng,Water and Environment
+39,fre,Économie
+39,eng,Economy
+40,fre,Éducation comparée
+40,eng,Comparative Education
+41,fre,Éducation physique
+41,eng,Physical Education
+42,fre,Endocrinologie
+42,eng,Endocrinology
+43,fre,Enseignement des arts
+43,eng,Arts Education
+44,fre,Épidémiologie et biostatistique
+44,eng,Epidemiology and Biostatistics
+45,fre,Ergonomie
+45,eng,Ergonomics
+46,fre,Ergothérapie
+46,eng,Occupational Therapy
+47,fre,Ethnologie
+47,eng,Ethnology
+48,fre,Études anciennes et études classiques
+48,eng,Classical and Ancient Studies
+49,fre,Études des langues
+49,eng,Language Studies
+50,fre,Études féministes
+50,eng,Women Studies
+51,fre,Études littéraires
+51,eng,Literary Studies
+52,fre,Études urbaines
+52,eng,Urban Studies
+53,fre,Finance
+53,eng,Finance
+54,fre,Foresterie et sciences du bois
+54,eng,Forestry and Wood Science
+55,fre,Gastroentérologie
+55,eng,Gastroenterology
+56,fre,Génétique
+56,eng,Genetics
+57,fre,Génie aéronautique
+57,eng,Aeronautical Engineering
+58,fre,Génie agricole et génie rural
+58,eng,Agricultural Engineering
+59,fre,Génie biomédical
+59,eng,Biomedical Engineering 
+60,fre,Génie chimique
+60,eng,Chemical Engineering
+61,fre,Génie civil
+61,eng,Civil Engineering
+62,fre,Génie des matériaux et génie métallurgique
+62,eng,Material Engineering and Metallurgic Engineering
+63,fre,Génie électrique et génie électronique
+63,eng,Electrical Engineering and Electronic Engineering
+64,fre,Génie forestier
+64,eng,Forest Engineering
+65,fre,Génie industriel
+65,eng,Industrial Engineering
+66,fre,Génie informatique et génie logiciel
+66,eng,Computer Engineering and Software Engineering
+67,fre,Génie mécanique
+67,eng,Mechanical Engineering
+68,fre,Génie minier et génie géologique
+68,eng,Mining Engineering and Geological Engineering
+69,fre,Génie nucléaire
+69,eng,Nuclear Engineering
+70,fre,Génie physique
+70,eng,Physical Engineering
+71,fre,Géographie humaine
+71,eng,Human Geography
+72,fre,Gériatrie
+72,eng,Geriatrics
+73,fre,Hématologie
+73,eng,Hematology
+74,fre,Histoire
+74,eng,History
+75,fre,Histoire des arts
+75,eng,Art History
+76,fre,Immunologie
+76,eng,Immunology
+77,fre,Informatique
+77,eng,Computer Science
+78,fre,Informatique de gestion
+78,eng,Administrative Computing
+79,fre,Kinanthropologie
+79,eng,Kinanthropology 
+80,fre,Kinésiologie
+80,eng,Kinesiology
+81,fre,Linguistique
+81,eng,Linguistics
+82,fre,Littérature
+82,eng,Literature
+83,fre,Management
+83,eng,Management
+84,fre,Marketing
+84,eng,Marketing
+85,fre,Mathématiques appliquées
+85,eng,Applied Mathematics
+86,fre,Mathématiques fondamentales
+86,eng,Pure Mathematics
+87,fre,Médecine dentaire
+87,eng,Dentistry
+88,fre,Médecine de famille
+88,eng,Family Medicine
+89,fre,Médecine nucléaire
+89,eng,Nuclear Medicine
+90,fre,Médecine préventive
+90,eng,Preventive Medicine
+91,fre,Médecine vétérinaire
+91,eng,Veterinary Sciences
+92,fre,Mesures et évaluation
+92,eng,Statistics and Evaluation
+93,fre,Microbiologie
+93,eng,Microbiology
+94,fre,Muséologie
+94,eng,Museology
+95,fre,Musicologie
+95,eng,Musicology
+96,fre,Musique
+96,eng,Music
+97,fre,Néphrologie
+97,eng,Nephrology
+98,fre,Neurosciences
+98,eng,Neurosciences
+100,fre,Obstétrique et gynécologie
+100,eng,Obstetrics and Gynecology
+101,fre,Océanographie
+101,eng,Oceanography
+102,fre,Oncologie
+102,eng,Oncology
+103,fre,Ophtalmologie
+103,eng,Ophthalmology
+104,fre,Optométrie
+104,eng,Optometry
+105,fre,"Orientation, information scolaire et professionnelle"
+105,eng,"Counselling, Career Education"
+106,fre,Orthopédagogie
+106,eng,Remedial Education
+107,fre,Orthopédie
+107,eng,Orthopedics
+108,fre,Audiologie
+108,eng,Audiology
+109,fre,Pathologie générale
+109,eng,General Pathology
+110,fre,Pédiatrie
+110,eng,Pediatrics
+111,fre,Pharmacie
+111,eng,Pharmacy
+112,fre,Pharmacologie
+112,eng,Pharmacology
+113,fre,Philosophie
+113,eng,Philosophy
+114,fre,Physiatrie
+114,eng,Physiatry
+115,fre,Physiologie
+115,eng,Physiology
+116,fre,Physiothérapie
+116,eng,Physiotherapy
+117,fre,Physique
+117,eng,Physics
+118,fre,Pneumologie
+118,eng,Respirology
+119,fre,Psychiatrie
+119,eng,Psychiatry
+120,fre,Psychoéducation
+120,eng,Psychoeducation
+121,fre,Psychologie
+121,eng,Psychology
+122,fre,Psychopédagogie
+122,eng,Psycho-pedagogy
+123,fre,Radiologie diagnostique
+123,eng,Diagnostic Radiology
+124,fre,Récréologie et sciences du loisir
+124,eng,Recreology and Leisure Sciences
+125,fre,Relations industrielles
+125,eng,Industrial Relations
+126,fre,Rhumatologie
+126,eng,Rheumatology
+127,fre,"Sciences de la terre (géologie, géographie physique, etc.)"
+127,eng,Earth Science
+128,fre,Sciences infirmières
+128,eng,Nursing
+129,fre,Science politique
+129,eng,Political Science
+130,fre,Sémiologie
+130,eng,Semiology
+131,fre,Service social et travail social
+131,eng,Social Services and Social Work
+132,fre,Sexologie
+132,eng,Sexology
+133,fre,Sociologie
+133,eng,Sociology
+134,fre,Sociologie de l’art
+134,eng,Art Sociology
+135,fre,Statistiques
+135,eng,Statistics
+136,fre,Théâtre
+136,eng,Drama
+137,fre,Sciences des religions
+137,eng,Religious Studies
+138,fre,Thérapie par l’art
+138,eng,Art Therapy
+139,fre,Urologie
+139,eng,Urology
+140,fre,Virologie
+140,eng,Virology
+141,fre,Architecture de paysage
+141,eng,Landscape Architecture
+142,fre,Architecture
+142,eng,Architecture
+143,fre,Design de jeux
+143,eng,Game Design
+144,fre,Design d’intérieur
+144,eng,Interior Design
+145,fre,Design industriel
+145,eng,Industrial Design
+146,fre,Éducation
+146,eng,Education
+147,fre,Études du jeu vidéo
+147,eng,Video Game Studies
+148,fre,Environnement et développement durable
+148,eng,Environment and Sustainable Development
+149,fre,Biochimie médicale
+149,eng,Medical Biochemistry
+150,fre,Bio-informatique
+150,eng,Bioinformatics
+151,fre,Journalisme
+151,eng,Journalism
+152,fre,Médecine de la douleur
+152,eng,Pain Medicine
+153,fre,Médecine d’urgence
+153,eng,Emergency Medicine
+154,fre,Médecine moléculaire
+154,eng,Molecular Medicine
+155,fre,Santé publique
+155,eng,Public Health
+156,fre,Sciences biomédicales
+156,eng,Biomedical Sciences
+157,fre,Urbanisme
+157,eng,Urban planning
+158,fre,Chirurgie cardiaque
+158,eng,Cardiac Surgery
+159,fre,Bactériologie
+159,eng,Bacteriology
+160,fre,Chirurgie colorectale
+160,eng,Colorectal Surgery
+161,fre,Chirurgie générale oncologique
+161,eng,General Surgical Oncology
+162,fre,Chirurgie générale pédiatrique
+162,eng,Pediatric Surgery
+163,fre,Chirurgie orthopédique
+163,eng,Orthopedic Surgery
+164,fre,Chirurgie plastique
+164,eng,Plastic Surgery
+165,fre,Chirurgie thoracique
+165,eng,Thoracic Surgery
+166,fre,Chirurgie vasculaire
+166,eng,Vascular Surgery
+167,fre,Dentisterie
+167,eng,Dentistry
+168,fre,Dentisterie de restauration
+168,eng,Restorative Dentistry
+169,fre,Dentisterie pédiatrique
+169,eng,Pediatric Dentistry
+170,fre,Médecine palliative
+170,eng,Palliative Medicine
+171,fre,Endocrinologie et métabolisme
+171,eng,Endocrinology and Metabolism
+172,fre,Endocrinologie gynécologique de la reproduction et de l’infertilité
+172,eng,Gynecologic Reproductive Endocrinology and Infertility
+173,fre,Génétique médicale
+173,eng,Medical Genetics
+174,fre,Génie biochimique
+174,eng,Biochemical Engineering
+175,fre,Gérontologie
+175,eng,Gerontology
+176,fre,Gérontopsychiatrie
+176,eng,Geriatric Psychiatry
+177,fre,Hématologie et oncologie pédiatrique
+177,eng,Pediatric Hematology / Oncology
+178,fre,Hépatologie
+178,eng,Hepatology
+179,fre,Histologie
+179,eng,Histology
+180,fre,Immunologie clinique et allergie
+180,eng,Clinical Immunology and Allergy
+181,fre,Infectiologie
+181,eng,Infectious Diseases
+182,fre,Médecine de l’adolescence
+182,eng,Adolescent Medicine
+183,fre,Médecine de soins intensifs 
+183,eng,Critical Care Medicine 
+184,fre,Médecine du travail
+184,eng,Occupational Medicine
+185,fre,Médecine d’urgence pédiatrique
+185,eng,Pediatric Emergency Medicine
+186,fre,Médecine générale
+186,eng,General Surgery
+187,fre,Médecine interne
+187,eng,Internal Medicine
+188,fre,Médecine interne générale
+188,eng,General Internal Medicine
+189,fre,Médecine maternelle et foetale
+189,eng,Maternal-Fetal Medicine
+190,fre,Médecine moléculaire
+190,eng,Molecular Medicine
+191,fre,Médecine néonatale et périnatale
+191,eng,Neonatal-Perinatal Medicine
+192,fre,Médecine physique et réadaptation
+192,eng,Physical Medicine & Rehabilitation
+193,fre,Microbiologie médicale
+193,eng,Medecine Microbiology
+194,fre,Mycologie
+194,eng,Mycology
+195,fre,Neurochirurgie
+195,eng,Neurosurgery
+196,fre,Neurologie
+196,eng,Neurology
+197,fre,Neuropathologie
+197,eng,Neuropathology
+198,fre,Neuroradiologie
+198,eng,Neuroradiology
+199,fre,Nutrition
+199,eng,Nutrition
+200,fre,Oncologie gynécologique
+200,eng,Gynecologic Oncology
+201,fre,Oncologie médicale
+201,eng,Medical Oncology
+202,fre,Orthophonie
+202,eng,Speech-Language Pathology
+203,fre,Oto-rhino-laryngologie et chirurgie cervico-faciale
+203,eng,Otolaryngology - Head and Neck Surgery
+204,fre,Parasitologie
+204,eng,Parasitology
+205,fre,Pathologie hématologique
+205,eng,Hematological Pathology
+206,fre,Pathologie judiciaire
+206,eng,Forensic Pathology
+207,fre,Pédiatrie du développement
+207,eng,Developmental Pediatrics
+208,fre,Psychiatrie de l’enfant et de l’adolescent
+208,eng,Child & Adolescent Psychiatry
+209,fre,Psychiatrie légale
+209,eng,Forensic Psychiatry
+210,fre,Radiologie interventionnelle
+210,eng,Interventional Radialogy
+211,fre,Radio-oncologie
+211,eng,Radiation Oncology
+212,fre,Sciences cliniques
+212,eng,Clinical Sciences
+213,fre,Santé buccale
+213,eng,Oral Health
+214,fre,Traumatologie
+214,eng,Traumatology
+215,fre,Stomatologie
+215,eng,Stomatology
+216,fre,Théologie
+216,eng,Theology
+217,fre,Physique médicale
+217,eng,Medical Physics
+218,fre,Toxicologie
+218,eng,Toxicology
+219,fre,Anatomie
+219,eng,Anatomy
+220,fre,Anthropologie biologique
+220,eng,Biological anthropology
+221,fre,Cythopathologie
+221,eng,Cytopathology
+222,fre,Ethnolinguistique
+222,eng,Ethnolinguistics
+223,fre,Génomique
+223,eng,Genomics
+224,fre,Médecine communautaire
+224,eng,Community medicine
+225,fre,Traductologie
+225,eng,Translatology

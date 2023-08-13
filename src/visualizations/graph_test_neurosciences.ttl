@@ -1,0 +1,165 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sadvr: <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+sadvr:count a owl:ObjectProperty ;
+    rdfs:label "keywordCount"@en .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/1> a owl:Class ;
+    rdfs:label "Activité locomotrice / troubles du mouvement" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 12 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/13> a owl:Class ;
+    rdfs:label "Affections convulsives / Épilepsie" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 11 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/137> a owl:Class ;
+    rdfs:label "Démences" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 8 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/154> a owl:Class ;
+    rdfs:label "Développement cognitif" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 6 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/159> a owl:Class ;
+    rdfs:label "Développement du nourrisson / de l'enfant" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 8 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/168> a owl:Class ;
+    rdfs:label "Douleur" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/203> a owl:Class ;
+    rdfs:label "Facteurs de croissance (neurosciences)" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/254> a owl:Class ;
+    rdfs:label "Imagerie (Outils de caractérisation)" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 6 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/290> a owl:Class ;
+    rdfs:label "Maladie d'Alzheimer" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/292> a owl:Class ;
+    rdfs:label "Maladie de Parkinson" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/311> a owl:Class ;
+    rdfs:label "Maladies neurodégénératives (Neurosciences, santé mentale et toxicomanies)" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 9 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/312> a owl:Class ;
+    rdfs:label "Maladies neurodégénératives (Vieillissement)" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/33> a owl:Class ;
+    rdfs:label "Apoptose (neurosciences)" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 6 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/336> a owl:Class ;
+    rdfs:label "Mémoire" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 8 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/38> a owl:Class ;
+    rdfs:label "Apprentissage et mémoire (Psychologie - aspects biologiques)" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/4> a owl:Class ;
+    rdfs:label "Accidents cérébro-vasculaires" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 8 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/403> a owl:Class ;
+    rdfs:label "Physiologie" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/405> a owl:Class ;
+    rdfs:label "Plasticité / régénération neuronale" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 9 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/465> a owl:Class ;
+    rdfs:label "Santé mentale et société" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 6 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/466> a owl:Class ;
+    rdfs:label "Schizophrénie" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 6 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/493> a owl:Class ;
+    rdfs:label "Sommeil et troubles du sommeil" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 10 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/494> a owl:Class ;
+    rdfs:label "Sommeil, éveil et modulation chronobiologique" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 9 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/5023> a owl:Class ;
+    rdfs:label "Neuropsychologie" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 12 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/513> a owl:Class ;
+    rdfs:label "Système moteur" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 9 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/519> a owl:Class ;
+    rdfs:label "Système visuel" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 7 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/5348> a owl:Class ;
+    rdfs:label "Imagerie cérébrale" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 12 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/5386> a owl:Class ;
+    rdfs:label "Neuroscience cognitive" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 16 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/8> a owl:Class ;
+    rdfs:label "Activité nerveuse et synaptique" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 12 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/95> a owl:Class ;
+    rdfs:label "Cognition" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 17 .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/motsCles/98> a owl:Class ;
+    rdfs:label "Communication neuronale et neurotransmission" ;
+    rdfs:subClassOf <https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> ;
+    sadvr:count 25 .
+
+sadvr:disciplines a owl:Class ;
+    rdfs:label "Discipline"@fr .
+
+<https://www.recherche.umontreal.ca/vitrine/rest/api/1.7/umontreal/disciplines/98> a owl:Class,
+        sadvr:disciplines ;
+    rdfs:label "Neurosciences"@fr .
+
