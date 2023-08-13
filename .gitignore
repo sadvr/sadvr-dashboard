@@ -1,5 +1,5 @@
-tables/*
 __pycache__/*
-sadvr_analytics/*
-visualizations/*
-visualisations/*
+src/visualisations/*
+src/tables/statistiques__expertisesRecherche/*
+src/tables/statistiques__sociodemographiques/*
+archives/*
