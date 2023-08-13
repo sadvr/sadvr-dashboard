@@ -21,8 +21,6 @@ columns = pd.read_csv('utils/columnsDemographics.csv')['columns'].tolist()
 demographics = demographics[[x for x in demographics.columns if x in columns]]
 
 demographics = demographics[demographics['affiliations.fonction.codeSad'].isin(fonctionsProf)]
-demographics.to_csv('tables/demographics.csv', index=False)
-
 
 ### 1e visuel : 4 mesures "Count"
 # 1: nombre de professeurs
@@ -178,7 +176,6 @@ mapping = pd.read_csv('tables/SADVR_fonctions.csv')[['codeSad', 'nomM']].to_dict
 mapping = {x['codeSad'] : x['nomM'] for x in mapping}
 
 freqFonctionGenre['fonction'] = freqFonctionGenre['affiliations.fonction.codeSad'].map(mapping)
-freqFonctionGenre.to_csv('tables/statistiques__sociodemographiques/fonctionGenre.csv', index=False)
 
 freqFonctionGenre = freqFonctionGenre[['sexe', 'fonction', 'count']]
 freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['sexe'] != 'A']
