@@ -5,6 +5,8 @@ from utils.SADVR_utils import *
 from generateFigures import *
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
+
 app.layout = html.Div(
     children = [html.H1
         (
