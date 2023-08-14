@@ -344,14 +344,15 @@ tableFacultes = dash_table.DataTable(
 
 # Secteurs
 facultes['noms'] = facultes['labels'].apply(lambda x: (str(x)[:25] + "..."))
+facultes = facultes.rename(columns={'labels':'Faculté', 'count':'N'})
+
 figFacultes = px.pie(
     facultes, 
-    values= 'count',
-    labels = 'labels', 
-    names= 'noms', 
+    values= 'N',
+    labels = 'Faculté', 
+    names= 'Faculté', 
     title='Nombre de professeur-e-s par faculté',
-    hover_name = "labels",
-    width = 800,
+    hover_name = "Faculté",
     hole=0.6 
 )
 
@@ -361,7 +362,7 @@ figFacultes = figFacultes.update_traces(
 figFacultes = figFacultes.update_layout(
     uniformtext_minsize=12, 
     uniformtext_mode='hide',
-    legend=dict(font=dict(size= 10)),
+    legend=dict(font=dict(size= 12)),
     margin = dict(l=20)    
 )
 
@@ -396,7 +397,7 @@ tableEtablissements = dash_table.DataTable(
 )
 
 # Secteurs
-etablissementsAffilies['noms'] = etablissementsAffilies['Établissement'].apply(lambda x: (str(x)[:25] + "..."))
+etablissementsAffilies['noms'] = etablissementsAffilies['Établissement'].apply(lambda x: (str(x)[:30] + "..."))
 figEtablissementsAffilies = px.pie(
     etablissementsAffilies,
     labels = etablissementsAffilies['Établissement'],
@@ -404,7 +405,6 @@ figEtablissementsAffilies = px.pie(
     values = etablissementsAffilies['N'],
     title = 'Nombre de professeurs par établissement affilié',
     hover_name = "Établissement",
-    width = 800,
     hole = 0.6
 )
 
@@ -414,7 +414,7 @@ figEtablissementsAffilies = figEtablissementsAffilies.update_traces(
 figEtablissementsAffilies = figEtablissementsAffilies.update_layout(
     uniformtext_minsize=12, 
     uniformtext_mode='hide',
-    legend=dict(font=dict(size= 10)),
+    legend=dict(font=dict(size= 12)),
     margin=dict(l=20)    
 )
 
@@ -443,9 +443,8 @@ figDisciplines = go.Figure(
 )
 
 figDisciplines = figDisciplines.update_layout(
-    title_text="Principales disciplines de recherche à l'UdeM (Top 30)",
     height = 600,
-    margin = dict(t=25, l=50, b=50)
+    margin = dict(t=20, l=20, b=50)
 )
 
 
@@ -529,5 +528,6 @@ fig.update_layout(
 )
 
 figDisciplinesFacultes = fig
+figDisciplinesFacultes.write_html("html/disciplinesFacultes.html")
 
 # Cartographie des expertises de recherche: mots-clés associés aux principales disciplines de recherche de l'UdeM 
