@@ -1,11 +1,12 @@
-# from dash import Dash, html, dcc, dash_table
-# import plotly.express as px
-# import plotly.io as pio
-# import plotly.graph_objects as go
-# import pandas as pd
-# import dash_bootstrap_components as dbc
-# from utils.sadvr_utils import *
-# from generate_figures import *
+from dash import Dash, html, dcc, dash_table
+import plotly.express as px
+import plotly.io as pio
+import plotly.graph_objects as go
+import pandas as pd
+import dash_bootstrap_components as dbc
+from utils.sadvr_utils import *
+from generate_figures import *
+from bs4 import BeautifulSoup
 
 # utils to generate html file
 tableClasses = ['table', 'table-hover']
@@ -21,7 +22,7 @@ with open('./html/footer.html') as f:
 
 
 ### Générer le fichier html pour les affiliations
-with open('index.html', 'w', encoding='utf-8') as f:
+with open('html/affiliations.html', 'w', encoding='utf-8') as f:
     f.write(header)
     f.write('<h2>Affiliations</h2></div>')
 
@@ -89,7 +90,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write(footer)
 
 ### Générer le fichier html pour les unités de recherche
-with open('expertises.html', 'w', encoding='utf-8') as f:
+with open('html/expertises.html', 'w', encoding='utf-8') as f:
     f.write(header)
     f.write('<h2>Expertises de recherche</h2></div>')
 

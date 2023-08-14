@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+  <head>
+        <script src="../assets/js/color-modes.js"></script>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>SADVR - Portrait statistique</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        <style>
+        .nav {
+            display: flex;
+            flex-wrap: nowrap;
+            padding-bottom: 1rem;
+            margin-top: -1px;
+            overflow-x: auto;
+            text-align: center;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+        </style>
+
+        <!-- Custom styles for this template -->
+        <link href="../styles/dashboard.css" rel="stylesheet">
+    </head>
+    <body>
+    <header class="navbar sticky-top bg-dark flex-md-nowrap p-0 shadow" data-bs-theme="dark">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="professeur-e-s.html">SADVR - Portrait statistique</a>
+    </header>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+            <div class="offcanvas-md offcanvas-end bg-body-tertiary" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+                <div class="offcanvas-header">
+                </div>
+                <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+                    <ul class="nav flex-column">
+                        <!-- <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-2" href="html/unites.html">
+                                Unités de recherche
+                            </a>
+                        </li> -->
+                        <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="html/professeur-e-s.html">
+                            Professeur-e-s
+                        </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-2" href="html/affiliations.html">
+                                Affiliations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="html/expertises.html">
+                            Expertises de recherche
+                        </a>
+                        </li>
+                    </ul>
+                </div>
+        </div>
+    </div>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="conteneurPrincipal"><h2>Affiliations</h2></div><h3>Établissements affiliés</h3>
+        <div class="grid">
+            <div class="col-md-4" 
+                style="float:left; padding-right:5px; 
+                margin-top:10px; max-height:425px; overflow-y:scroll;">
+        <table border="1" class="dataframe table table-hover">
+  <thead>
+    <tr style="text-align: left;">
+      <th>Établissement</th>
+      <th>N</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Centre hospitalier de l’Université de Montréal (CHUM)</td>
+      <td>185</td>
+    </tr>
+    <tr>
+      <td>CIUSSS de l'Est-de-l'Île-de-Montréal</td>
+      <td>92</td>
+    </tr>
+    <tr>
+      <td>CIUSSS du Nord-de-l'Île-de-Montréal</td>
+      <td>83</td>
+    </tr>
+    <tr>
+      <td>Centre hospitalier universitaire Sainte-Justine (CHU Sainte-Justine)</td>
+      <td>77</td>
+    </tr>
+    <tr>
+      <td>CIUSSS du Centre-Sud-de-l’Île-de-Montréal</td>
+      <td>49</td>
+    </tr>
+    <tr>
+      <td>Institut de cardiologie de Montréal (ICM)</td>
+      <td>33</td>
+    </tr>
+    <tr>
+      <td>Institut de recherches cliniques de Montréal (IRCM)</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <td>CISSS de Laval</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <td>Institut Philippe-Pinel de Montréal (IPP)</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>Institut national de santé publique du Québec (INSPQ)</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>CISSS Montérégie-Centre</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>CIUSS du Centre-Ouest-de-l’Île-de-Montréal</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>Centre de recherche interdisciplinaire en réadaptation du Montréal métropolitain (CRIR)</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>Centre interuniversitaire de recherche sur la première modernité XVIe-XVIIIe siècles (CIREM 16-18)</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>Centre de recherche sur la dynamique du système Terre (Geotop)</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>CIUSS de la Mauricie-et-du-Centre-du-Québec</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Institut Lady Davis de de recherche médicale (ILD) de Hôpital général juif de Montréal (HGM)</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table></div><div class="col-md-8" style="float:right; padding-right:20px;"><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.14.0.min.js"></script>                <div id="27ba3419-e531-4490-91d2-9539d5d61f07" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("27ba3419-e531-4490-91d2-9539d5d61f07")) {                    Plotly.newPlot(                        "27ba3419-e531-4490-91d2-9539d5d61f07",                        [{"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"hole":0.6,"hovertemplate":"<b>%{hovertext}</b><br><br>noms=%{label}<br>N=%{value}<extra></extra>","hovertext":["Centre hospitalier de l\u2019Universit\u00e9 de Montr\u00e9al (CHUM)","CIUSSS de l'Est-de-l'\u00cele-de-Montr\u00e9al","CIUSSS du Nord-de-l'\u00cele-de-Montr\u00e9al","Centre hospitalier universitaire Sainte-Justine (CHU Sainte-Justine)","CIUSSS du Centre-Sud-de-l\u2019\u00cele-de-Montr\u00e9al","Institut de cardiologie de Montr\u00e9al (ICM)","Institut de recherches cliniques de Montr\u00e9al (IRCM)","CISSS de Laval","Institut Philippe-Pinel de Montr\u00e9al (IPP)","Institut national de sant\u00e9 publique du Qu\u00e9bec (INSPQ)","CISSS Mont\u00e9r\u00e9gie-Centre","CIUSS du Centre-Ouest-de-l\u2019\u00cele-de-Montr\u00e9al","Centre de recherche interdisciplinaire en r\u00e9adaptation du Montr\u00e9al m\u00e9tropolitain (CRIR)","Centre interuniversitaire de recherche sur la premi\u00e8re modernit\u00e9 XVIe-XVIIIe si\u00e8cles (CIREM 16-18)","Centre de recherche sur la dynamique du syst\u00e8me Terre (Geotop)","CIUSS de la Mauricie-et-du-Centre-du-Qu\u00e9bec","Institut Lady Davis de de recherche m\u00e9dicale (ILD) de H\u00f4pital g\u00e9n\u00e9ral juif de Montr\u00e9al (HGM)"],"labels":["Centre hospitalier de l\u2019Univer...","CIUSSS de l'Est-de-l'\u00cele-de-Mo...","CIUSSS du Nord-de-l'\u00cele-de-Mon...","Centre hospitalier universitai...","CIUSSS du Centre-Sud-de-l\u2019\u00cele-...","Institut de cardiologie de Mon...","Institut de recherches cliniqu...","CISSS de Laval","Institut Philippe-Pinel de Mon...","Institut national de sant\u00e9 pub...","CISSS Mont\u00e9r\u00e9gie-Centre","CIUSS du Centre-Ouest-de-l\u2019\u00cele...","Centre de recherche interdisci...","Centre interuniversitaire de r...","Centre de recherche sur la dyn...","CIUSS de la Mauricie-et-du-Cen...","Institut Lady Davis de de rech..."],"legendgroup":"","name":"","showlegend":true,"values":[185,92,83,77,49,33,20,9,8,7,6,5,5,3,1,1,1],"type":"pie","textposition":"inside"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"legend":{"tracegroupgap":0,"font":{"size":12}},"title":{"text":"Nombre de professeurs par \u00e9tablissement affili\u00e9"},"uniformtext":{"minsize":12,"mode":"hide"},"margin":{"l":20}},                        {"responsive": true}                    )                };                            </script>        </div></div></div><div style="margin-top:500px; margin-bottom:20px;"><hr/></div><h3>Facultés</h3>
+        <div class="grid">
+            <div class="col-md-4" 
+                style="float:left; padding-right:5px; 
+                margin-top:10px; max-height:425px; overflow-y:scroll;">
+        <table border="1" class="dataframe table table-hover">
+  <thead>
+    <tr style="text-align: left;">
+      <th>Faculté</th>
+      <th>N</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Faculté de médecine</td>
+      <td>991</td>
+    </tr>
+    <tr>
+      <td>Faculté des arts et des sciences</td>
+      <td>931</td>
+    </tr>
+    <tr>
+      <td>École de santé publique</td>
+      <td>174</td>
+    </tr>
+    <tr>
+      <td>Faculté de médecine vétérinaire</td>
+      <td>113</td>
+    </tr>
+    <tr>
+      <td>Faculté des sciences de l'éducation</td>
+      <td>78</td>
+    </tr>
+    <tr>
+      <td>Faculté de droit</td>
+      <td>74</td>
+    </tr>
+    <tr>
+      <td>Faculté de pharmacie</td>
+      <td>73</td>
+    </tr>
+    <tr>
+      <td>Faculté des sciences infirmières</td>
+      <td>67</td>
+    </tr>
+    <tr>
+      <td>Faculté de musique</td>
+      <td>65</td>
+    </tr>
+    <tr>
+      <td>Faculté de l'aménagement</td>
+      <td>64</td>
+    </tr>
+    <tr>
+      <td>Faculté de médecine dentaire</td>
+      <td>45</td>
+    </tr>
+    <tr>
+      <td>École d'optométrie</td>
+      <td>31</td>
+    </tr>
+  </tbody>
+</table></div><div class="col-md-8" style="float:right; padding-right:20px;"><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.14.0.min.js"></script>                <div id="a8650392-92f5-4501-84c1-65e6e45d0142" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("a8650392-92f5-4501-84c1-65e6e45d0142")) {                    Plotly.newPlot(                        "a8650392-92f5-4501-84c1-65e6e45d0142",                        [{"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"hole":0.6,"hovertemplate":"<b>%{hovertext}</b><br><br>Facult\u00e9=%{label}<br>N=%{value}<extra></extra>","hovertext":["Facult\u00e9 de m\u00e9decine","Facult\u00e9 des arts et des sciences","\u00c9cole de sant\u00e9 publique","Facult\u00e9 de m\u00e9decine v\u00e9t\u00e9rinaire","Facult\u00e9 des sciences de l'\u00e9ducation","Facult\u00e9 de droit","Facult\u00e9 de pharmacie","Facult\u00e9 des sciences infirmi\u00e8res","Facult\u00e9 de musique","Facult\u00e9 de l'am\u00e9nagement","Facult\u00e9 de m\u00e9decine dentaire","\u00c9cole d'optom\u00e9trie"],"labels":["Facult\u00e9 de m\u00e9decine","Facult\u00e9 des arts et des sciences","\u00c9cole de sant\u00e9 publique","Facult\u00e9 de m\u00e9decine v\u00e9t\u00e9rinaire","Facult\u00e9 des sciences de l'\u00e9ducation","Facult\u00e9 de droit","Facult\u00e9 de pharmacie","Facult\u00e9 des sciences infirmi\u00e8res","Facult\u00e9 de musique","Facult\u00e9 de l'am\u00e9nagement","Facult\u00e9 de m\u00e9decine dentaire","\u00c9cole d'optom\u00e9trie"],"legendgroup":"","name":"","showlegend":true,"values":[991,931,174,113,78,74,73,67,65,64,45,31],"type":"pie","textposition":"inside"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"legend":{"tracegroupgap":0,"font":{"size":12}},"title":{"text":"Nombre de professeur-e-s par facult\u00e9"},"uniformtext":{"minsize":12,"mode":"hide"},"margin":{"l":20}},                        {"responsive": true}                    )                };                            </script>        </div></div></div><div style="margin-top:500px;"><hr/><h3>Départements</h3>
+        <div class="grid">
+            <div class="col-md-4" 
+                style="float:left; padding-right:5px; 
+                margin-top:10px; height:430px; max-height:430px; overflow-y:scroll;">
+        <table border="1" class="dataframe table table-hover">
+  <thead>
+    <tr style="text-align: left;">
+      <th>Département</th>
+      <th>N</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Département de médecine</td>
+      <td>204</td>
+    </tr>
+    <tr>
+      <td>Département de médecine sociale et préventive</td>
+      <td>101</td>
+    </tr>
+    <tr>
+      <td>Département de psychologie</td>
+      <td>93</td>
+    </tr>
+    <tr>
+      <td>Département d'ophtalmologie</td>
+      <td>79</td>
+    </tr>
+    <tr>
+      <td>Centre d'études et de recherches internationales</td>
+      <td>79</td>
+    </tr>
+    <tr>
+      <td>Département de pathologie et biologie cellulaire</td>
+      <td>76</td>
+    </tr>
+    <tr>
+      <td>Département d'informatique et de recherche opérationnelle</td>
+      <td>75</td>
+    </tr>
+    <tr>
+      <td>Département de médecine de famille et de médecine d'urgence</td>
+      <td>72</td>
+    </tr>
+    <tr>
+      <td>Département de psychiatrie et d’addictologie</td>
+      <td>67</td>
+    </tr>
+    <tr>
+      <td>Département de biochimie et médecine moléculaire</td>
+      <td>65</td>
+    </tr>
+    <tr>
+      <td>Département de pédiatrie</td>
+      <td>64</td>
+    </tr>
+    <tr>
+      <td>Département de neurosciences</td>
+      <td>59</td>
+    </tr>
+    <tr>
+      <td>Département de chirurgie</td>
+      <td>57</td>
+    </tr>
+    <tr>
+      <td>Département de radiologie, radio-oncologie et médecine nucléaire</td>
+      <td>57</td>
+    </tr>
+    <tr>
+      <td>Département de microbiologie, infectiologie et immunologie</td>
+      <td>56</td>
+    </tr>
+    <tr>
+      <td>Département de physique</td>
+      <td>55</td>
+    </tr>
+    <tr>
+      <td>Département de pharmacologie et physiologie</td>
+      <td>54</td>
+    </tr>
+    <tr>
+      <td>Département de sciences biologiques</td>
+      <td>50</td>
+    </tr>
+    <tr>
+      <td>Département de gestion, d’évaluation et de politique de santé</td>
+      <td>46</td>
+    </tr>
+    <tr>
+      <td>Département de sciences cliniques</td>
+      <td>46</td>
+    </tr>
+    <tr>
+      <td>Département de chimie</td>
+      <td>45</td>
+    </tr>
+    <tr>
+      <td>Département de pathologie et microbiologie</td>
+      <td>44</td>
+    </tr>
+    <tr>
+      <td>Département de science politique</td>
+      <td>43</td>
+    </tr>
+    <tr>
+      <td>Département d'anthropologie</td>
+      <td>43</td>
+    </tr>
+    <tr>
+      <td>Département des littératures de langue française</td>
+      <td>39</td>
+    </tr>
+    <tr>
+      <td>École de réadaptation</td>
+      <td>38</td>
+    </tr>
+    <tr>
+      <td>École de travail social</td>
+      <td>37</td>
+    </tr>
+    <tr>
+      <td>École de criminologie</td>
+      <td>37</td>
+    </tr>
+    <tr>
+      <td>Département de littératures et de langues du monde</td>
+      <td>36</td>
+    </tr>
+    <tr>
+      <td>Département de sociologie</td>
+      <td>35</td>
+    </tr>
+    <tr>
+      <td>Département de mathématiques et de statistique</td>
+      <td>33</td>
+    </tr>
+    <tr>
+      <td>Département d'histoire de l'art et d'études cinématographiques</td>
+      <td>32</td>
+    </tr>
+    <tr>
+      <td>Département d'histoire</td>
+      <td>31</td>
+    </tr>
+    <tr>
+      <td>École de relations industrielles</td>
+      <td>30</td>
+    </tr>
+    <tr>
+      <td>Département de psychopédagogie et d'andragogie</td>
+      <td>29</td>
+    </tr>
+    <tr>
+      <td>Département de santé environnementale et santé au travail</td>
+      <td>29</td>
+    </tr>
+    <tr>
+      <td>Département de sciences économiques</td>
+      <td>29</td>
+    </tr>
+    <tr>
+      <td>École de kinésiologie et des sciences de l’activité physique</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>École de psychoéducation</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>Département de philosophie</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>Département de géographie</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>Département de communication</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>Département de linguistique et de traduction</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <td>Département de didactique</td>
+      <td>26</td>
+    </tr>
+    <tr>
+      <td>École d'architecture</td>
+      <td>26</td>
+    </tr>
+    <tr>
+      <td>École d'urbanisme et d'architecture de paysage</td>
+      <td>23</td>
+    </tr>
+    <tr>
+      <td>Département d'administration et fondements de l'éducation</td>
+      <td>23</td>
+    </tr>
+    <tr>
+      <td>Département de biomédecine vétérinaire</td>
+      <td>22</td>
+    </tr>
+    <tr>
+      <td>Département de nutrition</td>
+      <td>22</td>
+    </tr>
+    <tr>
+      <td>École d'orthophonie et d'audiologie</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <td>Département d'anesthésiologie et de médecine de la douleur</td>
+      <td>19</td>
+    </tr>
+    <tr>
+      <td>École de bibliothéconomie et des sciences de l'information</td>
+      <td>19</td>
+    </tr>
+    <tr>
+      <td>Département de stomatologie</td>
+      <td>18</td>
+    </tr>
+    <tr>
+      <td>Département d'obstétrique-gynécologie</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <td>Département de santé buccale</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <td>Département de démographie</td>
+      <td>15</td>
+    </tr>
+    <tr>
+      <td>École de design</td>
+      <td>15</td>
+    </tr>
+    <tr>
+      <td>Centre d'études asiatiques</td>
+      <td>14</td>
+    </tr>
+    <tr>
+      <td>Institut d'études religieuses</td>
+      <td>14</td>
+    </tr>
+    <tr>
+      <td>Département de dentisterie de restauration</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>Département de pharmacologie</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>Centre d'études médiévales</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <td>Direction de la Faculté des arts et des sciences</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>Centre d'études classiques</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <td>Direction de l'École de santé publique</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>Direction de la Faculté de médecine dentaire</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>Direction de la Faculté de l'éducation permanente</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>Direction de la Faculté de l'aménagement</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>Centre de formation initiale des maîtres</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table></div><div class="col-md-8" style="float:right; padding-right:20px;padding-left:20px; max-height:430px; overflow-y:scroll;"><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.14.0.min.js"></script>                <div id="73fc3602-9bd4-410a-b05d-8641ca74c80c" class="plotly-graph-div" style="height:1200px; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("73fc3602-9bd4-410a-b05d-8641ca74c80c")) {                    Plotly.newPlot(                        "73fc3602-9bd4-410a-b05d-8641ca74c80c",                        [{"alignmentgroup":"True","customdata":[["Centre de formation initiale des ma\u00eetres"],["Direction de la Facult\u00e9 de l'am\u00e9nagement"],["Direction de la Facult\u00e9 de m\u00e9decine dentaire"],["Direction de la Facult\u00e9 de l'\u00e9ducation permanente"],["Direction de l'\u00c9cole de sant\u00e9 publique"],["Centre d'\u00e9tudes classiques"],["Direction de la Facult\u00e9 des arts et des sciences"],["Centre d'\u00e9tudes m\u00e9di\u00e9vales"],["D\u00e9partement de pharmacologie"],["D\u00e9partement de dentisterie de restauration"],["Institut d'\u00e9tudes religieuses"],["Centre d'\u00e9tudes asiatiques"],["\u00c9cole de design"],["D\u00e9partement de d\u00e9mographie"],["D\u00e9partement de sant\u00e9 buccale"],["D\u00e9partement d'obst\u00e9trique-gyn\u00e9cologie"],["D\u00e9partement de stomatologie"],["D\u00e9partement d'anesth\u00e9siologie et de m\u00e9decine de la douleur"],["\u00c9cole de biblioth\u00e9conomie et des sciences de l'information"],["\u00c9cole d'orthophonie et d'audiologie"],["D\u00e9partement de nutrition"],["D\u00e9partement de biom\u00e9decine v\u00e9t\u00e9rinaire"],["D\u00e9partement d'administration et fondements de l'\u00e9ducation"],["\u00c9cole d'urbanisme et d'architecture de paysage "],["\u00c9cole d'architecture"],["D\u00e9partement de didactique"],["D\u00e9partement de linguistique et de traduction"],["D\u00e9partement de communication"],["D\u00e9partement de g\u00e9ographie"],["D\u00e9partement de philosophie"],["\u00c9cole de psycho\u00e9ducation"],["\u00c9cole de kin\u00e9siologie et des sciences de l\u2019activit\u00e9 physique"],["D\u00e9partement de sciences \u00e9conomiques"],["D\u00e9partement de sant\u00e9 environnementale et sant\u00e9 au travail"],["D\u00e9partement de psychop\u00e9dagogie et d'andragogie "],["\u00c9cole de relations industrielles"],["D\u00e9partement d'histoire"],["D\u00e9partement d'histoire de l'art et d'\u00e9tudes cin\u00e9matographiques"],["D\u00e9partement de math\u00e9matiques et de statistique"],["D\u00e9partement de sociologie"],["D\u00e9partement de litt\u00e9ratures et de langues du monde"],["\u00c9cole de criminologie"],["\u00c9cole de travail social"],["\u00c9cole de r\u00e9adaptation"],["D\u00e9partement des litt\u00e9ratures de langue fran\u00e7aise"],["D\u00e9partement d'anthropologie"],["D\u00e9partement de science politique"],["D\u00e9partement de pathologie et microbiologie"],["D\u00e9partement de chimie"],["D\u00e9partement de sciences cliniques"],["D\u00e9partement de gestion, d\u2019\u00e9valuation et de politique de sant\u00e9"],["D\u00e9partement de sciences biologiques"],["D\u00e9partement de pharmacologie et physiologie"],["D\u00e9partement de physique"],["D\u00e9partement de microbiologie, infectiologie et immunologie"],["D\u00e9partement de radiologie, radio-oncologie et m\u00e9decine nucl\u00e9aire"],["D\u00e9partement de chirurgie"],["D\u00e9partement de neurosciences"],["D\u00e9partement de p\u00e9diatrie"],["D\u00e9partement de biochimie et m\u00e9decine mol\u00e9culaire"],["D\u00e9partement de psychiatrie et d\u2019addictologie"],["D\u00e9partement de m\u00e9decine de famille et de m\u00e9decine d'urgence"],["D\u00e9partement d'informatique et de recherche op\u00e9rationnelle"],["D\u00e9partement de pathologie et biologie cellulaire"],["Centre d'\u00e9tudes et de recherches internationales"],["D\u00e9partement d'ophtalmologie"],["D\u00e9partement de psychologie"],["D\u00e9partement de m\u00e9decine sociale et pr\u00e9ventive"],["D\u00e9partement de m\u00e9decine"]],"hovertemplate":"<b>%{hovertext}</b><br><br>N=%{x}<br>noms=%{y}<br>D\u00e9partement=%{customdata[0]}<extra></extra>","hovertext":["Centre de formation initiale des ma\u00eetres","Direction de la Facult\u00e9 de l'am\u00e9nagement","Direction de la Facult\u00e9 de m\u00e9decine dentaire","Direction de la Facult\u00e9 de l'\u00e9ducation permanente","Direction de l'\u00c9cole de sant\u00e9 publique","Centre d'\u00e9tudes classiques","Direction de la Facult\u00e9 des arts et des sciences","Centre d'\u00e9tudes m\u00e9di\u00e9vales","D\u00e9partement de pharmacologie","D\u00e9partement de dentisterie de restauration","Institut d'\u00e9tudes religieuses","Centre d'\u00e9tudes asiatiques","\u00c9cole de design","D\u00e9partement de d\u00e9mographie","D\u00e9partement de sant\u00e9 buccale","D\u00e9partement d'obst\u00e9trique-gyn\u00e9cologie","D\u00e9partement de stomatologie","D\u00e9partement d'anesth\u00e9siologie et de m\u00e9decine de la douleur","\u00c9cole de biblioth\u00e9conomie et des sciences de l'information","\u00c9cole d'orthophonie et d'audiologie","D\u00e9partement de nutrition","D\u00e9partement de biom\u00e9decine v\u00e9t\u00e9rinaire","D\u00e9partement d'administration et fondements de l'\u00e9ducation","\u00c9cole d'urbanisme et d'architecture de paysage ","\u00c9cole d'architecture","D\u00e9partement de didactique","D\u00e9partement de linguistique et de traduction","D\u00e9partement de communication","D\u00e9partement de g\u00e9ographie","D\u00e9partement de philosophie","\u00c9cole de psycho\u00e9ducation","\u00c9cole de kin\u00e9siologie et des sciences de l\u2019activit\u00e9 physique","D\u00e9partement de sciences \u00e9conomiques","D\u00e9partement de sant\u00e9 environnementale et sant\u00e9 au travail","D\u00e9partement de psychop\u00e9dagogie et d'andragogie ","\u00c9cole de relations industrielles","D\u00e9partement d'histoire","D\u00e9partement d'histoire de l'art et d'\u00e9tudes cin\u00e9matographiques","D\u00e9partement de math\u00e9matiques et de statistique","D\u00e9partement de sociologie","D\u00e9partement de litt\u00e9ratures et de langues du monde","\u00c9cole de criminologie","\u00c9cole de travail social","\u00c9cole de r\u00e9adaptation","D\u00e9partement des litt\u00e9ratures de langue fran\u00e7aise","D\u00e9partement d'anthropologie","D\u00e9partement de science politique","D\u00e9partement de pathologie et microbiologie","D\u00e9partement de chimie","D\u00e9partement de sciences cliniques","D\u00e9partement de gestion, d\u2019\u00e9valuation et de politique de sant\u00e9","D\u00e9partement de sciences biologiques","D\u00e9partement de pharmacologie et physiologie","D\u00e9partement de physique","D\u00e9partement de microbiologie, infectiologie et immunologie","D\u00e9partement de radiologie, radio-oncologie et m\u00e9decine nucl\u00e9aire","D\u00e9partement de chirurgie","D\u00e9partement de neurosciences","D\u00e9partement de p\u00e9diatrie","D\u00e9partement de biochimie et m\u00e9decine mol\u00e9culaire","D\u00e9partement de psychiatrie et d\u2019addictologie","D\u00e9partement de m\u00e9decine de famille et de m\u00e9decine d'urgence","D\u00e9partement d'informatique et de recherche op\u00e9rationnelle","D\u00e9partement de pathologie et biologie cellulaire","Centre d'\u00e9tudes et de recherches internationales","D\u00e9partement d'ophtalmologie","D\u00e9partement de psychologie","D\u00e9partement de m\u00e9decine sociale et pr\u00e9ventive","D\u00e9partement de m\u00e9decine"],"legendgroup":"","marker":{"color":"#636efa","pattern":{"shape":""}},"name":"","offsetgroup":"","orientation":"h","showlegend":false,"textposition":"auto","x":[1,3,4,4,5,6,8,10,11,11,14,14,15,15,16,17,18,19,19,20,22,22,23,23,26,26,27,27,27,27,27,27,29,29,29,30,31,32,33,35,36,37,37,38,39,43,43,44,45,46,46,50,54,55,56,57,57,59,64,65,67,72,75,76,79,79,93,101,204],"xaxis":"x","y":["Centre de formation initiale d...","Direction de la Facult\u00e9 de l'a...","Direction de la Facult\u00e9 de m\u00e9d...","Direction de la Facult\u00e9 de l'\u00e9...","Direction de l'\u00c9cole de sant\u00e9 ...","Centre d'\u00e9tudes classiques","Direction de la Facult\u00e9 des ar...","Centre d'\u00e9tudes m\u00e9di\u00e9vales","D\u00e9partement de pharmacologie","D\u00e9partement de dentisterie de ...","Institut d'\u00e9tudes religieuses","Centre d'\u00e9tudes asiatiques","\u00c9cole de design","D\u00e9partement de d\u00e9mographie","D\u00e9partement de sant\u00e9 buccale","D\u00e9partement d'obst\u00e9trique-gyn\u00e9...","D\u00e9partement de stomatologie","D\u00e9partement d'anesth\u00e9siologie ...","\u00c9cole de biblioth\u00e9conomie et d...","\u00c9cole d'orthophonie et d'audio...","D\u00e9partement de nutrition","D\u00e9partement de biom\u00e9decine v\u00e9t...","D\u00e9partement d'administration e...","\u00c9cole d'urbanisme et d'archite...","\u00c9cole d'architecture","D\u00e9partement de didactique","D\u00e9partement de linguistique et...","D\u00e9partement de communication","D\u00e9partement de g\u00e9ographie","D\u00e9partement de philosophie","\u00c9cole de psycho\u00e9ducation","\u00c9cole de kin\u00e9siologie et des s...","D\u00e9partement de sciences \u00e9conom...","D\u00e9partement de sant\u00e9 environne...","D\u00e9partement de psychop\u00e9dagogie...","\u00c9cole de relations industriell...","D\u00e9partement d'histoire","D\u00e9partement d'histoire de l'ar...","D\u00e9partement de math\u00e9matiques e...","D\u00e9partement de sociologie","D\u00e9partement de litt\u00e9ratures et...","\u00c9cole de criminologie","\u00c9cole de travail social","\u00c9cole de r\u00e9adaptation","D\u00e9partement des litt\u00e9ratures d...","D\u00e9partement d'anthropologie","D\u00e9partement de science politiq...","D\u00e9partement de pathologie et m...","D\u00e9partement de chimie","D\u00e9partement de sciences cliniq...","D\u00e9partement de gestion, d\u2019\u00e9val...","D\u00e9partement de sciences biolog...","D\u00e9partement de pharmacologie e...","D\u00e9partement de physique","D\u00e9partement de microbiologie, ...","D\u00e9partement de radiologie, rad...","D\u00e9partement de chirurgie","D\u00e9partement de neurosciences","D\u00e9partement de p\u00e9diatrie","D\u00e9partement de biochimie et m\u00e9...","D\u00e9partement de psychiatrie et ...","D\u00e9partement de m\u00e9decine de fam...","D\u00e9partement d'informatique et ...","D\u00e9partement de pathologie et b...","Centre d'\u00e9tudes et de recherch...","D\u00e9partement d'ophtalmologie","D\u00e9partement de psychologie","D\u00e9partement de m\u00e9decine social...","D\u00e9partement de m\u00e9decine"],"yaxis":"y","type":"bar","width":0.6}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{}},"legend":{"tracegroupgap":0,"font":{"size":12}},"title":{"text":"Nombre de professeur-e-s par d\u00e9partement"},"barmode":"relative","height":1200},                        {"responsive": true}                    )                };                            </script>        </div></div></div><div style="margin-top:600px;"><hr/></main>
+</body>
+</html>
