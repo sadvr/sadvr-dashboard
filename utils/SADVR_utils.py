@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from ast import literal_eval
 from collections import Counter
-
+import sys
 
 ##### Fonctions pour importer/updater les données
 
@@ -98,7 +98,7 @@ def getAllProfsSOLR() -> pd.DataFrame:
 
     return output
 
-def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('./tables/SADVR_professeurs.csv')) -> pd.DataFrame:
+def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('tables/SADVR_professeurs.csv')) -> pd.DataFrame:
     """
     Cette fonction prend en paramètre un dataframe contenant les informations sur les professeurs du SADVR
     et retourne une version actualisée de celui-ci en y ajoutant l'information associée aux professeurs
@@ -136,7 +136,7 @@ def updateInfoProfs(tableInfoProfs: pd.DataFrame = pd.read_csv('./tables/SADVR_p
         output = output[[x for x in output.columns if x in columns]]
         
         # Réexporter la table contenant les informations pour les nouveaux individus
-        output.sort_values(by='idsadvr').to_csv('./tables/SADVR_professeurs.csv', index=False)
+        output.sort_values(by='idsadvr').to_csv('tables/SADVR_professeurs.csv', index=False)
         return output
         
     else:
@@ -228,4 +228,7 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
 
     return output
 
-    
+def renameLongLabels(text):
+    if len(text) > 30:
+        return (str(text)[:30] + "...")
+    else: return text

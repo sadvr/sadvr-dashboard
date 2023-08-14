@@ -1,4 +1,4 @@
-from utils.SADVR_utils import *
+from utils.sadvr_utils import *
 import pandas as pd
 import dash_bootstrap_components as dbc
 from dash import html, dash_table
@@ -144,7 +144,6 @@ figPaysDiplome.update_layout(
     legend=dict(font=dict(size= 11)),
     margin=dict(l=0)
 )
-
 
 # Année d'obtention du dernier diplôme - selon le genre
 # D'abord filtrer pour ne conserver que le dernier diplôme obtenu
@@ -343,7 +342,7 @@ tableFacultes = dash_table.DataTable(
 
 
 # Secteurs
-facultes['noms'] = facultes['labels'].apply(lambda x: (str(x)[:25] + "..."))
+facultes['noms'] = facultes['labels'].apply(lambda x: renameLongLabels(x))
 facultes = facultes.rename(columns={'labels':'Faculté', 'count':'N'})
 
 figFacultes = px.pie(
@@ -397,7 +396,7 @@ tableEtablissements = dash_table.DataTable(
 )
 
 # Secteurs
-etablissementsAffilies['noms'] = etablissementsAffilies['Établissement'].apply(lambda x: (str(x)[:30] + "..."))
+etablissementsAffilies['noms'] = etablissementsAffilies['Établissement'].apply(lambda x: renameLongLabels(x))
 figEtablissementsAffilies = px.pie(
     etablissementsAffilies,
     labels = etablissementsAffilies['Établissement'],
@@ -418,6 +417,39 @@ figEtablissementsAffilies = figEtablissementsAffilies.update_layout(
     margin=dict(l=20)    
 )
 
+# Nombre de professeur par département
+# Table
+departements = pd.DataFrame(plotVariable(expertises, 'affiliations.departement.nom'))
+departements = departements.rename(columns={'labels':'Département', 'count':'N'})
+
+# Barres 
+
+
+
+departements['noms'] = departements['Département'].apply(lambda x: renameLongLabels(x))
+figDepartements = px.bar(
+    departements.sort_values(by='N'),
+    y = 'noms',
+    x = 'N',
+    title = 'Nombre de professeur-e-s par département',
+    orientation = 'h',
+    hover_name = "Département",
+    hover_data = ['Département', 'N'],
+    height = 1200
+)
+
+# Adjust the bar width and spacing
+figDepartements.update_traces(
+    width = 0.6  # Set the bar width (0.8 is the default, adjust as needed)
+)
+
+# Hide axis names (labels)
+figDepartements.update_layout(
+    xaxis_title=None,  # Hide x-axis title
+    yaxis_title=None,   # Hide y-axis title
+    legend=dict(font=dict(size= 12))
+)
+
 # Principales disicplines de recherche à l'UdeM (Top 30)
 disciplines = expertises[[
     'idsadvr', 'expertise.disciplines.nom', 
@@ -431,21 +463,21 @@ disciplines = disciplines.sort_values(by=['expertise.disciplines.uid', 'expertis
 disciplines = disciplines.drop_duplicates(subset='expertise.disciplines.uid', keep='first').sort_values(by='count', ascending=False)
 
 disciplines = disciplines[['expertise.disciplines.nom', 'count']]
+tableDisciplines = disciplines.rename(columns={'expertise.disciplines.nom':'Discipline', 'count':'N'})
 
-disciplines = groupOtherValues(disciplines, 30)[:30]
+# disciplines = groupOtherValues(disciplines, 30)[:30]
+# figDisciplines = go.Figure(
+#     go.Treemap(
+#         labels= disciplines['expertise.disciplines.nom'],
+#         parents= [''] * len(disciplines),
+#         values = disciplines['count'],
+#     )
+# )
 
-figDisciplines = go.Figure(
-    go.Treemap(
-        labels= disciplines['expertise.disciplines.nom'],
-        parents= [''] * len(disciplines),
-        values = disciplines['count'],
-    )
-)
-
-figDisciplines = figDisciplines.update_layout(
-    height = 600,
-    margin = dict(t=20, l=20, b=50)
-)
+# figDisciplines = figDisciplines.update_layout(
+#     height = 600,
+#     margin = dict(t=20, l=20, b=50)
+# )
 
 
 # Dropdown: principales disciplines de recherche par faculté
@@ -469,17 +501,20 @@ mappingDisciplines = {str(x['id']): x['noms.nom'] for x in mappingDisciplines.to
 faculty_discipline_counts = disciplines.groupby(['affiliations.faculte.nom', 'expertise.disciplines.nom'])['idsadvr'].count().reset_index()
 
 # Rename the 'id' column to 'professor_count' for clarity
-faculty_discipline_counts = faculty_discipline_counts.rename(columns={'idsadvr': 'count'})
+faculty_discipline_counts = faculty_discipline_counts.rename(
+    columns={'idsadvr': 'count', 'affiliations.faculte.nom' : 'Faculté', 'expertise.disciplines.nom': 'Discipline'})
 faculty_discipline_counts = faculty_discipline_counts.sort_values(by='count', ascending=False)
+faculty_discipline_counts['noms'] = faculty_discipline_counts['Discipline'].apply(renameLongLabels)
 
 def generate_pie_chart(selected_faculty):
-    filtered_df = faculty_discipline_counts[faculty_discipline_counts['affiliations.faculte.nom'] == selected_faculty]
+    filtered_df = faculty_discipline_counts[faculty_discipline_counts['Faculté'] == selected_faculty]
 
     # Extraire les dix principales disciplines associées à une faculté
     filtered_df = filtered_df.sort_values(by='count', ascending=False)
     filtered_df = groupOtherValues(filtered_df, 6)[:6]
     fig = go.Figure(go.Pie(
-        labels= filtered_df['expertise.disciplines.nom'], 
+        labels= filtered_df['Discipline'], 
+        # names = filtered_df['noms'],
         values = filtered_df['count'],
         hole = 0.6)
     )
@@ -488,7 +523,7 @@ def generate_pie_chart(selected_faculty):
 # Create a figure for each category
 figs = {
     c: generate_pie_chart(c).update_traces(name=c, visible=False)
-    for c in faculty_discipline_counts['affiliations.faculte.nom'].unique()
+    for c in faculty_discipline_counts['Faculté'].unique()
 }
 
 fig = go.Figure(
@@ -498,7 +533,7 @@ fig = go.Figure(
 )
 
 # Default category
-defaultcat = faculty_discipline_counts['affiliations.faculte.nom'].unique()[0]
+defaultcat = faculty_discipline_counts['Faculté'].unique()[0]
 fig.add_traces(
     figs[defaultcat].data
     ).update_traces(visible=True)
@@ -507,6 +542,10 @@ fig.add_traces(
 for k in figs.keys():
     if k != defaultcat:
         fig.add_traces(figs[k].data)
+
+fig.update_layout(height=445)
+fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
+fig.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-1))
 
 # finally build dropdown menu
 fig.update_layout(
@@ -524,10 +563,11 @@ fig.update_layout(
                 for k in figs.keys()
             ]
         }
-    ]
+    ],
+    
 )
 
+
 figDisciplinesFacultes = fig
-figDisciplinesFacultes.write_html("html/disciplinesFacultes.html")
 
 # Cartographie des expertises de recherche: mots-clés associés aux principales disciplines de recherche de l'UdeM 

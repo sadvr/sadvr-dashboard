@@ -3,3 +3,4 @@ src/visualisations/*
 src/tables/statistiques__expertisesRecherche/*
 src/tables/statistiques__sociodemographiques/*
 archives/*
+dev_generateHTML.ipynb
