@@ -27,54 +27,54 @@ demographics = demographics[demographics['affiliations.fonction.codeSad'].isin(f
 nbProfs = len(data.drop_duplicates(subset='idsadvr'))
 
 # Visuel : card
-cardNbProfs = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4(str(nbProfs), className="card-title"),
-                html.P("Professeur·e·s",
-                    className="card-text",
-                ),
-            ],
-            style={'textAlign':'center'}
-        ),
-    ],
-)
+# cardNbProfs = dbc.Card(
+#     [
+#         dbc.CardBody(
+#             [
+#                 html.H4(str(nbProfs), className="card-title"),
+#                 html.P("Professeur·e·s",
+#                     className="card-text",
+#                 ),
+#             ],
+#             style={'textAlign':'center'}
+#         ),
+#     ],
+# )
 
 
 # 2: nombre de facultés et écoles
 nbFacultes = len(getTable('facultes'))
 # Visuel : card
-cardNbFacultes = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4(str(nbFacultes), className="card-title"),
-                html.P("Facultés et écoles",
-                    className="card-text",
-                ),
-            ],
-            style={'textAlign':'center'}
-        ),
-    ]
-)
+# cardNbFacultes = dbc.Card(
+#     [
+#         dbc.CardBody(
+#             [
+#                 html.H4(str(nbFacultes), className="card-title"),
+#                 html.P("Facultés et écoles",
+#                     className="card-text",
+#                 ),
+#             ],
+#             style={'textAlign':'center'}
+#         ),
+#     ]
+# )
 
 # 3: nombre de départements
 nbDepartements = len(getTable('departements'))
 
 # Visuel : card
-cardNbDepartements = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4(str(nbDepartements), className="card-title"),
-                html.P("Départements",
-                    className="card-text")
-            ],
-            style={'textAlign':'center'}
-        ),
-    ],
-)
+# cardNbDepartements = dbc.Card(
+#     [
+#         dbc.CardBody(
+#             [
+#                 html.H4(str(nbDepartements), className="card-title"),
+#                 html.P("Départements",
+#                     className="card-text")
+#             ],
+#             style={'textAlign':'center'}
+#         ),
+#     ],
+# )
 
 # 4: Nombre d'établissements affiliés
 etablissementsAffilies = data[['idsadvr', 'etablissementsAffilies']]
@@ -85,18 +85,18 @@ etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etab
 nbEtablissementsAffilies = len(etablissementsAffilies)
 
 # Visuel: Card
-cardNbEtablissementsAffilies = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4(str(nbEtablissementsAffilies), className="card-title"),
-                html.P("Établissements affiliés",
-                    className="card-text")
-            ],
-            style={'textAlign':'center'}
-        ),
-    ],
-)
+# cardNbEtablissementsAffilies = dbc.Card(
+#     [
+#         dbc.CardBody(
+#             [
+#                 html.H4(str(nbEtablissementsAffilies), className="card-title"),
+#                 html.P("Établissements affiliés",
+#                     className="card-text")
+#             ],
+#             style={'textAlign':'center'}
+#         ),
+#     ],
+# )
 
 # Visuel "Cartes" - style
 shadow = '2px 2px 6px lightgrey'
