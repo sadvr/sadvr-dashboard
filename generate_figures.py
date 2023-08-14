@@ -113,7 +113,7 @@ figGenre = px.pie(
 )
 
 figGenre.update_layout(
-    legend=dict(font=dict(size= 11)),
+    legend=dict(font=dict(size= 12)),
     margin=dict(l=0)
 )
 
@@ -129,7 +129,6 @@ figPaysDiplome = px.pie(
     names= paysFormation['labels'], 
     title="Lieu d'obtention du dernier diplôme",
     hole=0.6,
-    width=600, 
     category_orders= {'labels':
         order
     }
@@ -141,7 +140,7 @@ figPaysDiplome.update_traces(
 figPaysDiplome.update_layout(
     uniformtext_minsize=12, 
     uniformtext_mode='hide',
-    legend=dict(font=dict(size= 11)),
+    legend=dict(font=dict(size= 12)),
     margin=dict(l=0)
 )
 
@@ -159,12 +158,15 @@ figAnneDiplomeGenre = px.line(
     y = 'count',
     color = 'sexe',
     title = "Année d'obtention du dernier diplôme selon le genre",
-    width=900,
+    width=1450,
     line_shape = 'spline')
 
 #figAnneDiplomeGenre.update_traces(mode="markers+lines", hovertemplate=None)
 figAnneDiplomeGenre.update_layout(
-    hovermode="x unified"
+    hovermode="x unified",
+    xaxis_title=None,  # Hide x-axis title
+    yaxis_title=None,   # Hide y-axis title
+    legend=dict(font=dict(size= 12))
 )
 
 # Rang professoral par genre
@@ -182,14 +184,17 @@ freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['fonction'] != 'Professe
 freqFonctionGenre = freqFonctionGenre.sort_values(by='count', ascending=True)
 freqFonctionGenre
 
+freqFonctionGenre['noms'] = freqFonctionGenre['fonction'].apply(lambda x: renameLongLabels(x))
 figFonctionGenre = px.bar(
     freqFonctionGenre,
     y = 'fonction',
     x = 'count',
+    labels = 'noms',
+    hover_name='fonction',
     title = 'Rang professoral par genre',
     color = 'sexe',
     barmode='group',
-    height=900,
+    height= 800,
     orientation = 'h',
 )
 
@@ -269,14 +274,16 @@ figPaysFormation.update_geos(
     landcolor = '#E8E8E8',
     showframe=False,  # Hide frame/borders
     projection_scale = 1.2,  # Adjust the projection scale to fit the map better
-    center=dict(lon=10, lat=18),  # Set the center of the map to exclude Antarctica
+    center=dict(lon=20, lat=18),  # Set the center of the map to exclude Antarctica
 )
 
 figPaysFormation = figPaysFormation.update_layout( 
-    title = "Formation - Pays d'obtention du dernier diplôme",
-    margin=dict(t=40, l=60), 
-    height = 600
+    margin=dict(t=0, l=0, r=0),
+    title_x=0.2, 
+    width=800,
 )
+
+paysFormation = paysFormation[['nomPaysFR', 'count']].rename(columns={'nomPaysFR': 'Pays', 'count': 'N'})
 
 ### Analyses expertises de recherche
 # Éléments de visuel
