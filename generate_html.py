@@ -30,7 +30,7 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     )
     
     # Conteneur gauche
-    # freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']].rename(columns={'count':'N',  'genre':'Genre'})
+    freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']].rename(columns={'count':'N',  'genre':'Genre'})
     f.write(freqGenreDepartement.to_html(index=False, classes=tableClasses, justify='left'))
 
     # Conteneur droit
