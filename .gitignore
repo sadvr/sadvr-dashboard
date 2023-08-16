@@ -1,6 +1,4 @@
 __pycache__/*
-src/visualisations/*
-src/tables/statistiques__expertisesRecherche/*
-src/tables/statistiques__sociodemographiques/*
 archives/*
+graphs/*
 expertisesRecherche.ipynb
