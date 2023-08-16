@@ -8,7 +8,6 @@ from utils.sadvr_utils import *
 from generate_figures import *
 from bs4 import BeautifulSoup
 
-# utils to generate html file
 tableClasses = ['table', 'table-hover']
 
 with open('./html/header.html', encoding='utf-8') as f:
@@ -76,6 +75,7 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     )
 
     # Conteneur gauche
+    freqFonctionGenre = freqFonctionGenre.sort_values(by='count')
     f.write(freqFonctionGenre[['sexe', 'fonction', 'count']].to_html(index=False, classes=tableClasses, justify='left'))
     
     # Conteneur droit
