@@ -8,7 +8,6 @@ from utils.sadvr_utils import *
 from generate_figures import *
 from bs4 import BeautifulSoup
 
-# utils to generate html file
 tableClasses = ['table', 'table-hover']
 
 with open('./html/header.html', encoding='utf-8') as f:
@@ -18,6 +17,97 @@ with open('./html/footer.html') as f:
     footer = f.read()
 
 ### Générer le fichier html pour les professeurs
+with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
+    f.write(header)
+    f.write('<h2>Professeur-e-s</h2></div>')
+
+    f.write('<h3>Portrait sociodémographique</h3>')
+    f.write(
+        """
+        <div class="grid">
+            <div class="col-md-6" 
+                style="float:left; padding-right:5px; ">
+        """
+    )
+    
+    # Conteneur gauche
+    f.write(figGenre.to_html(full_html=False, include_plotlyjs='cdn'))
+
+    # Conteneur droit
+    f.write('</div><div class="col-md-6" style="float:right; padding-right:20px;">')
+    f.write(figPaysDiplome.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('</div></div>')
+    f.write('<div style="margin-top:500px; margin-bottom:20px;"><hr/></div>')
+    f.write(figAnneDiplomeGenre.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('<div style="margin-top:30px; margin-bottom:20px;"><hr/></div>')
+
+    f.write('<h3>Lieu de formation</h3>')
+    f.write(
+        """
+        <div class="grid"><div class="col-md-4"
+             style="float:left; margin-top: 25px; padding-left:5px; 
+             padding-right:5px; max-height:425px; overflow-y:scroll;"
+        >
+        """
+    )
+
+    # Conteneur gauche
+    f.write(paysFormation.to_html(index=False, classes=tableClasses, justify='left'))
+    
+    # Conteneur droit
+    f.write("""</div><div class="col-md-7" 
+        style="float:right; height:425px; margin:0px;">
+        """)
+    f.write("<p style =\"margin-left:30px; margin-bottom:5px;\">Formation - Pays d'obtention du dernier diplôme</p>")
+    f.write(figPaysFormation.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('</div></div>')
+    f.write('<div style="margin-top:500px; margin-bottom:20px;"><hr/></div>')
+
+    # Rang professoral selon le genre
+    f.write('<h3>Rang professoral selon le genre</h3>')
+    f.write(
+        """
+        <div class="grid">
+            <div class="col-md-4" 
+             style="float:left; margin-top: 25px; padding-left:5px; max-height:425px; overflow-y:scroll;
+             padding-right:5px;"">
+        """
+    )
+
+    # Conteneur gauche
+    freqFonctionGenre = freqFonctionGenre.sort_values(by='count')
+    f.write(freqFonctionGenre[['sexe', 'fonction', 'count']].to_html(index=False, classes=tableClasses, justify='left'))
+    
+    # Conteneur droit
+    f.write("""</div><div class="col-md-8" 
+        style="float:right; height:425px; margin:0px; max-height:425px; overflow-y:scroll;">
+        """)
+    f.write(figFonctionGenre.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('</div></div>')
+    f.write('<div style="margin-top:500px; margin-bottom:20px;"><hr/></div>')
+
+    # Langues
+    f.write('<h3>Langues</h3>')
+    f.write(
+        """
+        <div class="grid">
+            <div class="col-md-6" 
+             style="float:left; margin-top: 25px; padding-left:5px; 
+             padding-right:5px;"">
+        """
+    )
+
+    # Conteneur gauche
+    f.write(figLanguesParlees.to_html(full_html=False, include_plotlyjs='cdn'))
+    
+    # Conteneur droit
+    f.write("""</div><div class="col-md-6" 
+        style="float:right; height:425px; margin:0px;">
+        """)
+    f.write(figLanguesEcrites.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('</div></div>')
+
+    f.write(footer)
 
 
 
