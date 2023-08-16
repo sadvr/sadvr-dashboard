@@ -234,11 +234,23 @@ def renameLongLabels(text):
     else: return text
 
 
-## Éventuellement créer une fonction?
+def uniteAdminDepartement(t: str):
+    liste =  t.split(' - ')
+    if len(liste) >1:
+        return liste[1]
+    else:
+        return liste[0]
+    
 mappingDisciplines = pd.read_csv('tables/SADVR_disciplines.csv')
 mappingDisciplines = mappingDisciplines[mappingDisciplines['noms.codeLangue'] == 'fre']
-mappingDisciplines = {str(x['id']): x['noms.nom'] for x in mappingDisciplines.to_dict('records')}
+mappingDisciplines = {x['noms.nom']: str(x['id'])  for x in mappingDisciplines.to_dict('records')}
 
 mappingDepartements = pd.read_csv('tables/SADVR_departements.csv')
-mappingDepartements = mappingDepartements[mappingDepartements['noms.codeLangue'] == 'fre']
-mappingDepartements = {str(x['id']): x['noms.nom'] for x in mappingDepartements.to_dict('records')}
+mappingDepartements = {x['nom']: str(x['codeSad']) for x in mappingDepartements.to_dict('records')}
+
+mappingFacultes = pd.read_csv('tables/SADVR_facultes.csv')
+mappingFacultes = {x['nom']: str(x['codeSad']) for x in mappingFacultes.to_dict('records')}
+
+mappingUnitesAdmin = pd.read_csv('tables/SADVR_unitesAdministratives.csv')
+mappingUnitesAdmin.loc[:, 'nom'] = mappingUnitesAdmin['nom'].apply(uniteAdminDepartement)
+mappingUnitesAdmin = {x['nom']: str(x['codeSad']) for x in mappingUnitesAdmin.to_dict('records')}
