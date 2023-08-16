@@ -234,11 +234,11 @@ def renameLongLabels(text):
     else: return text
 
 
-## Éventuellement créer une fonction?
-mappingDisciplines = pd.read_csv('tables/SADVR_disciplines.csv')
-mappingDisciplines = mappingDisciplines[mappingDisciplines['noms.codeLangue'] == 'fre']
-mappingDisciplines = {str(x['id']): x['noms.nom'] for x in mappingDisciplines.to_dict('records')}
+## Créer une fonction?
+# mappingDisciplines = pd.read_csv('tables/SADVR_disciplines.csv')
+# mappingDisciplines = mappingDisciplines[mappingDisciplines['noms.codeLangue'] == 'fre']
+# mappingDisciplines = {str(x['id']): x['noms.nom'] for x in mappingDisciplines.to_dict('records')}
 
-mappingDepartements = pd.read_csv('tables/SADVR_departements.csv')
-mappingDepartements = mappingDepartements[mappingDepartements['noms.codeLangue'] == 'fre']
-mappingDepartements = {str(x['id']): x['noms.nom'] for x in mappingDepartements.to_dict('records')}
+# mappingDepartements = pd.read_csv('tables/SADVR_departements.csv')
+# mappingDepartements = mappingDepartements[mappingDepartements['noms.codeLangue'] == 'fre']
+# mappingDepartements = {str(x['id']): x['noms.nom'] for x in mappingDepartements.to_dict('records')}

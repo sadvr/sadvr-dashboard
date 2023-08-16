@@ -8,10 +8,41 @@ import plotly.graph_objects as go
 # Charger les données
 data = updateInfoProfs()
 
-### Analyses sociodémographiques
+expertises = data[['idsadvr', 'affiliations', 'etablissementsAffilies', 'expertise']]
+
+toNormalize = [
+    'affiliations',
+    'etablissementsAffilies',
+    'expertise',
+    'expertise.secteursRecherche',
+    'expertise.disciplines',
+    'expertise.pays',
+    'expertise.continents',
+    'expertise.periodesChronologiques'
+]
+
+for c in toNormalize:
+    expertises = explodeNormalize(expertises, c)
+
+drop = [
+    'affiliations.courrielInstitutionnel', 
+    'affiliations.immeuble', 
+    'affiliations.fonction.codeSad', 
+    'affiliations.fonction.nom', 
+    'affiliations.local', 
+    'affiliations.exclusion', 
+    'affiliations.exclusionTel',
+    'affiliations.uniteAdministrative.codeSad',
+    'affiliations.uniteAdministrative.nom',
+    'affiliations.telephone.numero',
+    'affiliations.telephone.poste',
+    'expertise.phraseCle'
+]
+
+expertises = expertises.drop(columns=drop)
+
 demographics = data[['idsadvr', 'sexe', 'langues', 'formations', 'affiliations']]
 
-# Normalisation - données demographiques
 fonctionsProf = pd.read_csv('utils/fonctionsProfs.csv')['codeSad'].tolist()
 toNormalize = ['langues', 'affiliations', 'formations', 'formations.disciplines', 'formations.institutions']
 for c in toNormalize:
@@ -22,59 +53,18 @@ demographics = demographics[[x for x in demographics.columns if x in columns]]
 
 demographics = demographics[demographics['affiliations.fonction.codeSad'].isin(fonctionsProf)]
 
+### Analyses sociodémographiques
+
 ### 1e visuel : 4 mesures "Count"
 # 1: nombre de professeurs
 nbProfs = len(data.drop_duplicates(subset='idsadvr'))
 
-# Visuel : card
-# cardNbProfs = dbc.Card(
-#     [
-#         dbc.CardBody(
-#             [
-#                 html.H4(str(nbProfs), className="card-title"),
-#                 html.P("Professeur·e·s",
-#                     className="card-text",
-#                 ),
-#             ],
-#             style={'textAlign':'center'}
-#         ),
-#     ],
-# )
-
-
 # 2: nombre de facultés et écoles
 nbFacultes = len(getTable('facultes'))
-# Visuel : card
-# cardNbFacultes = dbc.Card(
-#     [
-#         dbc.CardBody(
-#             [
-#                 html.H4(str(nbFacultes), className="card-title"),
-#                 html.P("Facultés et écoles",
-#                     className="card-text",
-#                 ),
-#             ],
-#             style={'textAlign':'center'}
-#         ),
-#     ]
-# )
 
 # 3: nombre de départements
 nbDepartements = len(getTable('departements'))
 
-# Visuel : card
-# cardNbDepartements = dbc.Card(
-#     [
-#         dbc.CardBody(
-#             [
-#                 html.H4(str(nbDepartements), className="card-title"),
-#                 html.P("Départements",
-#                     className="card-text")
-#             ],
-#             style={'textAlign':'center'}
-#         ),
-#     ],
-# )
 
 # 4: Nombre d'établissements affiliés
 etablissementsAffilies = data[['idsadvr', 'etablissementsAffilies']]
@@ -84,38 +74,103 @@ etablissementsAffilies = etablissementsAffilies.drop_duplicates(subset=(['idsadv
 etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etablissementsAffilies.nom'))
 nbEtablissementsAffilies = len(etablissementsAffilies)
 
-# Visuel: Card
-# cardNbEtablissementsAffilies = dbc.Card(
-#     [
-#         dbc.CardBody(
-#             [
-#                 html.H4(str(nbEtablissementsAffilies), className="card-title"),
-#                 html.P("Établissements affiliés",
-#                     className="card-text")
-#             ],
-#             style={'textAlign':'center'}
-#         ),
-#     ],
-# )
-
-# Visuel "Cartes" - style
-shadow = '2px 2px 6px lightgrey'
-
 # Genre
 mapping = {'M': 'Hommes', 'F': 'Femmes', 'A': 'Autres'}
-genre = plotVariable(demographics, 'sexe', mapping=mapping)
+genre = data[['idsadvr', 'sexe']]
 
-figGenre = px.pie(
-    names = genre['labels'],
-    values = genre['count'],
-    hole=0.6,
-    title='Identité de genre',
+genre['genre'] = genre['sexe'].map(mapping)
+
+freqGenre = pd.DataFrame(plotVariable(genre, 'genre', mapping=mapping))
+
+# Créer la table de fréquence
+genreDepartement = expertises.merge(genre, on='idsadvr')[['idsadvr', 'genre', 'affiliations.departement.nom']]
+genreDepartement = genreDepartement.dropna(subset=['genre', 'affiliations.departement.nom']).drop_duplicates()
+
+# Group by 'faculty' and 'discipline' and count the number of professors in each group
+freqGenreDepartement = genreDepartement.groupby(['affiliations.departement.nom', 'genre'])['idsadvr'].count().reset_index()
+
+freqGenreDepartement = freqGenreDepartement.rename(
+    columns={'idsadvr': 'count', 'affiliations.departement.nom' : 'Département'})
+
+freqGenreDepartement
+
+# Ajouter une option pour voir tous les départements confondus (default)
+freqGenre = freqGenre.to_dict('records')
+freqGenre
+
+freqGenreDepartement = freqGenreDepartement.to_dict('records')
+for g in freqGenre:
+    freqGenreDepartement.append({'Département': 'Tous les départements', 'genre': g['labels'], 'count': g['count']})
+
+freqGenreDepartement = pd.DataFrame(freqGenreDepartement)
+freqGenreDepartement['noms'] = freqGenreDepartement['Département'].apply(renameLongLabels)
+freqGenreDepartement = freqGenreDepartement.sort_values(by=['count','genre'], ascending=[False, True])
+freqGenreDepartement[['Département', 'genre', 'count']]
+freqGenreDepartement = freqGenreDepartement[~freqGenreDepartement['Département'].str.contains('Direction de')]
+
+defaultCat = 'Tous les départements'
+mask = freqGenreDepartement['Département'] == defaultCat
+
+freqGenreDepartement = pd.DataFrame(pd.concat([
+    freqGenreDepartement[mask].sort_values(by='Département'), 
+    freqGenreDepartement[~mask].sort_values(by='Département')
+]))
+
+def generate_pie_chart(selected_department):
+    filtered_df = freqGenreDepartement[freqGenreDepartement['Département'] == selected_department]
+
+    filtered_df = filtered_df.sort_values(by='count', ascending=False)
+    fig = go.Figure(go.Pie(
+        labels= filtered_df['genre'], 
+        values = filtered_df['count'],
+        hole = 0.6)
+    )
+    return fig
+
+# Create a figure for each category
+figs = {
+    c: generate_pie_chart(c).update_traces(name=c, visible=False)
+    for c in freqGenreDepartement['Département'].unique()
+}
+
+fig = go.Figure()
+
+# Default category
+defaultcat = freqGenreDepartement['Département'].unique()[0]
+fig.add_traces(
+    figs[defaultcat].data
+    ).update_traces(visible=True)
+
+# integrate figures per category into one figure
+for k in figs.keys():
+    if k != defaultcat:
+        fig.add_traces(figs[k].data)
+
+fig.update_layout(height=445)
+fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
+fig.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.5))
+
+# finally build dropdown menu
+fig.update_layout(
+    title_x=0.02,  # Adjust this value to move the title to the left,
+    updatemenus=[
+        {
+            "buttons": [
+                {
+                    "label": k,
+                    "method": "update",
+                    
+                    # list comprehension for which traces are visible
+                    "args": [{"visible": [kk == k for kk in figs.keys()]}],
+                }
+                for k in figs.keys()
+            ]
+        }
+    ],
+    
 )
 
-figGenre.update_layout(
-    legend=dict(font=dict(size= 12)),
-    margin=dict(l=0)
-)
+figGenreDepartement = fig
 
 # Pays d'obtention du dernier diplôme
 paysFormation = pd.DataFrame(plotVariable(demographics, 'formations.institutions.paysNom'))
@@ -289,64 +344,9 @@ paysFormation = paysFormation[['nomPaysFR', 'count']].rename(columns={'nomPaysFR
 # Éléments de visuel
 shadow = '2px 2px 6px lightgrey'
 
-expertises = data[['idsadvr', 'affiliations', 'etablissementsAffilies', 'expertise']]
-
-toNormalize = [
-    'affiliations',
-    'etablissementsAffilies',
-    'expertise',
-    'expertise.secteursRecherche',
-    'expertise.disciplines',
-    'expertise.pays',
-    'expertise.continents',
-    'expertise.periodesChronologiques'
-]
-
-for c in toNormalize:
-    expertises = explodeNormalize(expertises, c)
-
-drop = [
-    'affiliations.courrielInstitutionnel', 
-    'affiliations.immeuble', 
-    'affiliations.fonction.codeSad', 
-    'affiliations.fonction.nom', 
-    'affiliations.local', 
-    'affiliations.exclusion', 
-    'affiliations.exclusionTel',
-    'affiliations.uniteAdministrative.codeSad',
-    'affiliations.uniteAdministrative.nom',
-    'affiliations.telephone.numero',
-    'affiliations.telephone.poste',
-    'expertise.phraseCle'
-]
-
-expertises = expertises.drop(columns=drop)
-# Fin zone commentée
-
 #### Construire les tables et les figures à inclure dans le board
 # Nombre de professeurs par faculté
 facultes = pd.DataFrame(plotVariable(expertises, 'affiliations.faculte.nom'))[:-2].sort_values(by='count', ascending=False)
-
-# Table 
-tableFacultes = dash_table.DataTable(
-    data = facultes.to_dict('records'), 
-    columns = [{"name": i, "id": i} for i in facultes.columns],
-    style_data={
-        'whiteSpace': 'normal',
-        'height' : 'auto',
-    },
-
-    style_table = {
-        'height' : 'auto',
-        'maxHeight': '450px',
-        'overflowY': 'scroll',
-    },
-
-    style_cell={
-        'textAlign': 'left',
-        'fontFamily': 'Calibri'} # left align text in columns for readability
-)
-
 
 # Secteurs
 facultes['noms'] = facultes['labels'].apply(lambda x: renameLongLabels(x))
@@ -384,24 +384,6 @@ etablissementsAffilies.loc[:, 'etablissementsAffilies.nom'] = etablissementsAffi
 etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etablissementsAffilies.nom')).sort_values(by='count', ascending = False)
 etablissementsAffilies = etablissementsAffilies.rename(columns={'labels':'Établissement', 'count':'N'})
 
-tableEtablissements = dash_table.DataTable(
-    data = etablissementsAffilies.to_dict('records'), 
-    columns = [{"name": i, "id": i} for i in etablissementsAffilies.columns],
-    style_data={
-        'whiteSpace': 'normal',
-        'height' : 'auto',
-    },
-
-    style_table = {
-        'height': '450px',
-        'overflowY': 'scroll',
-    },
-
-    style_cell={
-        'textAlign': 'left',
-        'fontFamily': 'Calibri'} # left align text in columns for readability
-)
-
 # Secteurs
 etablissementsAffilies['noms'] = etablissementsAffilies['Établissement'].apply(lambda x: renameLongLabels(x))
 figEtablissementsAffilies = px.pie(
@@ -425,13 +407,8 @@ figEtablissementsAffilies = figEtablissementsAffilies.update_layout(
 )
 
 # Nombre de professeur par département
-# Table
 departements = pd.DataFrame(plotVariable(expertises, 'affiliations.departement.nom'))
 departements = departements.rename(columns={'labels':'Département', 'count':'N'})
-
-# Barres 
-
-
 
 departements['noms'] = departements['Département'].apply(lambda x: renameLongLabels(x))
 figDepartements = px.bar(
@@ -518,7 +495,7 @@ def generate_pie_chart(selected_faculty):
 
     # Extraire les dix principales disciplines associées à une faculté
     filtered_df = filtered_df.sort_values(by='count', ascending=False)
-    filtered_df = groupOtherValues(filtered_df, 6)[:6]
+    filtered_df = groupOtherValues(filtered_df, 10)[:10]
     fig = go.Figure(go.Pie(
         labels= filtered_df['Discipline'], 
         # names = filtered_df['noms'],
