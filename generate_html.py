@@ -24,17 +24,15 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     f.write(
         """
         <div class="grid">
-            <div class="col-md-5" 
-                style="float:left; padding-right:5px; max-height:425px; overflow-y:scroll;" ">
-        """
-    )
+            <div class="col-md-4" style="float:left; max-height:425px; overflow-y:scroll;">
+        """)
     
     # Conteneur gauche
     freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']].rename(columns={'count':'N',  'genre':'Genre'})
     f.write(freqGenreDepartement.to_html(index=False, classes=tableClasses, justify='left'))
 
     # Conteneur droit
-    f.write('</div><div class="col-md-7" style="float:right; padding-right:50px; padding-left:20px; padding-bottom:10px;">')
+    f.write('</div><div class="col-md-8" style="float:right; padding-right:15px; padding-left:15px">')
     f.write(figGenreDepartement.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('</div></div>')
 
@@ -67,16 +65,21 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
 
     # Rang professoral selon le genre
     f.write('<h3>Rang professoral selon le genre</h3>')
+    # Conteneur gauche
     f.write(
         """
         <div class="grid">
-            <div class="col-md-4" style="float:left; margin-top: 25px; padding-left:5px; max-height:425px; overflow-y:scroll;
-             padding-right:5px;">
+            <div class="col-md-4" 
+                style="float:left; padding-right:5px; 
+                margin-top:10px; max-height:450px; overflow-y:scroll;">
         """
     )
 
-    # Conteneur gauche
-    f.write(freqFonctionGenre[['sexe', 'fonction', 'count']].to_html(index=False, classes=tableClasses, justify='left'))
+
+    freqFonctionGenre = freqFonctionGenre.rename(
+        columns={'sexe':'Genre', 'fonction': 'Rang professoral', 'count':'N'}
+    )
+    f.write(freqFonctionGenre[['Genre', 'Rang professoral', 'N']].to_html(index=False, classes=tableClasses, justify='left'))
     
     # Conteneur droit
     f.write("""</div><div class="col-md-8" 
@@ -170,7 +173,10 @@ with open('html/affiliations.html', 'w', encoding='utf-8') as f:
         index=False, classes=tableClasses, justify='left')
     )
     
-    f.write('</div><div class="col-md-8" style="float:right; padding-right:20px;padding-left:20px; max-height:430px; overflow-y:scroll;">')
+    f.write("""
+        </div><div class="col-md-8" 
+        style="float:right; padding-left:10px; max-height:430px; overflow-y:scroll;">
+    """)
 
     f.write(figDepartements.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('</div></div>')
@@ -178,17 +184,19 @@ with open('html/affiliations.html', 'w', encoding='utf-8') as f:
 
     f.write(footer)
 
-### Générer le fichier html pour les unités de recherche
+### Générer le fichier html pour les expertises de recherche
 with open('html/expertises.html', 'w', encoding='utf-8') as f:
     f.write(header)
     f.write('<h2>Expertises de recherche</h2></div>')
 
     # Disciplines de recherche
     f.write('<h3>Disciplines</h3>')
+
+    # Conteneur gauche
     f.write(
         """
         <div class="grid">
-            <div class="col-md-5" 
+            <div class="col-md-4" 
                 style="float:left; padding-right:5px; 
                 margin-top:10px; max-height:450px; overflow-y:scroll;">
         """
@@ -202,16 +210,14 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     table.find('table')['style'] = 'max-heigth:400px; height:300px; overflow-y: scroll;'
     f.write(str(table)
     )
-    f.write('</div><div class="col-md-6" style="float:right; margin-right:100px;">')
+
+    # Conteneur droit
+    f.write('</div><div class="col-md-8" style="float:right; padding-right:15px; padding-left:15px">')
     f.write(figDisciplinesFacultes.to_html(full_html=False, include_plotlyjs='cdn'))
 
-    f.write('</div><div class="col-md-8" style="float:right; padding-right:20px;">')
     f.write('</div></div>')
     f.write('<div style="margin-top:500px;"><hr/></div>')
 
      # Disciplines de recherche
     f.write('<h3>Mots-clés</h3>')
     f.write(footer)
-
-
-### Générer le fichier html pour les expertises de recherche

@@ -139,7 +139,8 @@ fig = go.Figure()
 defaultcat = freqGenreDepartement['Département'].unique()[0]
 fig.add_traces(
     figs[defaultcat].data
-    ).update_traces(visible=True)
+    ).update_traces(visible=True).update_layout(
+        legend=dict(yanchor="bottom",y=0.3,xanchor="left", x=-1.5))
 
 # integrate figures per category into one figure
 for k in figs.keys():
@@ -147,8 +148,11 @@ for k in figs.keys():
         fig.add_traces(figs[k].data)
 
 fig.update_layout(height=445)
-fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
-fig.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.5))
+
+fig.update_layout(
+    legend=dict(yanchor="bottom",y=0.3,xanchor="left", x=-1.5),
+    margin=dict(l=0, r=0, t=0, b=20)
+)
 
 # finally build dropdown menu
 fig.update_layout(
@@ -213,7 +217,6 @@ figAnneDiplomeGenre = px.line(
     y = 'count',
     color = 'sexe',
     title = "Année d'obtention du dernier diplôme selon le genre",
-    width=1450,
     line_shape = 'spline')
 
 #figAnneDiplomeGenre.update_traces(mode="markers+lines", hovertemplate=None)
@@ -223,6 +226,8 @@ figAnneDiplomeGenre.update_layout(
     yaxis_title=None,   # Hide y-axis title
     legend=dict(font=dict(size= 12))
 )
+
+figAnneDiplomeGenre.update_layout(width=1080, margin=dict(l=15))
 
 # Rang professoral par genre
 fonctionGenre = demographics[['idsadvr', 'sexe', 'affiliations.fonction.codeSad']].drop_duplicates()
@@ -257,6 +262,9 @@ figFonctionGenre.update_layout(
      yaxis_title=None,
      xaxis_title=None
 )
+
+figFonctionGenre.update_layout(margin=dict(l=20, r=20, t=30, b=20), title_x=0.02)
+figFonctionGenre.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-1))
 
 # Langues parlées
 langueParle = demographics[demographics['langues.medium'] == 'Oral'].drop(columns=['langues.medium'])
@@ -434,7 +442,7 @@ figDepartements.update_layout(
     legend=dict(font=dict(size= 12))
 )
 
-# Principales disicplines de recherche à l'UdeM (Top 30)
+# Principales disicplines de recherche par département
 disciplines = expertises[[
     'idsadvr', 'expertise.disciplines.nom', 
     'expertise.disciplines.uid', 'expertise.disciplines.codeLangue'
