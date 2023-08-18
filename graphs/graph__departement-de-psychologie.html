@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Psychologie", "label": "Psychologie", "shape": "dot", "size": 469, "title": "Psychologie\nN=469"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 266, "title": "Neurosciences\nN=266"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 21, "title": "Informatique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9riatrie", "label": "G\u00e9riatrie", "shape": "dot", "size": 21, "title": "G\u00e9riatrie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychiatrie", "label": "Psychiatrie", "shape": "dot", "size": 21, "title": "Psychiatrie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurologie", "label": "Neurologie", "shape": "dot", "size": 14, "title": "Neurologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine physique et r\u00e9adaptation", "label": "M\u00e9decine physique et r\u00e9adaptation", "shape": "dot", "size": 49, "title": "M\u00e9decine physique et r\u00e9adaptation\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Musique", "label": "Musique", "shape": "dot", "size": 28, "title": "Musique\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Audiologie", "label": "Audiologie", "shape": "dot", "size": 7, "title": "Audiologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neuropathologie", "label": "Neuropathologie", "shape": "dot", "size": 7, "title": "Neuropathologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "label": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "shape": "dot", "size": 7, "title": "Psychiatrie de l\u2019enfant et de l\u2019adolescent\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "P\u00e9diatrie", "label": "P\u00e9diatrie", "shape": "dot", "size": 21, "title": "P\u00e9diatrie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 28, "title": "Sant\u00e9 publique\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 28, "title": "Sociologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques fondamentales", "label": "Math\u00e9matiques fondamentales", "shape": "dot", "size": 7, "title": "Math\u00e9matiques fondamentales\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie informatique et g\u00e9nie logiciel", "label": "G\u00e9nie informatique et g\u00e9nie logiciel", "shape": "dot", "size": 7, "title": "G\u00e9nie informatique et g\u00e9nie logiciel\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration publique", "label": "Administration publique", "shape": "dot", "size": 7, "title": "Administration publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Relations industrielles", "label": "Relations industrielles", "shape": "dot", "size": 7, "title": "Relations industrielles\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Management", "label": "Management", "shape": "dot", "size": 7, "title": "Management\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Neuroscience cognitive", "label": "Neuroscience cognitive", "shape": "dot", "size": 77, "title": "Neuroscience cognitive\nN=77"}, {"color": "lightblue", "font": {"size": 60}, "id": "Neuroimagerie cognitive", "label": "Neuroimagerie cognitive", "shape": "dot", "size": 63, "title": "Neuroimagerie cognitive\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "Imagerie c\u00e9r\u00e9brale", "label": "Imagerie c\u00e9r\u00e9brale", "shape": "dot", "size": 63, "title": "Imagerie c\u00e9r\u00e9brale\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif", "label": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif", "shape": "dot", "size": 49, "title": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9moire", "label": "M\u00e9moire", "shape": "dot", "size": 42, "title": "M\u00e9moire\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Neuropsychologie", "label": "Neuropsychologie", "shape": "dot", "size": 42, "title": "Neuropsychologie\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Neuropsychologie cognitive", "label": "Neuropsychologie cognitive", "shape": "dot", "size": 42, "title": "Neuropsychologie cognitive\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9adaptation", "label": "R\u00e9adaptation", "shape": "dot", "size": 35, "title": "R\u00e9adaptation\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Intervention cognitive", "label": "Intervention cognitive", "shape": "dot", "size": 35, "title": "Intervention cognitive\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Enfant", "label": "Enfant", "shape": "dot", "size": 35, "title": "Enfant\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Intervention", "label": "Intervention", "shape": "dot", "size": 35, "title": "Intervention\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Troubles du langage", "label": "Troubles du langage", "shape": "dot", "size": 28, "title": "Troubles du langage\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Entra\u00eenement cognitif", "label": "Entra\u00eenement cognitif", "shape": "dot", "size": 28, "title": "Entra\u00eenement cognitif\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Imagerie par R\u00e9sonance Magn\u00e9tique", "label": "Imagerie par R\u00e9sonance Magn\u00e9tique", "shape": "dot", "size": 28, "title": "Imagerie par R\u00e9sonance Magn\u00e9tique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Vision", "label": "Vision", "shape": "dot", "size": 28, "title": "Vision\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9lectrophysiologie (EEG)", "label": "\u00c9lectrophysiologie (EEG)", "shape": "dot", "size": 28, "title": "\u00c9lectrophysiologie (EEG)\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement de l\u0027enfant", "label": "D\u00e9veloppement de l\u0027enfant", "shape": "dot", "size": 28, "title": "D\u00e9veloppement de l\u0027enfant\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9mence de type Alzheimer", "label": "D\u00e9mence de type Alzheimer", "shape": "dot", "size": 28, "title": "D\u00e9mence de type Alzheimer\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9rapie cognitivo-comportementale", "label": "Th\u00e9rapie cognitivo-comportementale", "shape": "dot", "size": 28, "title": "Th\u00e9rapie cognitivo-comportementale\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Psychopathologie", "label": "Psychopathologie", "shape": "dot", "size": 28, "title": "Psychopathologie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Couple et sexualit\u00e9", "label": "Couple et sexualit\u00e9", "shape": "dot", "size": 28, "title": "Couple et sexualit\u00e9\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pratiques parentales", "label": "Pratiques parentales", "shape": "dot", "size": 28, "title": "Pratiques parentales\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Interactions conjugales", "label": "Interactions conjugales", "shape": "dot", "size": 28, "title": "Interactions conjugales\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Troubles du sommeil", "label": "Troubles du sommeil", "shape": "dot", "size": 21, "title": "Troubles du sommeil\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9motions", "label": "\u00c9motions", "shape": "dot", "size": 21, "title": "\u00c9motions\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Troubles d\u0027apprentissage", "label": "Troubles d\u0027apprentissage", "shape": "dot", "size": 21, "title": "Troubles d\u0027apprentissage\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9valuation neuropsychologique de l\u0027adulte", "label": "\u00c9valuation neuropsychologique de l\u0027adulte", "shape": "dot", "size": 21, "title": "\u00c9valuation neuropsychologique de l\u0027adulte\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Troubles sensoriels et cognitifs d\u00e9veloppementaux", "label": "Troubles sensoriels et cognitifs d\u00e9veloppementaux", "shape": "dot", "size": 21, "title": "Troubles sensoriels et cognitifs d\u00e9veloppementaux\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Neuroscience auditive", "label": "Neuroscience auditive", "shape": "dot", "size": 21, "title": "Neuroscience auditive\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Troubles cognitifs l\u00e9gers", "label": "Troubles cognitifs l\u00e9gers", "shape": "dot", "size": 21, "title": "Troubles cognitifs l\u00e9gers\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gestion du stress", "label": "Gestion du stress", "shape": "dot", "size": 21, "title": "Gestion du stress\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Violence", "label": "Violence", "shape": "dot", "size": 21, "title": "Violence\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Troubles de l\u0027attention", "label": "Troubles de l\u0027attention", "shape": "dot", "size": 21, "title": "Troubles de l\u0027attention\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Psychologie cognitive", "label": "Psychologie cognitive", "shape": "dot", "size": 21, "title": "Psychologie cognitive\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sommeil paradoxal", "label": "Sommeil paradoxal", "shape": "dot", "size": 21, "title": "Sommeil paradoxal\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9pression", "label": "D\u00e9pression", "shape": "dot", "size": 21, "title": "D\u00e9pression\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Personnalit\u00e9", "label": "Personnalit\u00e9", "shape": "dot", "size": 21, "title": "Personnalit\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Reconnaissance d\u0027objets", "label": "Reconnaissance d\u0027objets", "shape": "dot", "size": 21, "title": "Reconnaissance d\u0027objets\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Apprentissage automatique", "label": "Apprentissage automatique", "shape": "dot", "size": 21, "title": "Apprentissage automatique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Cerveau et musique", "label": "Cerveau et musique", "shape": "dot", "size": 21, "title": "Cerveau et musique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Cerveau et son", "label": "Cerveau et son", "shape": "dot", "size": 21, "title": "Cerveau et son\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9alit\u00e9 virtuelle", "label": "R\u00e9alit\u00e9 virtuelle", "shape": "dot", "size": 21, "title": "R\u00e9alit\u00e9 virtuelle\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Cerveau et m\u00e9moire s\u00e9mantique", "label": "Cerveau et m\u00e9moire s\u00e9mantique", "shape": "dot", "size": 21, "title": "Cerveau et m\u00e9moire s\u00e9mantique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 mentale", "label": "Sant\u00e9 mentale", "shape": "dot", "size": 21, "title": "Sant\u00e9 mentale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Violence conjugale", "label": "Violence conjugale", "shape": "dot", "size": 21, "title": "Violence conjugale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Relations parent-enfant", "label": "Relations parent-enfant", "shape": "dot", "size": 21, "title": "Relations parent-enfant\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Adolescent", "label": "Adolescent", "shape": "dot", "size": 21, "title": "Adolescent\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Psychologie", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Psychologie", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "Psychologie", "to": "Imagerie c\u00e9r\u00e9brale"}, {"color": "lightgrey", "from": "Psychologie", "to": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif"}, {"color": "lightgrey", "from": "Psychologie", "to": "Neuropsychologie"}, {"color": "lightgrey", "from": "Psychologie", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "Psychologie", "to": "M\u00e9moire"}, {"color": "lightgrey", "from": "Psychologie", "to": "Enfant"}, {"color": "lightgrey", "from": "Psychologie", "to": "Intervention"}, {"color": "lightgrey", "from": "Psychologie", "to": "R\u00e9adaptation"}, {"color": "lightgrey", "from": "Psychologie", "to": "Intervention cognitive"}, {"color": "lightgrey", "from": "Psychologie", "to": "Troubles du langage"}, {"color": "lightgrey", "from": "Psychologie", "to": "Couple et sexualit\u00e9"}, {"color": "lightgrey", "from": "Psychologie", "to": "D\u00e9mence de type Alzheimer"}, {"color": "lightgrey", "from": "Psychologie", "to": "Th\u00e9rapie cognitivo-comportementale"}, {"color": "lightgrey", "from": "Psychologie", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "Psychologie", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "Psychologie", "to": "Pratiques parentales"}, {"color": "lightgrey", "from": "Psychologie", "to": "Interactions conjugales"}, {"color": "lightgrey", "from": "Psychologie", "to": "Entra\u00eenement cognitif"}, {"color": "lightgrey", "from": "Psychologie", "to": "\u00c9lectrophysiologie (EEG)"}, {"color": "lightgrey", "from": "Psychologie", "to": "Psychopathologie"}, {"color": "lightgrey", "from": "Psychologie", "to": "Vision"}, {"color": "lightgrey", "from": "Psychologie", "to": "\u00c9motions"}, {"color": "lightgrey", "from": "Psychologie", "to": "\u00c9valuation neuropsychologique de l\u0027adulte"}, {"color": "lightgrey", "from": "Psychologie", "to": "Gestion du stress"}, {"color": "lightgrey", "from": "Psychologie", "to": "D\u00e9pression"}, {"color": "lightgrey", "from": "Psychologie", "to": "Personnalit\u00e9"}, {"color": "lightgrey", "from": "Psychologie", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Psychologie", "to": "Cerveau et musique"}, {"color": "lightgrey", "from": "Psychologie", "to": "Cerveau et son"}, {"color": "lightgrey", "from": "Psychologie", "to": "R\u00e9alit\u00e9 virtuelle"}, {"color": "lightgrey", "from": "Psychologie", "to": "Cerveau et m\u00e9moire s\u00e9mantique"}, {"color": "lightgrey", "from": "Psychologie", "to": "Neuroscience auditive"}, {"color": "lightgrey", "from": "Psychologie", "to": "Violence"}, {"color": "lightgrey", "from": "Psychologie", "to": "Violence conjugale"}, {"color": "lightgrey", "from": "Psychologie", "to": "Troubles sensoriels et cognitifs d\u00e9veloppementaux"}, {"color": "lightgrey", "from": "Psychologie", "to": "Troubles du sommeil"}, {"color": "lightgrey", "from": "Psychologie", "to": "Sant\u00e9 mentale"}, {"color": "lightgrey", "from": "Psychologie", "to": "Adolescent"}, {"color": "lightgrey", "from": "Psychologie", "to": "Troubles de l\u0027attention"}, {"color": "lightgrey", "from": "Psychologie", "to": "Reconnaissance d\u0027objets"}, {"color": "lightgrey", "from": "Psychologie", "to": "Psychologie cognitive"}, {"color": "lightgrey", "from": "Psychologie", "to": "Relations parent-enfant"}, {"color": "lightgrey", "from": "Psychologie", "to": "Troubles cognitifs l\u00e9gers"}, {"color": "lightgrey", "from": "Psychologie", "to": "Troubles d\u0027apprentissage"}, {"color": "lightgrey", "from": "Psychologie", "to": "Sommeil paradoxal"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Imagerie c\u00e9r\u00e9brale"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Neuropsychologie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "M\u00e9moire"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "Neurosciences", "to": "R\u00e9adaptation"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Enfant"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Intervention cognitive"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Troubles du langage"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Vision"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Entra\u00eenement cognitif"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9mence de type Alzheimer"}, {"color": "lightgrey", "from": "Neurosciences", "to": "\u00c9lectrophysiologie (EEG)"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Troubles du sommeil"}, {"color": "lightgrey", "from": "Neurosciences", "to": "\u00c9valuation neuropsychologique de l\u0027adulte"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Troubles sensoriels et cognitifs d\u00e9veloppementaux"}, {"color": "lightgrey", "from": "Neurosciences", "to": "\u00c9motions"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Violence"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Troubles de l\u0027attention"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Psychologie cognitive"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Troubles d\u0027apprentissage"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Sommeil paradoxal"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Neuroscience auditive"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Reconnaissance d\u0027objets"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Troubles cognitifs l\u00e9gers"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Cerveau et son"}, {"color": "lightgrey", "from": "Neurosciences", "to": "R\u00e9alit\u00e9 virtuelle"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Cerveau et m\u00e9moire s\u00e9mantique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Cerveau et musique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Adolescent"}, {"color": "lightgrey", "from": "Informatique", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Informatique", "to": "M\u00e9moire"}, {"color": "lightgrey", "from": "Informatique", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "Informatique", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "Informatique", "to": "\u00c9lectrophysiologie (EEG)"}, {"color": "lightgrey", "from": "Informatique", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Informatique", "to": "Cerveau et m\u00e9moire s\u00e9mantique"}, {"color": "lightgrey", "from": "Informatique", "to": "Psychologie cognitive"}, {"color": "lightgrey", "from": "Informatique", "to": "Troubles de l\u0027attention"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "M\u00e9moire"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Neuropsychologie"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Troubles du langage"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Th\u00e9rapie cognitivo-comportementale"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "D\u00e9pression"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Cerveau et m\u00e9moire s\u00e9mantique"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Th\u00e9rapie cognitivo-comportementale"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "D\u00e9mence de type Alzheimer"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "D\u00e9pression"}, {"color": "lightgrey", "from": "Neurologie", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Neurologie", "to": "M\u00e9moire"}, {"color": "lightgrey", "from": "Neurologie", "to": "Intervention cognitive"}, {"color": "lightgrey", "from": "Neurologie", "to": "D\u00e9mence de type Alzheimer"}, {"color": "lightgrey", "from": "Neurologie", "to": "R\u00e9alit\u00e9 virtuelle"}, {"color": "lightgrey", "from": "Neurologie", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Imagerie c\u00e9r\u00e9brale"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Neuropsychologie"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Intervention cognitive"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "R\u00e9adaptation"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Intervention"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Entra\u00eenement cognitif"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "\u00c9lectrophysiologie (EEG)"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Vision"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Psychopathologie"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "\u00c9valuation neuropsychologique de l\u0027adulte"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Neuroscience auditive"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Troubles cognitifs l\u00e9gers"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Troubles d\u0027apprentissage"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Troubles de l\u0027attention"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Troubles sensoriels et cognitifs d\u00e9veloppementaux"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Violence"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "Sant\u00e9 mentale"}, {"color": "lightgrey", "from": "M\u00e9decine physique et r\u00e9adaptation", "to": "R\u00e9alit\u00e9 virtuelle"}, {"color": "lightgrey", "from": "Musique", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Musique", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "Musique", "to": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif"}, {"color": "lightgrey", "from": "Musique", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "Musique", "to": "M\u00e9moire"}, {"color": "lightgrey", "from": "Musique", "to": "Intervention cognitive"}, {"color": "lightgrey", "from": "Musique", "to": "R\u00e9adaptation"}, {"color": "lightgrey", "from": "Musique", "to": "Entra\u00eenement cognitif"}, {"color": "lightgrey", "from": "Musique", "to": "Troubles du langage"}, {"color": "lightgrey", "from": "Musique", "to": "\u00c9lectrophysiologie (EEG)"}, {"color": "lightgrey", "from": "Musique", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "Musique", "to": "Cerveau et musique"}, {"color": "lightgrey", "from": "Musique", "to": "Cerveau et son"}, {"color": "lightgrey", "from": "Musique", "to": "\u00c9motions"}, {"color": "lightgrey", "from": "Musique", "to": "Neuroscience auditive"}, {"color": "lightgrey", "from": "Musique", "to": "Troubles cognitifs l\u00e9gers"}, {"color": "lightgrey", "from": "Musique", "to": "Troubles sensoriels et cognitifs d\u00e9veloppementaux"}, {"color": "lightgrey", "from": "Audiologie", "to": "Neuroscience cognitive"}, {"color": "lightgrey", "from": "Audiologie", "to": "Neuroimagerie cognitive"}, {"color": "lightgrey", "from": "Audiologie", "to": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif"}, {"color": "lightgrey", "from": "Audiologie", "to": "Neuropsychologie cognitive"}, {"color": "lightgrey", "from": "Audiologie", "to": "R\u00e9adaptation"}, {"color": "lightgrey", "from": "Audiologie", "to": "Intervention cognitive"}, {"color": "lightgrey", "from": "Audiologie", "to": "Entra\u00eenement cognitif"}, {"color": "lightgrey", "from": "Audiologie", "to": "Neuroscience auditive"}, {"color": "lightgrey", "from": "Audiologie", "to": "Troubles cognitifs l\u00e9gers"}, {"color": "lightgrey", "from": "Audiologie", "to": "Troubles sensoriels et cognitifs d\u00e9veloppementaux"}, {"color": "lightgrey", "from": "Neuropathologie", "to": "Imagerie c\u00e9r\u00e9brale"}, {"color": "lightgrey", "from": "Neuropathologie", "to": "Cerveau et m\u00e9moire s\u00e9mantique"}, {"color": "lightgrey", "from": "Neuropathologie", "to": "Troubles cognitifs l\u00e9gers"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "Imagerie c\u00e9r\u00e9brale"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "Neuropsychologie"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Imagerie c\u00e9r\u00e9brale"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "D\u00e9veloppement c\u00e9r\u00e9bral et cognitif"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Neuropsychologie"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Troubles du langage"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Vision"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "\u00c9lectrophysiologie (EEG)"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Troubles d\u0027apprentissage"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Enfant"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Pratiques parentales"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Interactions conjugales"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9 mentale"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Relations parent-enfant"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Gestion du stress"}, {"color": "lightgrey", "from": "Sociologie", "to": "Enfant"}, {"color": "lightgrey", "from": "Sociologie", "to": "Interactions conjugales"}, {"color": "lightgrey", "from": "Sociologie", "to": "Pratiques parentales"}, {"color": "lightgrey", "from": "Sociologie", "to": "Th\u00e9rapie cognitivo-comportementale"}, {"color": "lightgrey", "from": "Sociologie", "to": "Adolescent"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Imagerie par R\u00e9sonance Magn\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Vision"}, {"color": "lightgrey", "from": "Administration publique", "to": "Entra\u00eenement cognitif"}, {"color": "lightgrey", "from": "Administration publique", "to": "Couple et sexualit\u00e9"}, {"color": "lightgrey", "from": "Administration publique", "to": "Psychologie cognitive"}, {"color": "lightgrey", "from": "Communication", "to": "Cerveau et musique"}, {"color": "lightgrey", "from": "Communication", "to": "\u00c9motions"}, {"color": "lightgrey", "from": "Relations industrielles", "to": "Violence"}, {"color": "lightgrey", "from": "Relations industrielles", "to": "Gestion du stress"}, {"color": "lightgrey", "from": "Management", "to": "Personnalit\u00e9"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

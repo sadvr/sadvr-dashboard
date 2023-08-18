@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "S\u00e9miologie", "label": "S\u00e9miologie", "shape": "dot", "size": 7, "title": "S\u00e9miologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Architecture", "label": "Architecture", "shape": "dot", "size": 133, "title": "Architecture\nN=133"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Am\u00e9nagement", "label": "Am\u00e9nagement", "shape": "dot", "size": 112, "title": "Am\u00e9nagement\nN=112"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 14, "title": "Histoire\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes urbaines", "label": "\u00c9tudes urbaines", "shape": "dot", "size": 28, "title": "\u00c9tudes urbaines\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Design", "label": "Design", "shape": "dot", "size": 35, "title": "Design\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Environnement et d\u00e9veloppement durable", "label": "Environnement et d\u00e9veloppement durable", "shape": "dot", "size": 21, "title": "Environnement et d\u00e9veloppement durable\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Urbanisme", "label": "Urbanisme", "shape": "dot", "size": 35, "title": "Urbanisme\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 14, "title": "Communication\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arts visuels et m\u00e9diatiques", "label": "Arts visuels et m\u00e9diatiques", "shape": "dot", "size": 14, "title": "Arts visuels et m\u00e9diatiques\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire des arts", "label": "Histoire des arts", "shape": "dot", "size": 21, "title": "Histoire des arts\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie de l\u2019art", "label": "Sociologie de l\u2019art", "shape": "dot", "size": 14, "title": "Sociologie de l\u2019art\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 7, "title": "Sant\u00e9 publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 14, "title": "Sociologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Architecture de paysage", "label": "Architecture de paysage", "shape": "dot", "size": 7, "title": "Architecture de paysage\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 7, "title": "Informatique\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Projet d\u0027architecture", "label": "Projet d\u0027architecture", "shape": "dot", "size": 70, "title": "Projet d\u0027architecture\nN=70"}, {"color": "lightblue", "font": {"size": 60}, "id": "Design urbain et architecture urbaine", "label": "Design urbain et architecture urbaine", "shape": "dot", "size": 56, "title": "Design urbain et architecture urbaine\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Design architectural", "label": "Design architectural", "shape": "dot", "size": 49, "title": "Design architectural\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Paysages urbains", "label": "Paysages urbains", "shape": "dot", "size": 28, "title": "Paysages urbains\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Paysages culturels", "label": "Paysages culturels", "shape": "dot", "size": 28, "title": "Paysages culturels\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Paysages urbains historiques", "label": "Paysages urbains historiques", "shape": "dot", "size": 28, "title": "Paysages urbains historiques\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Construction", "label": "Construction", "shape": "dot", "size": 28, "title": "Construction\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Recherche-cr\u00e9ation", "label": "Recherche-cr\u00e9ation", "shape": "dot", "size": 21, "title": "Recherche-cr\u00e9ation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Figuration et repr\u00e9sentation", "label": "Figuration et repr\u00e9sentation", "shape": "dot", "size": 21, "title": "Figuration et repr\u00e9sentation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Am\u00e9nagement du territoire", "label": "Am\u00e9nagement du territoire", "shape": "dot", "size": 21, "title": "Am\u00e9nagement du territoire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Histoire et th\u00e9orie de l\u0027architecture", "label": "Histoire et th\u00e9orie de l\u0027architecture", "shape": "dot", "size": 21, "title": "Histoire et th\u00e9orie de l\u0027architecture\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Logement social", "label": "Logement social", "shape": "dot", "size": 21, "title": "Logement social\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Processus de cr\u00e9ation", "label": "Processus de cr\u00e9ation", "shape": "dot", "size": 21, "title": "Processus de cr\u00e9ation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Processus d\u0027innovation", "label": "Processus d\u0027innovation", "shape": "dot", "size": 21, "title": "Processus d\u0027innovation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Techniques et mat\u00e9riaux", "label": "Techniques et mat\u00e9riaux", "shape": "dot", "size": 21, "title": "Techniques et mat\u00e9riaux\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "S\u00e9miologie", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "S\u00e9miologie", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Architecture", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Architecture", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Architecture", "to": "Design architectural"}, {"color": "lightgrey", "from": "Architecture", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Architecture", "to": "Construction"}, {"color": "lightgrey", "from": "Architecture", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Architecture", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "Architecture", "to": "Figuration et repr\u00e9sentation"}, {"color": "lightgrey", "from": "Architecture", "to": "Processus de cr\u00e9ation"}, {"color": "lightgrey", "from": "Architecture", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Architecture", "to": "Recherche-cr\u00e9ation"}, {"color": "lightgrey", "from": "Architecture", "to": "Histoire et th\u00e9orie de l\u0027architecture"}, {"color": "lightgrey", "from": "Architecture", "to": "Techniques et mat\u00e9riaux"}, {"color": "lightgrey", "from": "Architecture", "to": "Processus d\u0027innovation"}, {"color": "lightgrey", "from": "Architecture", "to": "Logement social"}, {"color": "lightgrey", "from": "Architecture", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Design architectural"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Construction"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Processus d\u0027innovation"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Logement social"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Figuration et repr\u00e9sentation"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Techniques et mat\u00e9riaux"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Histoire et th\u00e9orie de l\u0027architecture"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Processus de cr\u00e9ation"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Recherche-cr\u00e9ation"}, {"color": "lightgrey", "from": "Histoire", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Histoire", "to": "Design architectural"}, {"color": "lightgrey", "from": "Histoire", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Histoire", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Histoire", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "Histoire", "to": "Figuration et repr\u00e9sentation"}, {"color": "lightgrey", "from": "Histoire", "to": "Histoire et th\u00e9orie de l\u0027architecture"}, {"color": "lightgrey", "from": "Histoire", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Design architectural"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Histoire et th\u00e9orie de l\u0027architecture"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Recherche-cr\u00e9ation"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Figuration et repr\u00e9sentation"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Logement social"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Design", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Design", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Design", "to": "Design architectural"}, {"color": "lightgrey", "from": "Design", "to": "Construction"}, {"color": "lightgrey", "from": "Design", "to": "Recherche-cr\u00e9ation"}, {"color": "lightgrey", "from": "Design", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Design", "to": "Processus de cr\u00e9ation"}, {"color": "lightgrey", "from": "Design", "to": "Processus d\u0027innovation"}, {"color": "lightgrey", "from": "Design", "to": "Logement social"}, {"color": "lightgrey", "from": "Design", "to": "Techniques et mat\u00e9riaux"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Design architectural"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Urbanisme"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Processus d\u0027innovation"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Design architectural"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Processus d\u0027innovation"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Logement social"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Figuration et repr\u00e9sentation"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Processus de cr\u00e9ation"}, {"color": "lightgrey", "from": "Communication", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Communication", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Design architectural"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Figuration et repr\u00e9sentation"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Histoire et th\u00e9orie de l\u0027architecture"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Recherche-cr\u00e9ation"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Projet d\u0027architecture"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Histoire et th\u00e9orie de l\u0027architecture"}, {"color": "lightgrey", "from": "Sociologie de l\u2019art", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Sociologie de l\u2019art", "to": "Design architectural"}, {"color": "lightgrey", "from": "Sociologie de l\u2019art", "to": "Construction"}, {"color": "lightgrey", "from": "Sociologie de l\u2019art", "to": "Logement social"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Design architectural"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Sociologie", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Sociologie", "to": "Design architectural"}, {"color": "lightgrey", "from": "Sociologie", "to": "Construction"}, {"color": "lightgrey", "from": "Sociologie", "to": "Logement social"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Paysages urbains historiques"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Informatique", "to": "Recherche-cr\u00e9ation"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 21, "title": "Sociologie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Urbanisme", "label": "Urbanisme", "shape": "dot", "size": 56, "title": "Urbanisme\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Architecture de paysage", "label": "Architecture de paysage", "shape": "dot", "size": 21, "title": "Architecture de paysage\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Architecture", "label": "Architecture", "shape": "dot", "size": 7, "title": "Architecture\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Environnement et d\u00e9veloppement durable", "label": "Environnement et d\u00e9veloppement durable", "shape": "dot", "size": 70, "title": "Environnement et d\u00e9veloppement durable\nN=70"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Design", "label": "Design", "shape": "dot", "size": 21, "title": "Design\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Eau et environnement", "label": "Eau et environnement", "shape": "dot", "size": 21, "title": "Eau et environnement\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes urbaines", "label": "\u00c9tudes urbaines", "shape": "dot", "size": 77, "title": "\u00c9tudes urbaines\nN=77"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 14, "title": "Histoire\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Am\u00e9nagement", "label": "Am\u00e9nagement", "shape": "dot", "size": 119, "title": "Am\u00e9nagement\nN=119"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9ographie humaine", "label": "G\u00e9ographie humaine", "shape": "dot", "size": 14, "title": "G\u00e9ographie humaine\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arts visuels et m\u00e9diatiques", "label": "Arts visuels et m\u00e9diatiques", "shape": "dot", "size": 7, "title": "Arts visuels et m\u00e9diatiques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9rontologie", "label": "G\u00e9rontologie", "shape": "dot", "size": 7, "title": "G\u00e9rontologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9conomie", "label": "\u00c9conomie", "shape": "dot", "size": 7, "title": "\u00c9conomie\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Design urbain et architecture urbaine", "label": "Design urbain et architecture urbaine", "shape": "dot", "size": 42, "title": "Design urbain et architecture urbaine\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gestion des paysages", "label": "Gestion des paysages", "shape": "dot", "size": 42, "title": "Gestion des paysages\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Histoire et th\u00e9orie du paysage", "label": "Histoire et th\u00e9orie du paysage", "shape": "dot", "size": 42, "title": "Histoire et th\u00e9orie du paysage\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement", "label": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement", "shape": "dot", "size": 35, "title": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Paysages urbains", "label": "Paysages urbains", "shape": "dot", "size": 35, "title": "Paysages urbains\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gouvernance m\u00e9tropolitaine", "label": "Gouvernance m\u00e9tropolitaine", "shape": "dot", "size": 28, "title": "Gouvernance m\u00e9tropolitaine\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Espaces publics", "label": "Espaces publics", "shape": "dot", "size": 28, "title": "Espaces publics\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Patrimoine b\u00e2ti", "label": "Patrimoine b\u00e2ti", "shape": "dot", "size": 21, "title": "Patrimoine b\u00e2ti\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Requalifications paysag\u00e8res", "label": "Requalifications paysag\u00e8res", "shape": "dot", "size": 21, "title": "Requalifications paysag\u00e8res\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Morphologie urbaine", "label": "Morphologie urbaine", "shape": "dot", "size": 21, "title": "Morphologie urbaine\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Friches industrielles et urbaines", "label": "Friches industrielles et urbaines", "shape": "dot", "size": 21, "title": "Friches industrielles et urbaines\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Relation personne-environnement", "label": "Relation personne-environnement", "shape": "dot", "size": 21, "title": "Relation personne-environnement\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Paysages culturels", "label": "Paysages culturels", "shape": "dot", "size": 21, "title": "Paysages culturels\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodologie de la recherche", "label": "M\u00e9thodologie de la recherche", "shape": "dot", "size": 21, "title": "M\u00e9thodologie de la recherche\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Milieux naturels", "label": "Milieux naturels", "shape": "dot", "size": 21, "title": "Milieux naturels\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Histoire et th\u00e9orie de l\u0027urbanisme", "label": "Histoire et th\u00e9orie de l\u0027urbanisme", "shape": "dot", "size": 21, "title": "Histoire et th\u00e9orie de l\u0027urbanisme\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Am\u00e9nagement du territoire", "label": "Am\u00e9nagement du territoire", "shape": "dot", "size": 21, "title": "Am\u00e9nagement du territoire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Changements climatiques", "label": "Changements climatiques", "shape": "dot", "size": 21, "title": "Changements climatiques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Concertation et m\u00e9diation", "label": "Concertation et m\u00e9diation", "shape": "dot", "size": 21, "title": "Concertation et m\u00e9diation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9valuation de projets d\u0027am\u00e9nagement", "label": "\u00c9valuation de projets d\u0027am\u00e9nagement", "shape": "dot", "size": 21, "title": "\u00c9valuation de projets d\u0027am\u00e9nagement\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement urbain et immobilier", "label": "D\u00e9veloppement urbain et immobilier", "shape": "dot", "size": 21, "title": "D\u00e9veloppement urbain et immobilier\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Sociologie", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Sociologie", "to": "Urbanisme"}, {"color": "lightgrey", "from": "Sociologie", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Sociologie", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Sociologie", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "Sociologie", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "Sociologie", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "Sociologie", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "Sociologie", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Eau et environnement"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Urbanisme"}, {"color": "lightgrey", "from": "Urbanisme", "to": "\u00c9tudes urbaines"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Architecture de paysage"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Design"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Architecture"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Am\u00e9nagement"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Histoire"}, {"color": "lightgrey", "from": "Urbanisme", "to": "G\u00e9ographie humaine"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Gouvernance m\u00e9tropolitaine"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Espaces publics"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Histoire et th\u00e9orie de l\u0027urbanisme"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Patrimoine b\u00e2ti"}, {"color": "lightgrey", "from": "Urbanisme", "to": "M\u00e9thodologie de la recherche"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Milieux naturels"}, {"color": "lightgrey", "from": "Urbanisme", "to": "\u00c9valuation de projets d\u0027am\u00e9nagement"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "Urbanisme", "to": "D\u00e9veloppement urbain et immobilier"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Espaces publics"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Design"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Eau et environnement"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "\u00c9tudes urbaines"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Arts visuels et m\u00e9diatiques"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Patrimoine b\u00e2ti"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Architecture de paysage"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Milieux naturels"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Am\u00e9nagement"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "\u00c9valuation de projets d\u0027am\u00e9nagement"}, {"color": "lightgrey", "from": "Architecture de paysage", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "Architecture", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Architecture", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Architecture", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Architecture", "to": "Espaces publics"}, {"color": "lightgrey", "from": "Architecture", "to": "M\u00e9thodologie de la recherche"}, {"color": "lightgrey", "from": "Architecture", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Architecture", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Environnement et d\u00e9veloppement durable"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Communication"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Design"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Eau et environnement"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "\u00c9tudes urbaines"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Histoire"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Am\u00e9nagement"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Gouvernance m\u00e9tropolitaine"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "D\u00e9veloppement urbain et immobilier"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Milieux naturels"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "Communication", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Communication", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Communication", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "Communication", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Design", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Design", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Design", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Design", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Design", "to": "Espaces publics"}, {"color": "lightgrey", "from": "Design", "to": "Patrimoine b\u00e2ti"}, {"color": "lightgrey", "from": "Design", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Design", "to": "M\u00e9thodologie de la recherche"}, {"color": "lightgrey", "from": "Design", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Design", "to": "\u00c9valuation de projets d\u0027am\u00e9nagement"}, {"color": "lightgrey", "from": "Design", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "Design", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Milieux naturels"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9valuation de projets d\u0027am\u00e9nagement"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Gouvernance m\u00e9tropolitaine"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Milieux naturels"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "\u00c9valuation de projets d\u0027am\u00e9nagement"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "D\u00e9veloppement urbain et immobilier"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Histoire et th\u00e9orie de l\u0027urbanisme"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Patrimoine b\u00e2ti"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "M\u00e9thodologie de la recherche"}, {"color": "lightgrey", "from": "Histoire", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Histoire", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Histoire", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Histoire", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "Histoire", "to": "Histoire et th\u00e9orie de l\u0027urbanisme"}, {"color": "lightgrey", "from": "Histoire", "to": "M\u00e9thodologie de la recherche"}, {"color": "lightgrey", "from": "Histoire", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Design urbain et architecture urbaine"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Paysages urbains"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Espaces publics"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Gouvernance m\u00e9tropolitaine"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "D\u00e9veloppement urbain et immobilier"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "\u00c9valuation de projets d\u0027am\u00e9nagement"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Am\u00e9nagement du territoire"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Milieux naturels"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "M\u00e9thodologie de la recherche"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Friches industrielles et urbaines"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Histoire et th\u00e9orie de l\u0027urbanisme"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Patrimoine b\u00e2ti"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Concertation et m\u00e9diation"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "Gouvernance m\u00e9tropolitaine"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "D\u00e9veloppement urbain et immobilier"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Gestion des paysages"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Histoire et th\u00e9orie du paysage"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Requalifications paysag\u00e8res"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Paysages culturels"}, {"color": "lightgrey", "from": "G\u00e9rontologie", "to": "Urbanisation et am\u00e9nagement dans les pays en d\u00e9veloppement"}, {"color": "lightgrey", "from": "G\u00e9rontologie", "to": "Morphologie urbaine"}, {"color": "lightgrey", "from": "G\u00e9rontologie", "to": "Relation personne-environnement"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Gouvernance m\u00e9tropolitaine"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "D\u00e9veloppement urbain et immobilier"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

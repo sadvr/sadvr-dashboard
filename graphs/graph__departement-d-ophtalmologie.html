@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Pathologie g\u00e9n\u00e9rale", "label": "Pathologie g\u00e9n\u00e9rale", "shape": "dot", "size": 14, "title": "Pathologie g\u00e9n\u00e9rale\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Ophtalmologie", "label": "Ophtalmologie", "shape": "dot", "size": 182, "title": "Ophtalmologie\nN=182"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie physique", "label": "G\u00e9nie physique", "shape": "dot", "size": 7, "title": "G\u00e9nie physique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biom\u00e9dical", "label": "G\u00e9nie biom\u00e9dical", "shape": "dot", "size": 14, "title": "G\u00e9nie biom\u00e9dical\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chirurgie g\u00e9n\u00e9rale", "label": "Chirurgie g\u00e9n\u00e9rale", "shape": "dot", "size": 28, "title": "Chirurgie g\u00e9n\u00e9rale\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 14, "title": "Biologie et autres sciences connexes\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 7, "title": "Sciences biom\u00e9dicales\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 14, "title": "Physiologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "P\u00e9diatrie", "label": "P\u00e9diatrie", "shape": "dot", "size": 7, "title": "P\u00e9diatrie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Optom\u00e9trie", "label": "Optom\u00e9trie", "shape": "dot", "size": 7, "title": "Optom\u00e9trie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 14, "title": "Neurosciences\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 7, "title": "Physique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie m\u00e9dicale", "label": "Biochimie m\u00e9dicale", "shape": "dot", "size": 7, "title": "Biochimie m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine mol\u00e9culaire", "label": "M\u00e9decine mol\u00e9culaire", "shape": "dot", "size": 7, "title": "M\u00e9decine mol\u00e9culaire\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 7, "title": "Sant\u00e9 publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chirurgie g\u00e9n\u00e9rale oncologique", "label": "Chirurgie g\u00e9n\u00e9rale oncologique", "shape": "dot", "size": 7, "title": "Chirurgie g\u00e9n\u00e9rale oncologique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chirurgie plastique", "label": "Chirurgie plastique", "shape": "dot", "size": 7, "title": "Chirurgie plastique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences cliniques", "label": "Sciences cliniques", "shape": "dot", "size": 7, "title": "Sciences cliniques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique m\u00e9dicale", "label": "Physique m\u00e9dicale", "shape": "dot", "size": 7, "title": "Physique m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie et biostatistique", "label": "\u00c9pid\u00e9miologie et biostatistique", "shape": "dot", "size": 14, "title": "\u00c9pid\u00e9miologie et biostatistique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Oncologie", "label": "Oncologie", "shape": "dot", "size": 7, "title": "Oncologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie cellulaire", "label": "Biologie cellulaire", "shape": "dot", "size": 14, "title": "Biologie cellulaire\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Vision", "label": "Vision", "shape": "dot", "size": 56, "title": "Vision\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies de l\u0027oeil et du syst\u00e8me visuel", "label": "Maladies de l\u0027oeil et du syst\u00e8me visuel", "shape": "dot", "size": 42, "title": "Maladies de l\u0027oeil et du syst\u00e8me visuel\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Diab\u00e8te", "label": "Diab\u00e8te", "shape": "dot", "size": 42, "title": "Diab\u00e8te\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Tumeurs r\u00e9tiniennes et oculaires", "label": "Tumeurs r\u00e9tiniennes et oculaires", "shape": "dot", "size": 42, "title": "Tumeurs r\u00e9tiniennes et oculaires\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me visuel", "label": "Syst\u00e8me visuel", "shape": "dot", "size": 28, "title": "Syst\u00e8me visuel\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Imagerie (Outils de caract\u00e9risation)", "label": "Imagerie (Outils de caract\u00e9risation)", "shape": "dot", "size": 21, "title": "Imagerie (Outils de caract\u00e9risation)\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Innovations technologiques", "label": "Innovations technologiques", "shape": "dot", "size": 21, "title": "Innovations technologiques\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Vision"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Vision"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Diab\u00e8te"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "Ophtalmologie", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Vision"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Vision"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "Chirurgie g\u00e9n\u00e9rale", "to": "Vision"}, {"color": "lightgrey", "from": "Chirurgie g\u00e9n\u00e9rale", "to": "Diab\u00e8te"}, {"color": "lightgrey", "from": "Chirurgie g\u00e9n\u00e9rale", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Chirurgie g\u00e9n\u00e9rale", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Vision"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Vision"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "Physiologie", "to": "Vision"}, {"color": "lightgrey", "from": "Physiologie", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Vision"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Optom\u00e9trie", "to": "Vision"}, {"color": "lightgrey", "from": "Optom\u00e9trie", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Optom\u00e9trie", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Vision"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Physique", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Physique", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Diab\u00e8te"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Diab\u00e8te"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Chirurgie g\u00e9n\u00e9rale oncologique", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Chirurgie plastique", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Sciences cliniques", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Imagerie (Outils de caract\u00e9risation)"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Oncologie", "to": "Tumeurs r\u00e9tiniennes et oculaires"}, {"color": "lightgrey", "from": "Oncologie", "to": "Maladies de l\u0027oeil et du syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Oncologie", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Imagerie (Outils de caract\u00e9risation)"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

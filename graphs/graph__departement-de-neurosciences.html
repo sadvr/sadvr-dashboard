@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 42, "title": "Physiologie\nN=42"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 231, "title": "Neurosciences\nN=231"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 28, "title": "Biologie et autres sciences connexes\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychologie", "label": "Psychologie", "shape": "dot", "size": 14, "title": "Psychologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie et biostatistique", "label": "\u00c9pid\u00e9miologie et biostatistique", "shape": "dot", "size": 14, "title": "\u00c9pid\u00e9miologie et biostatistique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie cellulaire", "label": "Biologie cellulaire", "shape": "dot", "size": 35, "title": "Biologie cellulaire\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "P\u00e9diatrie du d\u00e9veloppement", "label": "P\u00e9diatrie du d\u00e9veloppement", "shape": "dot", "size": 7, "title": "P\u00e9diatrie du d\u00e9veloppement\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurologie", "label": "Neurologie", "shape": "dot", "size": 28, "title": "Neurologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biom\u00e9dical", "label": "G\u00e9nie biom\u00e9dical", "shape": "dot", "size": 14, "title": "G\u00e9nie biom\u00e9dical\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique", "label": "G\u00e9n\u00e9tique", "shape": "dot", "size": 35, "title": "G\u00e9n\u00e9tique\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 7, "title": "Informatique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques appliqu\u00e9es", "label": "Math\u00e9matiques appliqu\u00e9es", "shape": "dot", "size": 7, "title": "Math\u00e9matiques appliqu\u00e9es\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 70, "title": "Biologie mol\u00e9culaire\nN=70"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 21, "title": "Sciences biom\u00e9dicales\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 7, "title": "Physique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "P\u00e9diatrie", "label": "P\u00e9diatrie", "shape": "dot", "size": 7, "title": "P\u00e9diatrie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine pr\u00e9ventive", "label": "M\u00e9decine pr\u00e9ventive", "shape": "dot", "size": 7, "title": "M\u00e9decine pr\u00e9ventive\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Optom\u00e9trie", "label": "Optom\u00e9trie", "shape": "dot", "size": 7, "title": "Optom\u00e9trie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 14, "title": "Pharmacologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences cliniques", "label": "Sciences cliniques", "shape": "dot", "size": 14, "title": "Sciences cliniques\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 14, "title": "Biochimie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pathologie g\u00e9n\u00e9rale", "label": "Pathologie g\u00e9n\u00e9rale", "shape": "dot", "size": 7, "title": "Pathologie g\u00e9n\u00e9rale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique m\u00e9dicale", "label": "G\u00e9n\u00e9tique m\u00e9dicale", "shape": "dot", "size": 7, "title": "G\u00e9n\u00e9tique m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chirurgie g\u00e9n\u00e9rale", "label": "Chirurgie g\u00e9n\u00e9rale", "shape": "dot", "size": 7, "title": "Chirurgie g\u00e9n\u00e9rale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Immunologie", "label": "Immunologie", "shape": "dot", "size": 14, "title": "Immunologie\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me moteur", "label": "Syst\u00e8me moteur", "shape": "dot", "size": 56, "title": "Syst\u00e8me moteur\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale", "label": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale", "shape": "dot", "size": 42, "title": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques", "label": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques", "shape": "dot", "size": 42, "title": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Fonctions ex\u00e9cutives", "label": "Fonctions ex\u00e9cutives", "shape": "dot", "size": 35, "title": "Fonctions ex\u00e9cutives\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)", "label": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)", "shape": "dot", "size": 35, "title": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me nerveux autonome", "label": "Syst\u00e8me nerveux autonome", "shape": "dot", "size": 35, "title": "Syst\u00e8me nerveux autonome\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me somato-sensoriel", "label": "Syst\u00e8me somato-sensoriel", "shape": "dot", "size": 35, "title": "Syst\u00e8me somato-sensoriel\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Facteurs de croissance (neurosciences)", "label": "Facteurs de croissance (neurosciences)", "shape": "dot", "size": 28, "title": "Facteurs de croissance (neurosciences)\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Communication neuronale et neurotransmission", "label": "Communication neuronale et neurotransmission", "shape": "dot", "size": 28, "title": "Communication neuronale et neurotransmission\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Affections convulsives / \u00c9pilepsie", "label": "Affections convulsives / \u00c9pilepsie", "shape": "dot", "size": 28, "title": "Affections convulsives / \u00c9pilepsie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9cepteurs et transporteurs", "label": "R\u00e9cepteurs et transporteurs", "shape": "dot", "size": 28, "title": "R\u00e9cepteurs et transporteurs\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladie d\u0027Alzheimer", "label": "Maladie d\u0027Alzheimer", "shape": "dot", "size": 28, "title": "Maladie d\u0027Alzheimer\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mod\u00e9lisation neuronale", "label": "Mod\u00e9lisation neuronale", "shape": "dot", "size": 21, "title": "Mod\u00e9lisation neuronale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Somatisation et syndromes somatiques fonctionnels", "label": "Somatisation et syndromes somatiques fonctionnels", "shape": "dot", "size": 21, "title": "Somatisation et syndromes somatiques fonctionnels\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Scl\u00e9rose en plaques", "label": "Scl\u00e9rose en plaques", "shape": "dot", "size": 21, "title": "Scl\u00e9rose en plaques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique mol\u00e9culaire", "label": "G\u00e9n\u00e9tique mol\u00e9culaire", "shape": "dot", "size": 21, "title": "G\u00e9n\u00e9tique mol\u00e9culaire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9", "label": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9", "shape": "dot", "size": 21, "title": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies neurologiques", "label": "Maladies neurologiques", "shape": "dot", "size": 21, "title": "Maladies neurologiques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies neuromusculaires", "label": "Maladies neuromusculaires", "shape": "dot", "size": 21, "title": "Maladies neuromusculaires\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "H\u00e9mipl\u00e9gie et parapl\u00e9gie", "label": "H\u00e9mipl\u00e9gie et parapl\u00e9gie", "shape": "dot", "size": 21, "title": "H\u00e9mipl\u00e9gie et parapl\u00e9gie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9pistage g\u00e9n\u00e9tique des maladies", "label": "D\u00e9pistage g\u00e9n\u00e9tique des maladies", "shape": "dot", "size": 21, "title": "D\u00e9pistage g\u00e9n\u00e9tique des maladies\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Traumatismes cr\u00e2nio-enc\u00e9phaliques et de la moelle \u00e9pini\u00e8re", "label": "Traumatismes cr\u00e2nio-enc\u00e9phaliques et de la moelle \u00e9pini\u00e8re", "shape": "dot", "size": 21, "title": "Traumatismes cr\u00e2nio-enc\u00e9phaliques et de la moelle \u00e9pini\u00e8re\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me visuel", "label": "Syst\u00e8me visuel", "shape": "dot", "size": 21, "title": "Syst\u00e8me visuel\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Physiologie", "to": "Syst\u00e8me moteur"}, {"color": "lightgrey", "from": "Physiologie", "to": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)"}, {"color": "lightgrey", "from": "Physiologie", "to": "Fonctions ex\u00e9cutives"}, {"color": "lightgrey", "from": "Physiologie", "to": "Syst\u00e8me nerveux autonome"}, {"color": "lightgrey", "from": "Physiologie", "to": "Syst\u00e8me somato-sensoriel"}, {"color": "lightgrey", "from": "Physiologie", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "Physiologie", "to": "H\u00e9mipl\u00e9gie et parapl\u00e9gie"}, {"color": "lightgrey", "from": "Physiologie", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "Physiologie", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "Physiologie", "to": "Maladies neuromusculaires"}, {"color": "lightgrey", "from": "Physiologie", "to": "Scl\u00e9rose en plaques"}, {"color": "lightgrey", "from": "Physiologie", "to": "Somatisation et syndromes somatiques fonctionnels"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Syst\u00e8me moteur"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Neurosciences", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Fonctions ex\u00e9cutives"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Syst\u00e8me nerveux autonome"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Syst\u00e8me somato-sensoriel"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Neurosciences", "to": "R\u00e9cepteurs et transporteurs"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Maladie d\u0027Alzheimer"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Somatisation et syndromes somatiques fonctionnels"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Scl\u00e9rose en plaques"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Traumatismes cr\u00e2nio-enc\u00e9phaliques et de la moelle \u00e9pini\u00e8re"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Maladies neuromusculaires"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9pistage g\u00e9n\u00e9tique des maladies"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "Neurosciences", "to": "H\u00e9mipl\u00e9gie et parapl\u00e9gie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "G\u00e9n\u00e9tique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Neurosciences", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Syst\u00e8me moteur"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Fonctions ex\u00e9cutives"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Syst\u00e8me somato-sensoriel"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "Psychologie", "to": "Syst\u00e8me moteur"}, {"color": "lightgrey", "from": "Psychologie", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Syst\u00e8me moteur"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Fonctions ex\u00e9cutives"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Syst\u00e8me somato-sensoriel"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Syst\u00e8me nerveux autonome"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladie d\u0027Alzheimer"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "R\u00e9cepteurs et transporteurs"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Traumatismes cr\u00e2nio-enc\u00e9phaliques et de la moelle \u00e9pini\u00e8re"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladies neuromusculaires"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Scl\u00e9rose en plaques"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Somatisation et syndromes somatiques fonctionnels"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "H\u00e9mipl\u00e9gie et parapl\u00e9gie"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "R\u00e9cepteurs et transporteurs"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Scl\u00e9rose en plaques"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "G\u00e9n\u00e9tique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "P\u00e9diatrie du d\u00e9veloppement", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "P\u00e9diatrie du d\u00e9veloppement", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "P\u00e9diatrie du d\u00e9veloppement", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "P\u00e9diatrie du d\u00e9veloppement", "to": "D\u00e9pistage g\u00e9n\u00e9tique des maladies"}, {"color": "lightgrey", "from": "Neurologie", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "Neurologie", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "Neurologie", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Fonctions ex\u00e9cutives"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Maladie d\u0027Alzheimer"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Maladies neuromusculaires"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "D\u00e9pistage g\u00e9n\u00e9tique des maladies"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9n\u00e9tique mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Informatique", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Informatique", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "Informatique", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Informatique", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Maladies neurod\u00e9g\u00e9n\u00e9ratives (Neurosciences, sant\u00e9 mentale et toxicomanies)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Maladie d\u0027Alzheimer"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "D\u00e9pistage g\u00e9n\u00e9tique des maladies"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e9n\u00e9tique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Scl\u00e9rose en plaques"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Facteurs de croissance (neurosciences)"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Mod\u00e9lisation neuronale"}, {"color": "lightgrey", "from": "Physique", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "Physique", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Plasticit\u00e9 / r\u00e9g\u00e9n\u00e9ration neuronale"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "G\u00e9n\u00e9tique des maladies neurologiques et psychiatriques"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "D\u00e9pistage g\u00e9n\u00e9tique des maladies"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "Optom\u00e9trie", "to": "Maladie d\u0027Alzheimer"}, {"color": "lightgrey", "from": "Optom\u00e9trie", "to": "Syst\u00e8me visuel"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "Sciences cliniques", "to": "Affections convulsives / \u00c9pilepsie"}, {"color": "lightgrey", "from": "Sciences cliniques", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "Biochimie", "to": "G\u00e9n\u00e9tique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "G\u00e9n\u00e9tique et h\u00e9r\u00e9dit\u00e9"}, {"color": "lightgrey", "from": "Chirurgie g\u00e9n\u00e9rale", "to": "Maladies neurologiques"}, {"color": "lightgrey", "from": "Immunologie", "to": "Scl\u00e9rose en plaques"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

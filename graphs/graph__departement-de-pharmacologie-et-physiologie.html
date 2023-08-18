@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Cardiologie", "label": "Cardiologie", "shape": "dot", "size": 63, "title": "Cardiologie\nN=63"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 14, "title": "Biochimie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biom\u00e9dical", "label": "G\u00e9nie biom\u00e9dical", "shape": "dot", "size": 28, "title": "G\u00e9nie biom\u00e9dical\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques appliqu\u00e9es", "label": "Math\u00e9matiques appliqu\u00e9es", "shape": "dot", "size": 7, "title": "Math\u00e9matiques appliqu\u00e9es\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 14, "title": "Sciences biom\u00e9dicales\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 112, "title": "Pharmacologie\nN=112"}, {"color": "lightblue", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 28, "title": "Physiologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 21, "title": "Biologie et autres sciences connexes\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 70, "title": "Biologie mol\u00e9culaire\nN=70"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Di\u00e9t\u00e9tique", "label": "Di\u00e9t\u00e9tique", "shape": "dot", "size": 7, "title": "Di\u00e9t\u00e9tique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Oncologie", "label": "Oncologie", "shape": "dot", "size": 7, "title": "Oncologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Gastroent\u00e9rologie", "label": "Gastroent\u00e9rologie", "shape": "dot", "size": 7, "title": "Gastroent\u00e9rologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Immunologie", "label": "Immunologie", "shape": "dot", "size": 14, "title": "Immunologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 35, "title": "Neurosciences\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nomique", "label": "G\u00e9nomique", "shape": "dot", "size": 7, "title": "G\u00e9nomique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacie", "label": "Pharmacie", "shape": "dot", "size": 7, "title": "Pharmacie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie cellulaire", "label": "Biologie cellulaire", "shape": "dot", "size": 21, "title": "Biologie cellulaire\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie m\u00e9dicale", "label": "Biochimie m\u00e9dicale", "shape": "dot", "size": 7, "title": "Biochimie m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 7, "title": "Physique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Endocrinologie", "label": "Endocrinologie", "shape": "dot", "size": 7, "title": "Endocrinologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychiatrie", "label": "Psychiatrie", "shape": "dot", "size": 7, "title": "Psychiatrie\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me cardiovasculaire", "label": "Syst\u00e8me cardiovasculaire", "shape": "dot", "size": 63, "title": "Syst\u00e8me cardiovasculaire\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "Toxicologie", "label": "Toxicologie", "shape": "dot", "size": 56, "title": "Toxicologie\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)", "label": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)", "shape": "dot", "size": 49, "title": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Hypertension art\u00e9rielle", "label": "Hypertension art\u00e9rielle", "shape": "dot", "size": 42, "title": "Hypertension art\u00e9rielle\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies cardiovasculaires", "label": "Maladies cardiovasculaires", "shape": "dot", "size": 35, "title": "Maladies cardiovasculaires\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Insuffisance cardiaque", "label": "Insuffisance cardiaque", "shape": "dot", "size": 28, "title": "Insuffisance cardiaque\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mol\u00e9cules organiques et biomol\u00e9cules", "label": "Mol\u00e9cules organiques et biomol\u00e9cules", "shape": "dot", "size": 28, "title": "Mol\u00e9cules organiques et biomol\u00e9cules\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Valves cardiaques/Maladies valvulaires", "label": "Valves cardiaques/Maladies valvulaires", "shape": "dot", "size": 28, "title": "Valves cardiaques/Maladies valvulaires\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e8ne (Organismes vivants)", "label": "G\u00e8ne (Organismes vivants)", "shape": "dot", "size": 28, "title": "G\u00e8ne (Organismes vivants)\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Hypertrophie cardiaque", "label": "Hypertrophie cardiaque", "shape": "dot", "size": 28, "title": "Hypertrophie cardiaque\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Synth\u00e8se chimique et catalyse", "label": "Synth\u00e8se chimique et catalyse", "shape": "dot", "size": 21, "title": "Synth\u00e8se chimique et catalyse\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Transplantation cardiaque", "label": "Transplantation cardiaque", "shape": "dot", "size": 21, "title": "Transplantation cardiaque\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Signalisation cellulaire (neurosciences)", "label": "Signalisation cellulaire (neurosciences)", "shape": "dot", "size": 21, "title": "Signalisation cellulaire (neurosciences)\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Prot\u00e9omique", "label": "Prot\u00e9omique", "shape": "dot", "size": 21, "title": "Prot\u00e9omique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chromosome (Organismes vivants)", "label": "Chromosome (Organismes vivants)", "shape": "dot", "size": 21, "title": "Chromosome (Organismes vivants)\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Fibrose cardiaque", "label": "Fibrose cardiaque", "shape": "dot", "size": 21, "title": "Fibrose cardiaque\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Ph\u00e9nom\u00e8nes quantiques", "label": "Ph\u00e9nom\u00e8nes quantiques", "shape": "dot", "size": 21, "title": "Ph\u00e9nom\u00e8nes quantiques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Proth\u00e8ses et substituts vasculaires", "label": "Proth\u00e8ses et substituts vasculaires", "shape": "dot", "size": 21, "title": "Proth\u00e8ses et substituts vasculaires\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Communication neuronale et neurotransmission", "label": "Communication neuronale et neurotransmission", "shape": "dot", "size": 21, "title": "Communication neuronale et neurotransmission\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)", "label": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)", "shape": "dot", "size": 21, "title": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladie coronarienne", "label": "Maladie coronarienne", "shape": "dot", "size": 21, "title": "Maladie coronarienne\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Macromol\u00e9cules", "label": "Macromol\u00e9cules", "shape": "dot", "size": 21, "title": "Macromol\u00e9cules\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Compos\u00e9s inorganiques et organom\u00e9talliques", "label": "Compos\u00e9s inorganiques et organom\u00e9talliques", "shape": "dot", "size": 21, "title": "Compos\u00e9s inorganiques et organom\u00e9talliques\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Cardiologie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Hypertrophie cardiaque"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Insuffisance cardiaque"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Physiologie"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Valves cardiaques/Maladies valvulaires"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Transplantation cardiaque"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Fibrose cardiaque"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Proth\u00e8ses et substituts vasculaires"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Maladie coronarienne"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Signalisation cellulaire (neurosciences)"}, {"color": "lightgrey", "from": "Biochimie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Biochimie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Biochimie", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Biochimie", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Biochimie", "to": "Hypertrophie cardiaque"}, {"color": "lightgrey", "from": "Biochimie", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "Biochimie", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biochimie", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Biochimie", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "Biochimie", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "Biochimie", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Biochimie", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "Biochimie", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Insuffisance cardiaque"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Hypertrophie cardiaque"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Valves cardiaques/Maladies valvulaires"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Physiologie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Transplantation cardiaque"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Fibrose cardiaque"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Maladie coronarienne"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Proth\u00e8ses et substituts vasculaires"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Signalisation cellulaire (neurosciences)"}, {"color": "lightgrey", "from": "Physiologie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Physiologie", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Physiologie", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Physiologie", "to": "Biologie et autres sciences connexes"}, {"color": "lightgrey", "from": "Physiologie", "to": "Endocrinologie"}, {"color": "lightgrey", "from": "Physiologie", "to": "Physiologie"}, {"color": "lightgrey", "from": "Physiologie", "to": "Hypertrophie cardiaque"}, {"color": "lightgrey", "from": "Physiologie", "to": "Neurosciences"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Insuffisance cardiaque"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Valves cardiaques/Maladies valvulaires"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Hypertrophie cardiaque"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Fibrose cardiaque"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Maladie coronarienne"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Proth\u00e8ses et substituts vasculaires"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Transplantation cardiaque"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Valves cardiaques/Maladies valvulaires"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Hypertrophie cardiaque"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Insuffisance cardiaque"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Proth\u00e8ses et substituts vasculaires"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Signalisation cellulaire (neurosciences)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Th\u00e9rapie cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Transplantation cardiaque"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Fibrose cardiaque"}, {"color": "lightgrey", "from": "Di\u00e9t\u00e9tique", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Oncologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Gastroent\u00e9rologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Immunologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Immunologie", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Signalisation cellulaire (sant\u00e9 circulatoire et respiratoire)"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Signalisation cellulaire (neurosciences)"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Toxicologie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "Physique", "to": "Hypertension art\u00e9rielle"}, {"color": "lightgrey", "from": "Physique", "to": "Mol\u00e9cules organiques et biomol\u00e9cules"}, {"color": "lightgrey", "from": "Physique", "to": "G\u00e8ne (Organismes vivants)"}, {"color": "lightgrey", "from": "Physique", "to": "Compos\u00e9s inorganiques et organom\u00e9talliques"}, {"color": "lightgrey", "from": "Physique", "to": "Macromol\u00e9cules"}, {"color": "lightgrey", "from": "Physique", "to": "Ph\u00e9nom\u00e8nes quantiques"}, {"color": "lightgrey", "from": "Physique", "to": "Synth\u00e8se chimique et catalyse"}, {"color": "lightgrey", "from": "Physique", "to": "Chromosome (Organismes vivants)"}, {"color": "lightgrey", "from": "Physique", "to": "Communication neuronale et neurotransmission"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Prot\u00e9omique"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Signalisation cellulaire (neurosciences)"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Communication neuronale et neurotransmission"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

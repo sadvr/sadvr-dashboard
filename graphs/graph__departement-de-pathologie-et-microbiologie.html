@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightblue", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 49, "title": "Biologie mol\u00e9culaire\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Infectiologie", "label": "Infectiologie", "shape": "dot", "size": 28, "title": "Infectiologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Microbiologie m\u00e9dicale", "label": "Microbiologie m\u00e9dicale", "shape": "dot", "size": 7, "title": "Microbiologie m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie cellulaire", "label": "Biologie cellulaire", "shape": "dot", "size": 14, "title": "Biologie cellulaire\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Parasitologie", "label": "Parasitologie", "shape": "dot", "size": 21, "title": "Parasitologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 21, "title": "Biologie et autres sciences connexes\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine v\u00e9t\u00e9rinaire", "label": "M\u00e9decine v\u00e9t\u00e9rinaire", "shape": "dot", "size": 203, "title": "M\u00e9decine v\u00e9t\u00e9rinaire\nN=203"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nomique", "label": "G\u00e9nomique", "shape": "dot", "size": 28, "title": "G\u00e9nomique\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 14, "title": "Sciences biom\u00e9dicales\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Microbiologie", "label": "Microbiologie", "shape": "dot", "size": 35, "title": "Microbiologie\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Bact\u00e9riologie", "label": "Bact\u00e9riologie", "shape": "dot", "size": 35, "title": "Bact\u00e9riologie\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique m\u00e9dicale", "label": "G\u00e9n\u00e9tique m\u00e9dicale", "shape": "dot", "size": 14, "title": "G\u00e9n\u00e9tique m\u00e9dicale\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Eau et environnement", "label": "Eau et environnement", "shape": "dot", "size": 14, "title": "Eau et environnement\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique", "label": "G\u00e9n\u00e9tique", "shape": "dot", "size": 21, "title": "G\u00e9n\u00e9tique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pathologie g\u00e9n\u00e9rale", "label": "Pathologie g\u00e9n\u00e9rale", "shape": "dot", "size": 49, "title": "Pathologie g\u00e9n\u00e9rale\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie et biostatistique", "label": "\u00c9pid\u00e9miologie et biostatistique", "shape": "dot", "size": 84, "title": "\u00c9pid\u00e9miologie et biostatistique\nN=84"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Immunologie", "label": "Immunologie", "shape": "dot", "size": 21, "title": "Immunologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine pr\u00e9ventive", "label": "M\u00e9decine pr\u00e9ventive", "shape": "dot", "size": 21, "title": "M\u00e9decine pr\u00e9ventive\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 35, "title": "Sant\u00e9 publique\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Bio-informatique", "label": "Bio-informatique", "shape": "dot", "size": 14, "title": "Bio-informatique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Virologie", "label": "Virologie", "shape": "dot", "size": 14, "title": "Virologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine mol\u00e9culaire", "label": "M\u00e9decine mol\u00e9culaire", "shape": "dot", "size": 7, "title": "M\u00e9decine mol\u00e9culaire\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "label": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "shape": "dot", "size": 7, "title": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anatomo-pathologie", "label": "Anatomo-pathologie", "shape": "dot", "size": 7, "title": "Anatomo-pathologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 14, "title": "Pharmacologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pathologie animale", "label": "Pathologie animale", "shape": "dot", "size": 56, "title": "Pathologie animale\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Porc", "label": "Porc", "shape": "dot", "size": 56, "title": "Porc\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Zoonoses", "label": "Zoonoses", "shape": "dot", "size": 56, "title": "Zoonoses\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9decine porcine", "label": "M\u00e9decine porcine", "shape": "dot", "size": 42, "title": "M\u00e9decine porcine\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies vectorielles", "label": "Maladies vectorielles", "shape": "dot", "size": 42, "title": "Maladies vectorielles\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie", "label": "\u00c9pid\u00e9miologie", "shape": "dot", "size": 42, "title": "\u00c9pid\u00e9miologie\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pr\u00e9vention et contr\u00f4le des infections dans la population", "label": "Pr\u00e9vention et contr\u00f4le des infections dans la population", "shape": "dot", "size": 42, "title": "Pr\u00e9vention et contr\u00f4le des infections dans la population\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Animaux de la ferme", "label": "Animaux de la ferme", "shape": "dot", "size": 35, "title": "Animaux de la ferme\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Bovins", "label": "Bovins", "shape": "dot", "size": 28, "title": "Bovins\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Salubrit\u00e9 alimentaire", "label": "Salubrit\u00e9 alimentaire", "shape": "dot", "size": 28, "title": "Salubrit\u00e9 alimentaire\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Changements climatiques", "label": "Changements climatiques", "shape": "dot", "size": 21, "title": "Changements climatiques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "COVID-19", "label": "COVID-19", "shape": "dot", "size": 21, "title": "COVID-19\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pathologie clinique", "label": "Pathologie clinique", "shape": "dot", "size": 21, "title": "Pathologie clinique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Faune", "label": "Faune", "shape": "dot", "size": 21, "title": "Faune\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Environnement sain", "label": "Environnement sain", "shape": "dot", "size": 21, "title": "Environnement sain\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Hygi\u00e8ne du\u00a0 milieu agricole", "label": "Hygi\u00e8ne du\u00a0 milieu agricole", "shape": "dot", "size": 21, "title": "Hygi\u00e8ne du\u00a0 milieu agricole\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Infections bact\u00e9riennes", "label": "Infections bact\u00e9riennes", "shape": "dot", "size": 21, "title": "Infections bact\u00e9riennes\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Porc"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Pathologie g\u00e9n\u00e9rale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Infectiologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Parasitologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Virologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Biologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e9nomique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e9n\u00e9tique m\u00e9dicale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Anatomo-pathologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "M\u00e9decine mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "M\u00e9decine v\u00e9t\u00e9rinaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Eau et environnement"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Sciences biom\u00e9dicales"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Bact\u00e9riologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Bio-informatique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "\u00c9pid\u00e9miologie et biostatistique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Biologie cellulaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Bovins"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Infections bact\u00e9riennes"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "COVID-19"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Porc"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Infectiologie", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Infectiologie", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Bovins"}, {"color": "lightgrey", "from": "Infectiologie", "to": "Parasitologie"}, {"color": "lightgrey", "from": "Infectiologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Microbiologie m\u00e9dicale", "to": "Porc"}, {"color": "lightgrey", "from": "Microbiologie m\u00e9dicale", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Microbiologie m\u00e9dicale", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Microbiologie m\u00e9dicale", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Microbiologie m\u00e9dicale", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Microbiologie m\u00e9dicale", "to": "Bovins"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Porc"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Parasitologie", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Parasitologie", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Parasitologie", "to": "\u00c9pid\u00e9miologie et biostatistique"}, {"color": "lightgrey", "from": "Parasitologie", "to": "Parasitologie"}, {"color": "lightgrey", "from": "Parasitologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Parasitologie", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Parasitologie", "to": "M\u00e9decine pr\u00e9ventive"}, {"color": "lightgrey", "from": "Parasitologie", "to": "M\u00e9decine v\u00e9t\u00e9rinaire"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Porc"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Infections bact\u00e9riennes"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Environnement sain"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Porc"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Zoonoses"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Bact\u00e9riologie"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Microbiologie"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Bovins"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Environnement sain"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "COVID-19"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Infections bact\u00e9riennes"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Faune"}, {"color": "lightgrey", "from": "M\u00e9decine v\u00e9t\u00e9rinaire", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Porc"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Microbiologie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Bact\u00e9riologie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Porc"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Bovins"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "COVID-19"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Porc"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Microbiologie", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Microbiologie", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Microbiologie", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Virologie"}, {"color": "lightgrey", "from": "Microbiologie", "to": "M\u00e9decine pr\u00e9ventive"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Immunologie"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Bact\u00e9riologie"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Microbiologie", "to": "M\u00e9decine mol\u00e9culaire"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Bovins"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Microbiologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Faune"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Environnement sain"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Infections bact\u00e9riennes"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Porc"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Pharmacologie"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Immunologie"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Bact\u00e9riologie"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "\u00c9pid\u00e9miologie et biostatistique"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Bio-informatique"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Bovins"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Faune"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Bact\u00e9riologie", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Environnement sain"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Infections bact\u00e9riennes"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "COVID-19"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique m\u00e9dicale", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Environnement sain"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "COVID-19"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Porc"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Virologie"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Bio-informatique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "M\u00e9decine mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9pid\u00e9miologie et biostatistique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "COVID-19"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Immunologie"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Porc"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Bovins"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Faune"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Environnement sain"}, {"color": "lightgrey", "from": "Pathologie g\u00e9n\u00e9rale", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Zoonoses"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Bovins"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "COVID-19"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Faune"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Environnement sain"}, {"color": "lightgrey", "from": "Immunologie", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Immunologie", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Immunologie", "to": "Porc"}, {"color": "lightgrey", "from": "Immunologie", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Immunologie", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Immunologie", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Immunologie", "to": "Bovins"}, {"color": "lightgrey", "from": "Immunologie", "to": "Infections bact\u00e9riennes"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Porc"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Zoonoses"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "COVID-19"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Porc"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Zoonoses"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Virologie"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "M\u00e9decine mol\u00e9culaire"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Bio-informatique"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Salubrit\u00e9 alimentaire"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "COVID-19"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Faune"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Pathologie clinique"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Environnement sain"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Pathologie animale"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Porc"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "\u00c9pid\u00e9miologie"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Virologie", "to": "Porc"}, {"color": "lightgrey", "from": "Virologie", "to": "M\u00e9decine porcine"}, {"color": "lightgrey", "from": "Virologie", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "Virologie", "to": "Pr\u00e9vention et contr\u00f4le des infections dans la population"}, {"color": "lightgrey", "from": "Virologie", "to": "Faune"}, {"color": "lightgrey", "from": "Virologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Porc"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Maladies vectorielles"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "COVID-19"}, {"color": "lightgrey", "from": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "to": "Bovins"}, {"color": "lightgrey", "from": "Anatomo-pathologie", "to": "Animaux de la ferme"}, {"color": "lightgrey", "from": "Anatomo-pathologie", "to": "Bovins"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Hygi\u00e8ne du\u00a0 milieu agricole"}, {"color": "lightgrey", "from": "Communication", "to": "Bovins"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

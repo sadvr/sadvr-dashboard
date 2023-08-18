@@ -232,5 +232,7 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
 
      # Disciplines de recherche
     f.write('<h3>Mots-clés</h3>')
+    f.write('<div style="height:800px;">')
     f.write(iFrames)
+    f.write('</div>')
     f.write(footer)

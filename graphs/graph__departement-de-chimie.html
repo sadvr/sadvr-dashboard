@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie physique", "label": "G\u00e9nie physique", "shape": "dot", "size": 14, "title": "G\u00e9nie physique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 49, "title": "Physique\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chimie", "label": "Chimie", "shape": "dot", "size": 287, "title": "Chimie\nN=287"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 14, "title": "Biologie mol\u00e9culaire\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "label": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "shape": "dot", "size": 49, "title": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "label": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "shape": "dot", "size": 7, "title": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 14, "title": "Sant\u00e9 publique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 35, "title": "Biochimie\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie chimique", "label": "G\u00e9nie chimique", "shape": "dot", "size": 21, "title": "G\u00e9nie chimique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 7, "title": "\u00c9ducation\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Eau et environnement", "label": "Eau et environnement", "shape": "dot", "size": 14, "title": "Eau et environnement\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Environnement et d\u00e9veloppement durable", "label": "Environnement et d\u00e9veloppement durable", "shape": "dot", "size": 14, "title": "Environnement et d\u00e9veloppement durable\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 14, "title": "Informatique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 14, "title": "Pharmacologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Bio-informatique", "label": "Bio-informatique", "shape": "dot", "size": 7, "title": "Bio-informatique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacie", "label": "Pharmacie", "shape": "dot", "size": 7, "title": "Pharmacie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biochimique", "label": "G\u00e9nie biochimique", "shape": "dot", "size": 7, "title": "G\u00e9nie biochimique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Oncologie m\u00e9dicale", "label": "Oncologie m\u00e9dicale", "shape": "dot", "size": 7, "title": "Oncologie m\u00e9dicale\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux auto-assembl\u00e9s", "label": "Mat\u00e9riaux auto-assembl\u00e9s", "shape": "dot", "size": 49, "title": "Mat\u00e9riaux auto-assembl\u00e9s\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Nanomat\u00e9riaux", "label": "Nanomat\u00e9riaux", "shape": "dot", "size": 42, "title": "Nanomat\u00e9riaux\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie verte", "label": "Chimie verte", "shape": "dot", "size": 42, "title": "Chimie verte\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux polym\u00e8res", "label": "Mat\u00e9riaux polym\u00e8res", "shape": "dot", "size": 42, "title": "Mat\u00e9riaux polym\u00e8res\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie organique", "label": "Chimie organique", "shape": "dot", "size": 35, "title": "Chimie organique\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Nanotructures", "label": "Nanotructures", "shape": "dot", "size": 35, "title": "Nanotructures\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "COVID-19", "label": "COVID-19", "shape": "dot", "size": 28, "title": "COVID-19\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux inorganiques", "label": "Mat\u00e9riaux inorganiques", "shape": "dot", "size": 28, "title": "Mat\u00e9riaux inorganiques\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux mol\u00e9culaires", "label": "Mat\u00e9riaux mol\u00e9culaires", "shape": "dot", "size": 28, "title": "Mat\u00e9riaux mol\u00e9culaires\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9lectrochimie", "label": "\u00c9lectrochimie", "shape": "dot", "size": 28, "title": "\u00c9lectrochimie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Imagerie mol\u00e9culaire", "label": "Imagerie mol\u00e9culaire", "shape": "dot", "size": 28, "title": "Imagerie mol\u00e9culaire\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie supramol\u00e9culaire", "label": "Chimie supramol\u00e9culaire", "shape": "dot", "size": 28, "title": "Chimie supramol\u00e9culaire\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Catalyse", "label": "Catalyse", "shape": "dot", "size": 28, "title": "Catalyse\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Spectroscopie", "label": "Spectroscopie", "shape": "dot", "size": 28, "title": "Spectroscopie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie m\u00e9dicinale", "label": "Chimie m\u00e9dicinale", "shape": "dot", "size": 28, "title": "Chimie m\u00e9dicinale\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie des mat\u00e9riaux", "label": "Chimie des mat\u00e9riaux", "shape": "dot", "size": 21, "title": "Chimie des mat\u00e9riaux\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie de surface", "label": "Chimie de surface", "shape": "dot", "size": 21, "title": "Chimie de surface\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biomol\u00e9cules", "label": "Biomol\u00e9cules", "shape": "dot", "size": 21, "title": "Biomol\u00e9cules\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9lectronique mol\u00e9culaire", "label": "\u00c9lectronique mol\u00e9culaire", "shape": "dot", "size": 21, "title": "\u00c9lectronique mol\u00e9culaire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9tat solide", "label": "\u00c9tat solide", "shape": "dot", "size": 21, "title": "\u00c9tat solide\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Structure \u00e9lectronique", "label": "Structure \u00e9lectronique", "shape": "dot", "size": 21, "title": "Structure \u00e9lectronique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Photochimie", "label": "Photochimie", "shape": "dot", "size": 21, "title": "Photochimie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Photocatalyse", "label": "Photocatalyse", "shape": "dot", "size": 21, "title": "Photocatalyse\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biologie chimique", "label": "Biologie chimique", "shape": "dot", "size": 21, "title": "Biologie chimique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie analytique", "label": "Chimie analytique", "shape": "dot", "size": 21, "title": "Chimie analytique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9couverte de m\u00e9dicaments", "label": "D\u00e9couverte de m\u00e9dicaments", "shape": "dot", "size": 21, "title": "D\u00e9couverte de m\u00e9dicaments\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux supramol\u00e9culaires", "label": "Mat\u00e9riaux supramol\u00e9culaires", "shape": "dot", "size": 21, "title": "Mat\u00e9riaux supramol\u00e9culaires\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Chimie en flux continu", "label": "Chimie en flux continu", "shape": "dot", "size": 21, "title": "Chimie en flux continu\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Mat\u00e9riaux auto-assembl\u00e9s"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Nanotructures"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Spectroscopie"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Mat\u00e9riaux inorganiques"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Mat\u00e9riaux mol\u00e9culaires"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "\u00c9lectrochimie"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Structure \u00e9lectronique"}, {"color": "lightgrey", "from": "Physique", "to": "Mat\u00e9riaux auto-assembl\u00e9s"}, {"color": "lightgrey", "from": "Physique", "to": "Mat\u00e9riaux polym\u00e8res"}, {"color": "lightgrey", "from": "Physique", "to": "Nanomat\u00e9riaux"}, {"color": "lightgrey", "from": "Physique", "to": "Chimie organique"}, {"color": "lightgrey", "from": "Physique", "to": "Nanotructures"}, {"color": "lightgrey", "from": "Physique", "to": "Spectroscopie"}, {"color": "lightgrey", "from": "Physique", "to": "Mat\u00e9riaux inorganiques"}, {"color": "lightgrey", "from": "Physique", "to": "\u00c9lectrochimie"}, {"color": "lightgrey", "from": "Physique", "to": "Chimie supramol\u00e9culaire"}, {"color": "lightgrey", "from": "Physique", "to": "Structure \u00e9lectronique"}, {"color": "lightgrey", "from": "Physique", "to": "Photocatalyse"}, {"color": "lightgrey", "from": "Physique", "to": "\u00c9tat solide"}, {"color": "lightgrey", "from": "Physique", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Physique", "to": "Chimie des mat\u00e9riaux"}, {"color": "lightgrey", "from": "Chimie", "to": "Mat\u00e9riaux auto-assembl\u00e9s"}, {"color": "lightgrey", "from": "Chimie", "to": "Mat\u00e9riaux polym\u00e8res"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie verte"}, {"color": "lightgrey", "from": "Chimie", "to": "Nanomat\u00e9riaux"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie organique"}, {"color": "lightgrey", "from": "Chimie", "to": "Nanotructures"}, {"color": "lightgrey", "from": "Chimie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Chimie", "to": "Mat\u00e9riaux inorganiques"}, {"color": "lightgrey", "from": "Chimie", "to": "Mat\u00e9riaux mol\u00e9culaires"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie supramol\u00e9culaire"}, {"color": "lightgrey", "from": "Chimie", "to": "\u00c9lectrochimie"}, {"color": "lightgrey", "from": "Chimie", "to": "Spectroscopie"}, {"color": "lightgrey", "from": "Chimie", "to": "Imagerie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Chimie", "to": "Catalyse"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie de surface"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie analytique"}, {"color": "lightgrey", "from": "Chimie", "to": "Biomol\u00e9cules"}, {"color": "lightgrey", "from": "Chimie", "to": "Biologie chimique"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie des mat\u00e9riaux"}, {"color": "lightgrey", "from": "Chimie", "to": "Structure \u00e9lectronique"}, {"color": "lightgrey", "from": "Chimie", "to": "Photochimie"}, {"color": "lightgrey", "from": "Chimie", "to": "Photocatalyse"}, {"color": "lightgrey", "from": "Chimie", "to": "Mat\u00e9riaux supramol\u00e9culaires"}, {"color": "lightgrey", "from": "Chimie", "to": "\u00c9tat solide"}, {"color": "lightgrey", "from": "Chimie", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Chimie", "to": "D\u00e9couverte de m\u00e9dicaments"}, {"color": "lightgrey", "from": "Chimie", "to": "Chimie en flux continu"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Mat\u00e9riaux auto-assembl\u00e9s"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Chimie verte"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "COVID-19"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Chimie supramol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Mat\u00e9riaux auto-assembl\u00e9s"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Nanomat\u00e9riaux"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Chimie verte"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Chimie organique"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Nanotructures"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "\u00c9lectrochimie"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Mat\u00e9riaux inorganiques"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Mat\u00e9riaux mol\u00e9culaires"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Spectroscopie"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Chimie des mat\u00e9riaux"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "\u00c9tat solide"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "Mat\u00e9riaux auto-assembl\u00e9s"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "Nanotructures"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "\u00c9lectrochimie"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "Mat\u00e9riaux inorganiques"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "Structure \u00e9lectronique"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Chimie verte"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "COVID-19"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Imagerie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Chimie analytique"}, {"color": "lightgrey", "from": "Biochimie", "to": "Nanomat\u00e9riaux"}, {"color": "lightgrey", "from": "Biochimie", "to": "Chimie verte"}, {"color": "lightgrey", "from": "Biochimie", "to": "Mat\u00e9riaux polym\u00e8res"}, {"color": "lightgrey", "from": "Biochimie", "to": "Chimie organique"}, {"color": "lightgrey", "from": "Biochimie", "to": "Spectroscopie"}, {"color": "lightgrey", "from": "Biochimie", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Biochimie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Biochimie", "to": "D\u00e9couverte de m\u00e9dicaments"}, {"color": "lightgrey", "from": "Biochimie", "to": "Chimie analytique"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Nanomat\u00e9riaux"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Nanotructures"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Imagerie mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Spectroscopie"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Catalyse"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Chimie de surface"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "\u00c9tat solide"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Photochimie"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Structure \u00e9lectronique"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Photocatalyse"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Mat\u00e9riaux polym\u00e8res"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Chimie organique"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Chimie des mat\u00e9riaux"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Nanomat\u00e9riaux"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Chimie supramol\u00e9culaire"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Chimie de surface"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Chimie analytique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Biologie chimique"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Mat\u00e9riaux polym\u00e8res"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Chimie verte"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "COVID-19"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Mat\u00e9riaux inorganiques"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Catalyse"}, {"color": "lightgrey", "from": "Informatique", "to": "Mat\u00e9riaux polym\u00e8res"}, {"color": "lightgrey", "from": "Informatique", "to": "Chimie organique"}, {"color": "lightgrey", "from": "Informatique", "to": "Nanotructures"}, {"color": "lightgrey", "from": "Informatique", "to": "Imagerie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Informatique", "to": "\u00c9tat solide"}, {"color": "lightgrey", "from": "Informatique", "to": "\u00c9lectronique mol\u00e9culaire"}, {"color": "lightgrey", "from": "Informatique", "to": "Chimie des mat\u00e9riaux"}, {"color": "lightgrey", "from": "Informatique", "to": "Chimie de surface"}, {"color": "lightgrey", "from": "Informatique", "to": "Biomol\u00e9cules"}, {"color": "lightgrey", "from": "Informatique", "to": "Structure \u00e9lectronique"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Chimie organique"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Catalyse"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "D\u00e9couverte de m\u00e9dicaments"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Biologie chimique"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Chimie organique"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "COVID-19"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "D\u00e9couverte de m\u00e9dicaments"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Catalyse"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Chimie m\u00e9dicinale"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Biologie chimique"}, {"color": "lightgrey", "from": "Pharmacie", "to": "D\u00e9couverte de m\u00e9dicaments"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "COVID-19"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Chimie de surface"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Biologie chimique"}, {"color": "lightgrey", "from": "Oncologie m\u00e9dicale", "to": "COVID-19"}, {"color": "lightgrey", "from": "Oncologie m\u00e9dicale", "to": "Chimie de surface"}, {"color": "lightgrey", "from": "Oncologie m\u00e9dicale", "to": "Biologie chimique"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

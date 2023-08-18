@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 49, "title": "Sociologie\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Science politique", "label": "Science politique", "shape": "dot", "size": 49, "title": "Science politique\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 189, "title": "Histoire\nN=189"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes f\u00e9ministes", "label": "\u00c9tudes f\u00e9ministes", "shape": "dot", "size": 21, "title": "\u00c9tudes f\u00e9ministes\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Droit", "label": "Droit", "shape": "dot", "size": 28, "title": "Droit\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 21, "title": "\u00c9ducation\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Urbanisme", "label": "Urbanisme", "shape": "dot", "size": 14, "title": "Urbanisme\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Th\u00e9ologie", "label": "Th\u00e9ologie", "shape": "dot", "size": 7, "title": "Th\u00e9ologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9conomie", "label": "\u00c9conomie", "shape": "dot", "size": 14, "title": "\u00c9conomie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9ographie humaine", "label": "G\u00e9ographie humaine", "shape": "dot", "size": 7, "title": "G\u00e9ographie humaine\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anthropologie", "label": "Anthropologie", "shape": "dot", "size": 21, "title": "Anthropologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes urbaines", "label": "\u00c9tudes urbaines", "shape": "dot", "size": 7, "title": "\u00c9tudes urbaines\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 14, "title": "Communication\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Litt\u00e9rature", "label": "Litt\u00e9rature", "shape": "dot", "size": 21, "title": "Litt\u00e9rature\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie de l\u2019art", "label": "Sociologie de l\u2019art", "shape": "dot", "size": 7, "title": "Sociologie de l\u2019art\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Th\u00e9rapie par l\u2019art", "label": "Th\u00e9rapie par l\u2019art", "shape": "dot", "size": 7, "title": "Th\u00e9rapie par l\u2019art\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arch\u00e9ologie", "label": "Arch\u00e9ologie", "shape": "dot", "size": 14, "title": "Arch\u00e9ologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences des religions", "label": "Sciences des religions", "shape": "dot", "size": 21, "title": "Sciences des religions\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes des langues", "label": "\u00c9tudes des langues", "shape": "dot", "size": 21, "title": "\u00c9tudes des langues\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Philosophie", "label": "Philosophie", "shape": "dot", "size": 14, "title": "Philosophie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arts visuels et m\u00e9diatiques", "label": "Arts visuels et m\u00e9diatiques", "shape": "dot", "size": 21, "title": "Arts visuels et m\u00e9diatiques\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes litt\u00e9raires", "label": "\u00c9tudes litt\u00e9raires", "shape": "dot", "size": 21, "title": "\u00c9tudes litt\u00e9raires\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire des arts", "label": "Histoire des arts", "shape": "dot", "size": 7, "title": "Histoire des arts\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arch\u00e9ologie classique", "label": "Arch\u00e9ologie classique", "shape": "dot", "size": 7, "title": "Arch\u00e9ologie classique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques fondamentales", "label": "Math\u00e9matiques fondamentales", "shape": "dot", "size": 7, "title": "Math\u00e9matiques fondamentales\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Architecture", "label": "Architecture", "shape": "dot", "size": 7, "title": "Architecture\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Relations industrielles", "label": "Relations industrielles", "shape": "dot", "size": 7, "title": "Relations industrielles\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 7, "title": "Pharmacologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Toxicologie", "label": "Toxicologie", "shape": "dot", "size": 7, "title": "Toxicologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 14, "title": "Sant\u00e9 publique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Journalisme", "label": "Journalisme", "shape": "dot", "size": 7, "title": "Journalisme\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Qu\u00e9bec", "label": "Qu\u00e9bec", "shape": "dot", "size": 56, "title": "Qu\u00e9bec\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Empire et imp\u00e9rialisme", "label": "Empire et imp\u00e9rialisme", "shape": "dot", "size": 42, "title": "Empire et imp\u00e9rialisme\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Patrimoine culturel", "label": "Patrimoine culturel", "shape": "dot", "size": 35, "title": "Patrimoine culturel\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Colonisation et d\u00e9colonisation", "label": "Colonisation et d\u00e9colonisation", "shape": "dot", "size": 28, "title": "Colonisation et d\u00e9colonisation\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Nationalisme", "label": "Nationalisme", "shape": "dot", "size": 28, "title": "Nationalisme\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mouvements sociaux", "label": "Mouvements sociaux", "shape": "dot", "size": 28, "title": "Mouvements sociaux\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Historiographie", "label": "Historiographie", "shape": "dot", "size": 28, "title": "Historiographie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Autochtones", "label": "Autochtones", "shape": "dot", "size": 21, "title": "Autochtones\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Identit\u00e9", "label": "Identit\u00e9", "shape": "dot", "size": 21, "title": "Identit\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9", "label": "Sant\u00e9", "shape": "dot", "size": 21, "title": "Sant\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Violence", "label": "Violence", "shape": "dot", "size": 21, "title": "Violence\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Religion", "label": "Religion", "shape": "dot", "size": 21, "title": "Religion\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sciences", "label": "Sciences", "shape": "dot", "size": 21, "title": "Sciences\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Justice", "label": "Justice", "shape": "dot", "size": 21, "title": "Justice\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Identit\u00e9 sexuelle et genre", "label": "Identit\u00e9 sexuelle et genre", "shape": "dot", "size": 21, "title": "Identit\u00e9 sexuelle et genre\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Sociologie", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Sociologie", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "Sociologie", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Sociologie", "to": "Historiographie"}, {"color": "lightgrey", "from": "Sociologie", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Sociologie", "to": "Sciences"}, {"color": "lightgrey", "from": "Sociologie", "to": "\u00c9ducation"}, {"color": "lightgrey", "from": "Sociologie", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "Sociologie", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "Sociologie", "to": "Justice"}, {"color": "lightgrey", "from": "Sociologie", "to": "Religion"}, {"color": "lightgrey", "from": "Sociologie", "to": "Sant\u00e9"}, {"color": "lightgrey", "from": "Sociologie", "to": "Violence"}, {"color": "lightgrey", "from": "Sociologie", "to": "Autochtones"}, {"color": "lightgrey", "from": "Science politique", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Science politique", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "Science politique", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Science politique", "to": "Nationalisme"}, {"color": "lightgrey", "from": "Science politique", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Science politique", "to": "Sciences"}, {"color": "lightgrey", "from": "Science politique", "to": "Religion"}, {"color": "lightgrey", "from": "Science politique", "to": "Justice"}, {"color": "lightgrey", "from": "Science politique", "to": "Autochtones"}, {"color": "lightgrey", "from": "Science politique", "to": "\u00c9ducation"}, {"color": "lightgrey", "from": "Science politique", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "Science politique", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "Histoire", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Histoire", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "Histoire", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Histoire", "to": "Colonisation et d\u00e9colonisation"}, {"color": "lightgrey", "from": "Histoire", "to": "Historiographie"}, {"color": "lightgrey", "from": "Histoire", "to": "Nationalisme"}, {"color": "lightgrey", "from": "Histoire", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Histoire", "to": "\u00c9ducation"}, {"color": "lightgrey", "from": "Histoire", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "Histoire", "to": "Sant\u00e9"}, {"color": "lightgrey", "from": "Histoire", "to": "Violence"}, {"color": "lightgrey", "from": "Histoire", "to": "Sciences"}, {"color": "lightgrey", "from": "Histoire", "to": "Religion"}, {"color": "lightgrey", "from": "Histoire", "to": "Autochtones"}, {"color": "lightgrey", "from": "Histoire", "to": "Justice"}, {"color": "lightgrey", "from": "Histoire", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Autochtones"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "\u00c9ducation"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Justice"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Violence"}, {"color": "lightgrey", "from": "Droit", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Droit", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "Droit", "to": "Historiographie"}, {"color": "lightgrey", "from": "Droit", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Droit", "to": "Nationalisme"}, {"color": "lightgrey", "from": "Droit", "to": "Justice"}, {"color": "lightgrey", "from": "Droit", "to": "Religion"}, {"color": "lightgrey", "from": "Droit", "to": "Violence"}, {"color": "lightgrey", "from": "Droit", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "Droit", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "Droit", "to": "\u00c9ducation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "\u00c9ducation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Religion"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Sciences"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Anthropologie"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Violence"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Th\u00e9ologie"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Colonisation et d\u00e9colonisation"}, {"color": "lightgrey", "from": "Urbanisme", "to": "Historiographie"}, {"color": "lightgrey", "from": "Th\u00e9ologie", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Th\u00e9ologie", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "Th\u00e9ologie", "to": "Violence"}, {"color": "lightgrey", "from": "Th\u00e9ologie", "to": "Religion"}, {"color": "lightgrey", "from": "Th\u00e9ologie", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Justice"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "G\u00e9ographie humaine", "to": "Justice"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Empire et imp\u00e9rialisme"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Historiographie"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Autochtones"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Identit\u00e9 sexuelle et genre"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Justice"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "\u00c9tudes urbaines", "to": "Historiographie"}, {"color": "lightgrey", "from": "Communication", "to": "Qu\u00e9bec"}, {"color": "lightgrey", "from": "Communication", "to": "Historiographie"}, {"color": "lightgrey", "from": "Communication", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Communication", "to": "Nationalisme"}, {"color": "lightgrey", "from": "Communication", "to": "Sciences"}, {"color": "lightgrey", "from": "Communication", "to": "Religion"}, {"color": "lightgrey", "from": "Communication", "to": "Autochtones"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Violence"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Religion"}, {"color": "lightgrey", "from": "Sociologie de l\u2019art", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Sociologie de l\u2019art", "to": "Violence"}, {"color": "lightgrey", "from": "Th\u00e9rapie par l\u2019art", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Th\u00e9rapie par l\u2019art", "to": "Violence"}, {"color": "lightgrey", "from": "Arch\u00e9ologie", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Arch\u00e9ologie", "to": "Colonisation et d\u00e9colonisation"}, {"color": "lightgrey", "from": "Arch\u00e9ologie", "to": "Religion"}, {"color": "lightgrey", "from": "Sciences des religions", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Sciences des religions", "to": "Religion"}, {"color": "lightgrey", "from": "Sciences des religions", "to": "Sciences"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Colonisation et d\u00e9colonisation"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Religion"}, {"color": "lightgrey", "from": "Philosophie", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Philosophie", "to": "Nationalisme"}, {"color": "lightgrey", "from": "Philosophie", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Philosophie", "to": "Religion"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Violence"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Religion"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Patrimoine culturel"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Violence"}, {"color": "lightgrey", "from": "Arch\u00e9ologie classique", "to": "Colonisation et d\u00e9colonisation"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Historiographie"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Identit\u00e9"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Justice"}, {"color": "lightgrey", "from": "Architecture", "to": "Colonisation et d\u00e9colonisation"}, {"color": "lightgrey", "from": "Relations industrielles", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Sant\u00e9"}, {"color": "lightgrey", "from": "Toxicologie", "to": "Sant\u00e9"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9"}, {"color": "lightgrey", "from": "Journalisme", "to": "Violence"}, {"color": "lightgrey", "from": "Journalisme", "to": "Identit\u00e9 sexuelle et genre"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

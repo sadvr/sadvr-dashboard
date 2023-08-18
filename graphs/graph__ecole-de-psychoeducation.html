@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "label": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "shape": "dot", "size": 7, "title": "Psychiatrie de l\u2019enfant et de l\u2019adolescent\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Endocrinologie", "label": "Endocrinologie", "shape": "dot", "size": 7, "title": "Endocrinologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychologie", "label": "Psychologie", "shape": "dot", "size": 84, "title": "Psychologie\nN=84"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 7, "title": "\u00c9ducation\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Criminologie", "label": "Criminologie", "shape": "dot", "size": 21, "title": "Criminologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psycho\u00e9ducation", "label": "Psycho\u00e9ducation", "shape": "dot", "size": 154, "title": "Psycho\u00e9ducation\nN=154"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 7, "title": "Biologie et autres sciences connexes\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Orthop\u00e9dagogie", "label": "Orthop\u00e9dagogie", "shape": "dot", "size": 7, "title": "Orthop\u00e9dagogie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 7, "title": "Sant\u00e9 publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychiatrie", "label": "Psychiatrie", "shape": "dot", "size": 7, "title": "Psychiatrie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 14, "title": "Neurosciences\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences cliniques", "label": "Sciences cliniques", "shape": "dot", "size": 7, "title": "Sciences cliniques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie informatique et g\u00e9nie logiciel", "label": "G\u00e9nie informatique et g\u00e9nie logiciel", "shape": "dot", "size": 7, "title": "G\u00e9nie informatique et g\u00e9nie logiciel\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9valuation de programmes", "label": "\u00c9valuation de programmes", "shape": "dot", "size": 49, "title": "\u00c9valuation de programmes\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Adolescence", "label": "Adolescence", "shape": "dot", "size": 49, "title": "Adolescence\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pr\u00e9vention", "label": "Pr\u00e9vention", "shape": "dot", "size": 42, "title": "Pr\u00e9vention\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Intervention", "label": "Intervention", "shape": "dot", "size": 42, "title": "Intervention\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Psychopathologie d\u00e9veloppementale", "label": "Psychopathologie d\u00e9veloppementale", "shape": "dot", "size": 42, "title": "Psychopathologie d\u00e9veloppementale\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)", "label": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)", "shape": "dot", "size": 35, "title": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Enfant", "label": "Enfant", "shape": "dot", "size": 28, "title": "Enfant\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9ussite scolaire", "label": "R\u00e9ussite scolaire", "shape": "dot", "size": 28, "title": "R\u00e9ussite scolaire\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Inadaptation psychosociale", "label": "Inadaptation psychosociale", "shape": "dot", "size": 28, "title": "Inadaptation psychosociale\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9linquance", "label": "D\u00e9linquance", "shape": "dot", "size": 28, "title": "D\u00e9linquance\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Intervention aupr\u00e8s des parents et des jeunes", "label": "Intervention aupr\u00e8s des parents et des jeunes", "shape": "dot", "size": 28, "title": "Intervention aupr\u00e8s des parents et des jeunes\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement de l\u0027enfant", "label": "D\u00e9veloppement de l\u0027enfant", "shape": "dot", "size": 28, "title": "D\u00e9veloppement de l\u0027enfant\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Comportements ext\u00e9rioris\u00e9s", "label": "Comportements ext\u00e9rioris\u00e9s", "shape": "dot", "size": 21, "title": "Comportements ext\u00e9rioris\u00e9s\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodes quantitatives", "label": "M\u00e9thodes quantitatives", "shape": "dot", "size": 21, "title": "M\u00e9thodes quantitatives\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodes psychom\u00e9triques", "label": "M\u00e9thodes psychom\u00e9triques", "shape": "dot", "size": 21, "title": "M\u00e9thodes psychom\u00e9triques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Observation comportementale", "label": "Observation comportementale", "shape": "dot", "size": 21, "title": "Observation comportementale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 mentale au travail", "label": "Sant\u00e9 mentale au travail", "shape": "dot", "size": 21, "title": "Sant\u00e9 mentale au travail\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Technologie mobile", "label": "Technologie mobile", "shape": "dot", "size": 21, "title": "Technologie mobile\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Transition vers l\u0027\u00e2ge adulte", "label": "Transition vers l\u0027\u00e2ge adulte", "shape": "dot", "size": 21, "title": "Transition vers l\u0027\u00e2ge adulte\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Bien-\u00eatre psychologique", "label": "Bien-\u00eatre psychologique", "shape": "dot", "size": 21, "title": "Bien-\u00eatre psychologique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Psychologie \u00e9volutionniste", "label": "Psychologie \u00e9volutionniste", "shape": "dot", "size": 21, "title": "Psychologie \u00e9volutionniste\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9silience", "label": "R\u00e9silience", "shape": "dot", "size": 21, "title": "R\u00e9silience\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Adaptation psychosociale \u00e0 l\u0027adolescence", "label": "Adaptation psychosociale \u00e0 l\u0027adolescence", "shape": "dot", "size": 21, "title": "Adaptation psychosociale \u00e0 l\u0027adolescence\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodes mixtes", "label": "M\u00e9thodes mixtes", "shape": "dot", "size": 21, "title": "M\u00e9thodes mixtes\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Toxicomanie", "label": "Toxicomanie", "shape": "dot", "size": 21, "title": "Toxicomanie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Processus de socialisation", "label": "Processus de socialisation", "shape": "dot", "size": 21, "title": "Processus de socialisation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Comportement parental", "label": "Comportement parental", "shape": "dot", "size": 21, "title": "Comportement parental\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Agressivit\u00e9", "label": "Agressivit\u00e9", "shape": "dot", "size": 21, "title": "Agressivit\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Adaptation psychosociale", "label": "Adaptation psychosociale", "shape": "dot", "size": 21, "title": "Adaptation psychosociale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Enfant \u00e0 risque", "label": "Enfant \u00e0 risque", "shape": "dot", "size": 21, "title": "Enfant \u00e0 risque\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Enfant-adolescent", "label": "Enfant-adolescent", "shape": "dot", "size": 21, "title": "Enfant-adolescent\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9thique de l\u0027intervention et de la recherche", "label": "\u00c9thique de l\u0027intervention et de la recherche", "shape": "dot", "size": 21, "title": "\u00c9thique de l\u0027intervention et de la recherche\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Retrait social", "label": "Retrait social", "shape": "dot", "size": 21, "title": "Retrait social\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "Adolescence"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Psychiatrie de l\u2019enfant et de l\u2019adolescent", "to": "M\u00e9thodes mixtes"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Adolescence"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Pr\u00e9vention"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Intervention"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "M\u00e9thodes quantitatives"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Technologie mobile"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Sant\u00e9 mentale au travail"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Observation comportementale"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "M\u00e9thodes psychom\u00e9triques"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Psychologie \u00e9volutionniste"}, {"color": "lightgrey", "from": "Psychologie", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Psychologie", "to": "Adolescence"}, {"color": "lightgrey", "from": "Psychologie", "to": "Intervention"}, {"color": "lightgrey", "from": "Psychologie", "to": "Pr\u00e9vention"}, {"color": "lightgrey", "from": "Psychologie", "to": "Psychopathologie d\u00e9veloppementale"}, {"color": "lightgrey", "from": "Psychologie", "to": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)"}, {"color": "lightgrey", "from": "Psychologie", "to": "Inadaptation psychosociale"}, {"color": "lightgrey", "from": "Psychologie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Psychologie", "to": "D\u00e9linquance"}, {"color": "lightgrey", "from": "Psychologie", "to": "Enfant"}, {"color": "lightgrey", "from": "Psychologie", "to": "Intervention aupr\u00e8s des parents et des jeunes"}, {"color": "lightgrey", "from": "Psychologie", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "Psychologie", "to": "Agressivit\u00e9"}, {"color": "lightgrey", "from": "Psychologie", "to": "Adaptation psychosociale"}, {"color": "lightgrey", "from": "Psychologie", "to": "R\u00e9silience"}, {"color": "lightgrey", "from": "Psychologie", "to": "Psychologie \u00e9volutionniste"}, {"color": "lightgrey", "from": "Psychologie", "to": "Toxicomanie"}, {"color": "lightgrey", "from": "Psychologie", "to": "Adaptation psychosociale \u00e0 l\u0027adolescence"}, {"color": "lightgrey", "from": "Psychologie", "to": "Processus de socialisation"}, {"color": "lightgrey", "from": "Psychologie", "to": "Retrait social"}, {"color": "lightgrey", "from": "Psychologie", "to": "Sant\u00e9 mentale au travail"}, {"color": "lightgrey", "from": "Psychologie", "to": "Technologie mobile"}, {"color": "lightgrey", "from": "Psychologie", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Psychologie", "to": "Observation comportementale"}, {"color": "lightgrey", "from": "Psychologie", "to": "M\u00e9thodes psychom\u00e9triques"}, {"color": "lightgrey", "from": "Psychologie", "to": "M\u00e9thodes mixtes"}, {"color": "lightgrey", "from": "Psychologie", "to": "Comportements ext\u00e9rioris\u00e9s"}, {"color": "lightgrey", "from": "Psychologie", "to": "Bien-\u00eatre psychologique"}, {"color": "lightgrey", "from": "Psychologie", "to": "Comportement parental"}, {"color": "lightgrey", "from": "Psychologie", "to": "Enfant \u00e0 risque"}, {"color": "lightgrey", "from": "Psychologie", "to": "Enfant-adolescent"}, {"color": "lightgrey", "from": "Psychologie", "to": "M\u00e9thodes quantitatives"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Processus de socialisation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "M\u00e9thodes mixtes"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Bien-\u00eatre psychologique"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "R\u00e9silience"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Adaptation psychosociale"}, {"color": "lightgrey", "from": "Criminologie", "to": "Adolescence"}, {"color": "lightgrey", "from": "Criminologie", "to": "Intervention"}, {"color": "lightgrey", "from": "Criminologie", "to": "Psychopathologie d\u00e9veloppementale"}, {"color": "lightgrey", "from": "Criminologie", "to": "D\u00e9linquance"}, {"color": "lightgrey", "from": "Criminologie", "to": "R\u00e9silience"}, {"color": "lightgrey", "from": "Criminologie", "to": "Psychologie \u00e9volutionniste"}, {"color": "lightgrey", "from": "Criminologie", "to": "Comportements ext\u00e9rioris\u00e9s"}, {"color": "lightgrey", "from": "Criminologie", "to": "\u00c9thique de l\u0027intervention et de la recherche"}, {"color": "lightgrey", "from": "Criminologie", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Criminologie", "to": "Sant\u00e9 mentale au travail"}, {"color": "lightgrey", "from": "Criminologie", "to": "M\u00e9thodes mixtes"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Adolescence"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Pr\u00e9vention"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Intervention"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Psychopathologie d\u00e9veloppementale"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Enfant"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Inadaptation psychosociale"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "D\u00e9linquance"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Intervention aupr\u00e8s des parents et des jeunes"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "R\u00e9silience"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Psychologie \u00e9volutionniste"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Toxicomanie"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Adaptation psychosociale \u00e0 l\u0027adolescence"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Adaptation psychosociale"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Technologie mobile"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Agressivit\u00e9"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "M\u00e9thodes psychom\u00e9triques"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "M\u00e9thodes mixtes"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "\u00c9thique de l\u0027intervention et de la recherche"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Enfant-adolescent"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Observation comportementale"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Retrait social"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Sant\u00e9 mentale au travail"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "M\u00e9thodes quantitatives"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Processus de socialisation"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Comportement parental"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Bien-\u00eatre psychologique"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Enfant \u00e0 risque"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Comportements ext\u00e9rioris\u00e9s"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Adolescence"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Pr\u00e9vention"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Intervention"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "M\u00e9thodes quantitatives"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "M\u00e9thodes psychom\u00e9triques"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Observation comportementale"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Sant\u00e9 mentale au travail"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Technologie mobile"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Psychologie \u00e9volutionniste"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Adolescence"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Pr\u00e9vention"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Intervention"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Inadaptation psychosociale"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Bien-\u00eatre psychologique"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Adaptation psychosociale \u00e0 l\u0027adolescence"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Enfant-adolescent"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Enfant \u00e0 risque"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Adolescence"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Adolescence"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Approches positives (en pr\u00e9vention-intervention-r\u00e9adaptation)"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "M\u00e9thodes mixtes"}, {"color": "lightgrey", "from": "Psychiatrie", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Adolescence"}, {"color": "lightgrey", "from": "Neurosciences", "to": "\u00c9valuation de programmes"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Pr\u00e9vention"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Intervention"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Psychopathologie d\u00e9veloppementale"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Enfant"}, {"color": "lightgrey", "from": "Neurosciences", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Intervention aupr\u00e8s des parents et des jeunes"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9veloppement de l\u0027enfant"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9linquance"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Inadaptation psychosociale"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Comportements ext\u00e9rioris\u00e9s"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Transition vers l\u0027\u00e2ge adulte"}, {"color": "lightgrey", "from": "Neurosciences", "to": "M\u00e9thodes quantitatives"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Technologie mobile"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Comportement parental"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Bien-\u00eatre psychologique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Agressivit\u00e9"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Adaptation psychosociale \u00e0 l\u0027adolescence"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Psychologie \u00e9volutionniste"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Enfant \u00e0 risque"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Enfant-adolescent"}, {"color": "lightgrey", "from": "Neurosciences", "to": "M\u00e9thodes psychom\u00e9triques"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Observation comportementale"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Retrait social"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Sant\u00e9 mentale au travail"}, {"color": "lightgrey", "from": "Sciences cliniques", "to": "Technologie mobile"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Technologie mobile"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

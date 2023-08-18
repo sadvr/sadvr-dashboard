@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie et biostatistique", "label": "\u00c9pid\u00e9miologie et biostatistique", "shape": "dot", "size": 35, "title": "\u00c9pid\u00e9miologie et biostatistique\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine de famille", "label": "M\u00e9decine de famille", "shape": "dot", "size": 126, "title": "M\u00e9decine de famille\nN=126"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 14, "title": "Communication\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine communautaire", "label": "M\u00e9decine communautaire", "shape": "dot", "size": 21, "title": "M\u00e9decine communautaire\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 49, "title": "Sant\u00e9 publique\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration de la sant\u00e9", "label": "Administration de la sant\u00e9", "shape": "dot", "size": 21, "title": "Administration de la sant\u00e9\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine d\u2019urgence", "label": "M\u00e9decine d\u2019urgence", "shape": "dot", "size": 49, "title": "M\u00e9decine d\u2019urgence\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine pr\u00e9ventive", "label": "M\u00e9decine pr\u00e9ventive", "shape": "dot", "size": 14, "title": "M\u00e9decine pr\u00e9ventive\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 21, "title": "\u00c9ducation\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anthropologie", "label": "Anthropologie", "shape": "dot", "size": 7, "title": "Anthropologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 7, "title": "Sociologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 7, "title": "Pharmacologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacie", "label": "Pharmacie", "shape": "dot", "size": 14, "title": "Pharmacie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Traumatologie", "label": "Traumatologie", "shape": "dot", "size": 7, "title": "Traumatologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine palliative", "label": "M\u00e9decine palliative", "shape": "dot", "size": 7, "title": "M\u00e9decine palliative\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine g\u00e9n\u00e9rale", "label": "M\u00e9decine g\u00e9n\u00e9rale", "shape": "dot", "size": 21, "title": "M\u00e9decine g\u00e9n\u00e9rale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Services de premi\u00e8re ligne", "label": "Services de premi\u00e8re ligne", "shape": "dot", "size": 42, "title": "Services de premi\u00e8re ligne\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Organisation des soins de sant\u00e9", "label": "Organisation des soins de sant\u00e9", "shape": "dot", "size": 42, "title": "Organisation des soins de sant\u00e9\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 communautaire / sant\u00e9 publique", "label": "Sant\u00e9 communautaire / sant\u00e9 publique", "shape": "dot", "size": 35, "title": "Sant\u00e9 communautaire / sant\u00e9 publique\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Services de sant\u00e9", "label": "Services de sant\u00e9", "shape": "dot", "size": 35, "title": "Services de sant\u00e9\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pratiques professionnelles", "label": "Pratiques professionnelles", "shape": "dot", "size": 35, "title": "Pratiques professionnelles\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Technologies des soins", "label": "Technologies des soins", "shape": "dot", "size": 28, "title": "Technologies des soins\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Innovations technologiques", "label": "Innovations technologiques", "shape": "dot", "size": 28, "title": "Innovations technologiques\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Services sociaux sp\u00e9cifiques (client\u00e8les)", "label": "Services sociaux sp\u00e9cifiques (client\u00e8les)", "shape": "dot", "size": 28, "title": "Services sociaux sp\u00e9cifiques (client\u00e8les)\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Soins hospitaliers", "label": "Soins hospitaliers", "shape": "dot", "size": 21, "title": "Soins hospitaliers\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8mes d\u0027informations sur la sant\u00e9", "label": "Syst\u00e8mes d\u0027informations sur la sant\u00e9", "shape": "dot", "size": 21, "title": "Syst\u00e8mes d\u0027informations sur la sant\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Techniques diagnostiques", "label": "Techniques diagnostiques", "shape": "dot", "size": 21, "title": "Techniques diagnostiques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pr\u00e9vention en sant\u00e9", "label": "Pr\u00e9vention en sant\u00e9", "shape": "dot", "size": 21, "title": "Pr\u00e9vention en sant\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 mentale et soci\u00e9t\u00e9", "label": "Sant\u00e9 mentale et soci\u00e9t\u00e9", "shape": "dot", "size": 21, "title": "Sant\u00e9 mentale et soci\u00e9t\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politiques de sant\u00e9", "label": "Politiques de sant\u00e9", "shape": "dot", "size": 21, "title": "Politiques de sant\u00e9\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Services de premi\u00e8re ligne"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Organisation des soins de sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Services de sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Pratiques professionnelles"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Technologies des soins"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Pr\u00e9vention en sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Politiques de sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Techniques diagnostiques"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Syst\u00e8mes d\u0027informations sur la sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Soins hospitaliers"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Services de premi\u00e8re ligne"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Organisation des soins de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Services de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Pratiques professionnelles"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Services sociaux sp\u00e9cifiques (client\u00e8les)"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Technologies des soins"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Soins hospitaliers"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Syst\u00e8mes d\u0027informations sur la sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Techniques diagnostiques"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Politiques de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Pr\u00e9vention en sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine de famille", "to": "Sant\u00e9 mentale et soci\u00e9t\u00e9"}, {"color": "lightgrey", "from": "Communication", "to": "Services de premi\u00e8re ligne"}, {"color": "lightgrey", "from": "Communication", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "Communication", "to": "Services de sant\u00e9"}, {"color": "lightgrey", "from": "Communication", "to": "Technologies des soins"}, {"color": "lightgrey", "from": "Communication", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "Communication", "to": "Sant\u00e9 mentale et soci\u00e9t\u00e9"}, {"color": "lightgrey", "from": "Communication", "to": "Syst\u00e8mes d\u0027informations sur la sant\u00e9"}, {"color": "lightgrey", "from": "Communication", "to": "Techniques diagnostiques"}, {"color": "lightgrey", "from": "M\u00e9decine communautaire", "to": "Organisation des soins de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine communautaire", "to": "Services sociaux sp\u00e9cifiques (client\u00e8les)"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Services de premi\u00e8re ligne"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Services de sant\u00e9"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Pratiques professionnelles"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Services sociaux sp\u00e9cifiques (client\u00e8les)"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9 mentale et soci\u00e9t\u00e9"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Organisation des soins de sant\u00e9"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Technologies des soins"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Politiques de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Services de premi\u00e8re ligne"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Organisation des soins de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Services de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Technologies des soins"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Techniques diagnostiques"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Soins hospitaliers"}, {"color": "lightgrey", "from": "M\u00e9decine d\u2019urgence", "to": "Sant\u00e9 mentale et soci\u00e9t\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Services de premi\u00e8re ligne"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Services de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Services sociaux sp\u00e9cifiques (client\u00e8les)"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Technologies des soins"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Pr\u00e9vention en sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine pr\u00e9ventive", "to": "Soins hospitaliers"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Organisation des soins de sant\u00e9"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Pratiques professionnelles"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Innovations technologiques"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Syst\u00e8mes d\u0027informations sur la sant\u00e9"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Pratiques professionnelles"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Services sociaux sp\u00e9cifiques (client\u00e8les)"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Sant\u00e9 mentale et soci\u00e9t\u00e9"}, {"color": "lightgrey", "from": "Sociologie", "to": "Pratiques professionnelles"}, {"color": "lightgrey", "from": "Sociologie", "to": "Services sociaux sp\u00e9cifiques (client\u00e8les)"}, {"color": "lightgrey", "from": "Sociologie", "to": "Sant\u00e9 mentale et soci\u00e9t\u00e9"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Sant\u00e9 communautaire / sant\u00e9 publique"}, {"color": "lightgrey", "from": "Traumatologie", "to": "Soins hospitaliers"}, {"color": "lightgrey", "from": "M\u00e9decine palliative", "to": "Politiques de sant\u00e9"}, {"color": "lightgrey", "from": "M\u00e9decine g\u00e9n\u00e9rale", "to": "Syst\u00e8mes d\u0027informations sur la sant\u00e9"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

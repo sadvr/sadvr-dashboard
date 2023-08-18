@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Anthropologie", "label": "Anthropologie", "shape": "dot", "size": 7, "title": "Anthropologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Environnement et d\u00e9veloppement durable", "label": "Environnement et d\u00e9veloppement durable", "shape": "dot", "size": 21, "title": "Environnement et d\u00e9veloppement durable\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Science politique", "label": "Science politique", "shape": "dot", "size": 266, "title": "Science politique\nN=266"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 91, "title": "Sociologie\nN=91"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Philosophie", "label": "Philosophie", "shape": "dot", "size": 14, "title": "Philosophie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 7, "title": "Sciences biom\u00e9dicales\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Droit", "label": "Droit", "shape": "dot", "size": 14, "title": "Droit\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9conomie", "label": "\u00c9conomie", "shape": "dot", "size": 63, "title": "\u00c9conomie\nN=63"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration publique", "label": "Administration publique", "shape": "dot", "size": 21, "title": "Administration publique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes f\u00e9ministes", "label": "\u00c9tudes f\u00e9ministes", "shape": "dot", "size": 21, "title": "\u00c9tudes f\u00e9ministes\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes litt\u00e9raires", "label": "\u00c9tudes litt\u00e9raires", "shape": "dot", "size": 7, "title": "\u00c9tudes litt\u00e9raires\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 21, "title": "Histoire\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Litt\u00e9rature", "label": "Litt\u00e9rature", "shape": "dot", "size": 7, "title": "Litt\u00e9rature\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Management", "label": "Management", "shape": "dot", "size": 14, "title": "Management\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Ethnologie", "label": "Ethnologie", "shape": "dot", "size": 7, "title": "Ethnologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 21, "title": "Communication\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Journalisme", "label": "Journalisme", "shape": "dot", "size": 14, "title": "Journalisme\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9ories sociales et politiques", "label": "Th\u00e9ories sociales et politiques", "shape": "dot", "size": 42, "title": "Th\u00e9ories sociales et politiques\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Partis politiques", "label": "Partis politiques", "shape": "dot", "size": 42, "title": "Partis politiques\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "S\u00e9curit\u00e9 internationale", "label": "S\u00e9curit\u00e9 internationale", "shape": "dot", "size": 35, "title": "S\u00e9curit\u00e9 internationale\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Relations internationales", "label": "Relations internationales", "shape": "dot", "size": 28, "title": "Relations internationales\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Enjeux environnementaux", "label": "Enjeux environnementaux", "shape": "dot", "size": 28, "title": "Enjeux environnementaux\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mouvements sociaux", "label": "Mouvements sociaux", "shape": "dot", "size": 28, "title": "Mouvements sociaux\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Transition d\u00e9mocratique", "label": "Transition d\u00e9mocratique", "shape": "dot", "size": 28, "title": "Transition d\u00e9mocratique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodologie de recherche", "label": "M\u00e9thodologie de recherche", "shape": "dot", "size": 28, "title": "M\u00e9thodologie de recherche\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "F\u00e9d\u00e9ralisme", "label": "F\u00e9d\u00e9ralisme", "shape": "dot", "size": 28, "title": "F\u00e9d\u00e9ralisme\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9mocratie", "label": "D\u00e9mocratie", "shape": "dot", "size": 28, "title": "D\u00e9mocratie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Conflits arm\u00e9s", "label": "Conflits arm\u00e9s", "shape": "dot", "size": 28, "title": "Conflits arm\u00e9s\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Opinion publique", "label": "Opinion publique", "shape": "dot", "size": 21, "title": "Opinion publique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Droit et politique", "label": "Droit et politique", "shape": "dot", "size": 21, "title": "Droit et politique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politique qu\u00e9b\u00e9coise et canadienne", "label": "Politique qu\u00e9b\u00e9coise et canadienne", "shape": "dot", "size": 21, "title": "Politique qu\u00e9b\u00e9coise et canadienne\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politique publique", "label": "Politique publique", "shape": "dot", "size": 21, "title": "Politique publique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Action collective", "label": "Action collective", "shape": "dot", "size": 21, "title": "Action collective\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politique publique compar\u00e9e", "label": "Politique publique compar\u00e9e", "shape": "dot", "size": 21, "title": "Politique publique compar\u00e9e\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Citoyennet\u00e9", "label": "Citoyennet\u00e9", "shape": "dot", "size": 21, "title": "Citoyennet\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sociologie politique", "label": "Sociologie politique", "shape": "dot", "size": 21, "title": "Sociologie politique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement humain", "label": "D\u00e9veloppement humain", "shape": "dot", "size": 21, "title": "D\u00e9veloppement humain\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gouvernance mondiale", "label": "Gouvernance mondiale", "shape": "dot", "size": 21, "title": "Gouvernance mondiale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Paix et s\u00e9curit\u00e9", "label": "Paix et s\u00e9curit\u00e9", "shape": "dot", "size": 21, "title": "Paix et s\u00e9curit\u00e9\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pays \u00e9mergents", "label": "Pays \u00e9mergents", "shape": "dot", "size": 21, "title": "Pays \u00e9mergents\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Environnement", "label": "Environnement", "shape": "dot", "size": 21, "title": "Environnement\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politique environnementale", "label": "Politique environnementale", "shape": "dot", "size": 21, "title": "Politique environnementale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politique compar\u00e9e", "label": "Politique compar\u00e9e", "shape": "dot", "size": 21, "title": "Politique compar\u00e9e\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Organisation et pouvoir", "label": "Organisation et pouvoir", "shape": "dot", "size": 21, "title": "Organisation et pouvoir\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Comportement politique", "label": "Comportement politique", "shape": "dot", "size": 21, "title": "Comportement politique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Consolidation de la paix", "label": "Consolidation de la paix", "shape": "dot", "size": 21, "title": "Consolidation de la paix\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9solution des conflits", "label": "R\u00e9solution des conflits", "shape": "dot", "size": 21, "title": "R\u00e9solution des conflits\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Anthropologie", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Partis politiques"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Transition d\u00e9mocratique"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "M\u00e9thodologie de recherche"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Relations internationales"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "R\u00e9solution des conflits"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Action collective"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Environnement"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Politique environnementale"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Opinion publique"}, {"color": "lightgrey", "from": "Science politique", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Science politique", "to": "Partis politiques"}, {"color": "lightgrey", "from": "Science politique", "to": "S\u00e9curit\u00e9 internationale"}, {"color": "lightgrey", "from": "Science politique", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Science politique", "to": "Conflits arm\u00e9s"}, {"color": "lightgrey", "from": "Science politique", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Science politique", "to": "Transition d\u00e9mocratique"}, {"color": "lightgrey", "from": "Science politique", "to": "M\u00e9thodologie de recherche"}, {"color": "lightgrey", "from": "Science politique", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "Science politique", "to": "Relations internationales"}, {"color": "lightgrey", "from": "Science politique", "to": "F\u00e9d\u00e9ralisme"}, {"color": "lightgrey", "from": "Science politique", "to": "Environnement"}, {"color": "lightgrey", "from": "Science politique", "to": "Organisation et pouvoir"}, {"color": "lightgrey", "from": "Science politique", "to": "Droit et politique"}, {"color": "lightgrey", "from": "Science politique", "to": "Politique compar\u00e9e"}, {"color": "lightgrey", "from": "Science politique", "to": "Politique publique"}, {"color": "lightgrey", "from": "Science politique", "to": "Politique publique compar\u00e9e"}, {"color": "lightgrey", "from": "Science politique", "to": "Politique qu\u00e9b\u00e9coise et canadienne"}, {"color": "lightgrey", "from": "Science politique", "to": "R\u00e9solution des conflits"}, {"color": "lightgrey", "from": "Science politique", "to": "Sociologie politique"}, {"color": "lightgrey", "from": "Science politique", "to": "D\u00e9veloppement humain"}, {"color": "lightgrey", "from": "Science politique", "to": "Consolidation de la paix"}, {"color": "lightgrey", "from": "Science politique", "to": "Politique environnementale"}, {"color": "lightgrey", "from": "Science politique", "to": "Opinion publique"}, {"color": "lightgrey", "from": "Science politique", "to": "Action collective"}, {"color": "lightgrey", "from": "Science politique", "to": "Citoyennet\u00e9"}, {"color": "lightgrey", "from": "Science politique", "to": "Comportement politique"}, {"color": "lightgrey", "from": "Science politique", "to": "Gouvernance mondiale"}, {"color": "lightgrey", "from": "Science politique", "to": "Paix et s\u00e9curit\u00e9"}, {"color": "lightgrey", "from": "Science politique", "to": "Pays \u00e9mergents"}, {"color": "lightgrey", "from": "Sociologie", "to": "Partis politiques"}, {"color": "lightgrey", "from": "Sociologie", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Sociologie", "to": "S\u00e9curit\u00e9 internationale"}, {"color": "lightgrey", "from": "Sociologie", "to": "Relations internationales"}, {"color": "lightgrey", "from": "Sociologie", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "Sociologie", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Sociologie", "to": "F\u00e9d\u00e9ralisme"}, {"color": "lightgrey", "from": "Sociologie", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Sociologie", "to": "Conflits arm\u00e9s"}, {"color": "lightgrey", "from": "Sociologie", "to": "Transition d\u00e9mocratique"}, {"color": "lightgrey", "from": "Sociologie", "to": "Sociologie politique"}, {"color": "lightgrey", "from": "Sociologie", "to": "Politique publique"}, {"color": "lightgrey", "from": "Sociologie", "to": "Politique publique compar\u00e9e"}, {"color": "lightgrey", "from": "Sociologie", "to": "Politique qu\u00e9b\u00e9coise et canadienne"}, {"color": "lightgrey", "from": "Sociologie", "to": "R\u00e9solution des conflits"}, {"color": "lightgrey", "from": "Sociologie", "to": "D\u00e9veloppement humain"}, {"color": "lightgrey", "from": "Sociologie", "to": "Gouvernance mondiale"}, {"color": "lightgrey", "from": "Sociologie", "to": "Paix et s\u00e9curit\u00e9"}, {"color": "lightgrey", "from": "Sociologie", "to": "Politique compar\u00e9e"}, {"color": "lightgrey", "from": "Sociologie", "to": "Environnement"}, {"color": "lightgrey", "from": "Sociologie", "to": "Politique environnementale"}, {"color": "lightgrey", "from": "Sociologie", "to": "Opinion publique"}, {"color": "lightgrey", "from": "Sociologie", "to": "Action collective"}, {"color": "lightgrey", "from": "Sociologie", "to": "Citoyennet\u00e9"}, {"color": "lightgrey", "from": "Sociologie", "to": "Comportement politique"}, {"color": "lightgrey", "from": "Sociologie", "to": "Consolidation de la paix"}, {"color": "lightgrey", "from": "Philosophie", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Politique publique compar\u00e9e"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Politique publique"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Droit et politique"}, {"color": "lightgrey", "from": "Droit", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Droit", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Droit", "to": "Droit et politique"}, {"color": "lightgrey", "from": "Droit", "to": "Politique publique compar\u00e9e"}, {"color": "lightgrey", "from": "Droit", "to": "Politique publique"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Partis politiques"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "S\u00e9curit\u00e9 internationale"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "M\u00e9thodologie de recherche"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Relations internationales"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Conflits arm\u00e9s"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Transition d\u00e9mocratique"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Opinion publique"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Sociologie politique"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "D\u00e9veloppement humain"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Gouvernance mondiale"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Paix et s\u00e9curit\u00e9"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Pays \u00e9mergents"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Politique environnementale"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Comportement politique"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Organisation et pouvoir"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Environnement"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Politique compar\u00e9e"}, {"color": "lightgrey", "from": "Administration publique", "to": "Partis politiques"}, {"color": "lightgrey", "from": "Administration publique", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Administration publique", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "Administration publique", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Administration publique", "to": "Droit et politique"}, {"color": "lightgrey", "from": "Administration publique", "to": "Politique publique"}, {"color": "lightgrey", "from": "Administration publique", "to": "Citoyennet\u00e9"}, {"color": "lightgrey", "from": "Administration publique", "to": "Environnement"}, {"color": "lightgrey", "from": "Administration publique", "to": "Politique publique compar\u00e9e"}, {"color": "lightgrey", "from": "Administration publique", "to": "Action collective"}, {"color": "lightgrey", "from": "Administration publique", "to": "Politique environnementale"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Relations internationales"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Transition d\u00e9mocratique"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Conflits arm\u00e9s"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Environnement"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Action collective"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Consolidation de la paix"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "R\u00e9solution des conflits"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Gouvernance mondiale"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Histoire", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Histoire", "to": "Conflits arm\u00e9s"}, {"color": "lightgrey", "from": "Histoire", "to": "Politique compar\u00e9e"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Management", "to": "Th\u00e9ories sociales et politiques"}, {"color": "lightgrey", "from": "Management", "to": "D\u00e9mocratie"}, {"color": "lightgrey", "from": "Management", "to": "Action collective"}, {"color": "lightgrey", "from": "Management", "to": "Citoyennet\u00e9"}, {"color": "lightgrey", "from": "Management", "to": "Droit et politique"}, {"color": "lightgrey", "from": "Management", "to": "Politique publique"}, {"color": "lightgrey", "from": "Management", "to": "Politique publique compar\u00e9e"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Mouvements sociaux"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Enjeux environnementaux"}, {"color": "lightgrey", "from": "Ethnologie", "to": "D\u00e9veloppement humain"}, {"color": "lightgrey", "from": "Communication", "to": "M\u00e9thodologie de recherche"}, {"color": "lightgrey", "from": "Communication", "to": "Politique qu\u00e9b\u00e9coise et canadienne"}, {"color": "lightgrey", "from": "Communication", "to": "Opinion publique"}, {"color": "lightgrey", "from": "Journalisme", "to": "M\u00e9thodologie de recherche"}, {"color": "lightgrey", "from": "Journalisme", "to": "Politique qu\u00e9b\u00e9coise et canadienne"}, {"color": "lightgrey", "from": "Journalisme", "to": "Opinion publique"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Oncologie m\u00e9dicale", "label": "Oncologie m\u00e9dicale", "shape": "dot", "size": 7, "title": "Oncologie m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chimie", "label": "Chimie", "shape": "dot", "size": 28, "title": "Chimie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Cardiologie", "label": "Cardiologie", "shape": "dot", "size": 28, "title": "Cardiologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 21, "title": "Biologie mol\u00e9culaire\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacie", "label": "Pharmacie", "shape": "dot", "size": 126, "title": "Pharmacie\nN=126"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 252, "title": "Pharmacologie\nN=252"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie cellulaire", "label": "Biologie cellulaire", "shape": "dot", "size": 21, "title": "Biologie cellulaire\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Virologie", "label": "Virologie", "shape": "dot", "size": 7, "title": "Virologie\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Immunologie", "label": "Immunologie", "shape": "dot", "size": 21, "title": "Immunologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie et biostatistique", "label": "\u00c9pid\u00e9miologie et biostatistique", "shape": "dot", "size": 49, "title": "\u00c9pid\u00e9miologie et biostatistique\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Oncologie", "label": "Oncologie", "shape": "dot", "size": 28, "title": "Oncologie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 21, "title": "Sant\u00e9 publique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 14, "title": "Sociologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "P\u00e9diatrie", "label": "P\u00e9diatrie", "shape": "dot", "size": 14, "title": "P\u00e9diatrie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anthropologie", "label": "Anthropologie", "shape": "dot", "size": 7, "title": "Anthropologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "N\u00e9phrologie", "label": "N\u00e9phrologie", "shape": "dot", "size": 7, "title": "N\u00e9phrologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 14, "title": "Neurosciences\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nomique", "label": "G\u00e9nomique", "shape": "dot", "size": 14, "title": "G\u00e9nomique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9riatrie", "label": "G\u00e9riatrie", "shape": "dot", "size": 14, "title": "G\u00e9riatrie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 7, "title": "Histoire\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine n\u00e9onatale et p\u00e9rinatale", "label": "M\u00e9decine n\u00e9onatale et p\u00e9rinatale", "shape": "dot", "size": 7, "title": "M\u00e9decine n\u00e9onatale et p\u00e9rinatale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration de la sant\u00e9", "label": "Administration de la sant\u00e9", "shape": "dot", "size": 7, "title": "Administration de la sant\u00e9\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 7, "title": "Physiologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 7, "title": "\u00c9ducation\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Statistiques", "label": "Statistiques", "shape": "dot", "size": 7, "title": "Statistiques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine de soins intensifs ", "label": "M\u00e9decine de soins intensifs ", "shape": "dot", "size": 7, "title": "M\u00e9decine de soins intensifs \nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Endocrinologie et m\u00e9tabolisme", "label": "Endocrinologie et m\u00e9tabolisme", "shape": "dot", "size": 7, "title": "Endocrinologie et m\u00e9tabolisme\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "H\u00e9matologie", "label": "H\u00e9matologie", "shape": "dot", "size": 7, "title": "H\u00e9matologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie chimique", "label": "G\u00e9nie chimique", "shape": "dot", "size": 7, "title": "G\u00e9nie chimique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biom\u00e9dical", "label": "G\u00e9nie biom\u00e9dical", "shape": "dot", "size": 7, "title": "G\u00e9nie biom\u00e9dical\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine mol\u00e9culaire", "label": "M\u00e9decine mol\u00e9culaire", "shape": "dot", "size": 7, "title": "M\u00e9decine mol\u00e9culaire\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Bio-informatique", "label": "Bio-informatique", "shape": "dot", "size": 7, "title": "Bio-informatique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie m\u00e9dicale", "label": "Biochimie m\u00e9dicale", "shape": "dot", "size": 7, "title": "Biochimie m\u00e9dicale\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 21, "title": "Biochimie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 14, "title": "Sciences biom\u00e9dicales\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "COVID-19", "label": "COVID-19", "shape": "dot", "size": 42, "title": "COVID-19\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pharmacoth\u00e9rapie", "label": "Pharmacoth\u00e9rapie", "shape": "dot", "size": 35, "title": "Pharmacoth\u00e9rapie\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Usage du m\u00e9dicament", "label": "Usage du m\u00e9dicament", "shape": "dot", "size": 35, "title": "Usage du m\u00e9dicament\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sant\u00e9 des populations", "label": "Sant\u00e9 des populations", "shape": "dot", "size": 35, "title": "Sant\u00e9 des populations\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9valuation de l\u0027usage du m\u00e9dicament", "label": "\u00c9valuation de l\u0027usage du m\u00e9dicament", "shape": "dot", "size": 28, "title": "\u00c9valuation de l\u0027usage du m\u00e9dicament\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Utilisation optimale du m\u00e9dicament", "label": "Utilisation optimale du m\u00e9dicament", "shape": "dot", "size": 28, "title": "Utilisation optimale du m\u00e9dicament\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pharmaco\u00e9conomie", "label": "Pharmaco\u00e9conomie", "shape": "dot", "size": 28, "title": "Pharmaco\u00e9conomie\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement du m\u00e9dicament", "label": "D\u00e9veloppement du m\u00e9dicament", "shape": "dot", "size": 28, "title": "D\u00e9veloppement du m\u00e9dicament\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Axe : M\u00e9dicament et sant\u00e9 des populations", "label": "Axe : M\u00e9dicament et sant\u00e9 des populations", "shape": "dot", "size": 28, "title": "Axe : M\u00e9dicament et sant\u00e9 des populations\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pharmacologie m\u00e9tabolique", "label": "Pharmacologie m\u00e9tabolique", "shape": "dot", "size": 28, "title": "Pharmacologie m\u00e9tabolique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pharmacie clinique", "label": "Pharmacie clinique", "shape": "dot", "size": 21, "title": "Pharmacie clinique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Nanotechnologies", "label": "Nanotechnologies", "shape": "dot", "size": 21, "title": "Nanotechnologies\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux pharmaceutiques", "label": "Mat\u00e9riaux pharmaceutiques", "shape": "dot", "size": 21, "title": "Mat\u00e9riaux pharmaceutiques\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Axe : Formulation et analyse du m\u00e9dicament", "label": "Axe : Formulation et analyse du m\u00e9dicament", "shape": "dot", "size": 21, "title": "Axe : Formulation et analyse du m\u00e9dicament\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Cancer", "label": "Cancer", "shape": "dot", "size": 21, "title": "Cancer\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Maladies cardiovasculaires", "label": "Maladies cardiovasculaires", "shape": "dot", "size": 21, "title": "Maladies cardiovasculaires\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pharmacologie cardiovasculaire", "label": "Pharmacologie cardiovasculaire", "shape": "dot", "size": 21, "title": "Pharmacologie cardiovasculaire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Recherche \u00e9valuative", "label": "Recherche \u00e9valuative", "shape": "dot", "size": 21, "title": "Recherche \u00e9valuative\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Oncologie m\u00e9dicale", "to": "COVID-19"}, {"color": "lightgrey", "from": "Chimie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Chimie", "to": "Nanotechnologies"}, {"color": "lightgrey", "from": "Chimie", "to": "Mat\u00e9riaux pharmaceutiques"}, {"color": "lightgrey", "from": "Chimie", "to": "Axe : Formulation et analyse du m\u00e9dicament"}, {"color": "lightgrey", "from": "Cardiologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Cancer"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Pharmacie clinique"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Immunologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "COVID-19"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Cancer"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Immunologie"}, {"color": "lightgrey", "from": "Pharmacie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Axe : M\u00e9dicament et sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Utilisation optimale du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacie", "to": "\u00c9valuation de l\u0027usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Pharmaco\u00e9conomie"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Pharmacie clinique"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Axe : Formulation et analyse du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Mat\u00e9riaux pharmaceutiques"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Pharmacologie cardiovasculaire"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Nanotechnologies"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Pharmacie", "to": "Recherche \u00e9valuative"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "D\u00e9veloppement du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Pharmaco\u00e9conomie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Utilisation optimale du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "\u00c9valuation de l\u0027usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Axe : M\u00e9dicament et sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Immunologie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Pharmacologie cardiovasculaire"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Mat\u00e9riaux pharmaceutiques"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Pharmacie clinique"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Recherche \u00e9valuative"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Nanotechnologies"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Cancer"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Axe : Formulation et analyse du m\u00e9dicament"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "COVID-19"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Cancer"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Immunologie"}, {"color": "lightgrey", "from": "Virologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Virologie", "to": "Cancer"}, {"color": "lightgrey", "from": "Virologie", "to": "Immunologie"}, {"color": "lightgrey", "from": "Immunologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Immunologie", "to": "Cancer"}, {"color": "lightgrey", "from": "Immunologie", "to": "Immunologie"}, {"color": "lightgrey", "from": "Immunologie", "to": "Bio-informatique"}, {"color": "lightgrey", "from": "Immunologie", "to": "Oncologie"}, {"color": "lightgrey", "from": "Immunologie", "to": "M\u00e9decine mol\u00e9culaire"}, {"color": "lightgrey", "from": "Immunologie", "to": "Biochimie"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "COVID-19"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9valuation de l\u0027usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Pharmaco\u00e9conomie"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Axe : M\u00e9dicament et sant\u00e9 des populations"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Oncologie", "to": "COVID-19"}, {"color": "lightgrey", "from": "Oncologie", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "Oncologie", "to": "Cancer"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Pharmaco\u00e9conomie"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Axe : M\u00e9dicament et sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Utilisation optimale du m\u00e9dicament"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "D\u00e9veloppement du m\u00e9dicament"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "\u00c9valuation de l\u0027usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Communication"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Administration de la sant\u00e9"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Recherche \u00e9valuative"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Sant\u00e9 publique"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "Sociologie", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Sociologie", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Utilisation optimale du m\u00e9dicament"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "N\u00e9phrologie", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9veloppement du m\u00e9dicament"}, {"color": "lightgrey", "from": "Communication", "to": "Usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "Communication", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Pharmacologie cardiovasculaire"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "G\u00e9riatrie", "to": "Axe : M\u00e9dicament et sant\u00e9 des populations"}, {"color": "lightgrey", "from": "Histoire", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "M\u00e9decine n\u00e9onatale et p\u00e9rinatale", "to": "Sant\u00e9 des populations"}, {"color": "lightgrey", "from": "M\u00e9decine n\u00e9onatale et p\u00e9rinatale", "to": "Pharmacoth\u00e9rapie"}, {"color": "lightgrey", "from": "M\u00e9decine n\u00e9onatale et p\u00e9rinatale", "to": "Utilisation optimale du m\u00e9dicament"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Pharmaco\u00e9conomie"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "D\u00e9veloppement du m\u00e9dicament"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Recherche \u00e9valuative"}, {"color": "lightgrey", "from": "Physiologie", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Utilisation optimale du m\u00e9dicament"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Pharmaco\u00e9conomie"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "\u00c9valuation de l\u0027usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Recherche \u00e9valuative"}, {"color": "lightgrey", "from": "Statistiques", "to": "Axe : M\u00e9dicament et sant\u00e9 des populations"}, {"color": "lightgrey", "from": "M\u00e9decine de soins intensifs ", "to": "\u00c9valuation de l\u0027usage du m\u00e9dicament"}, {"color": "lightgrey", "from": "M\u00e9decine de soins intensifs ", "to": "Recherche \u00e9valuative"}, {"color": "lightgrey", "from": "M\u00e9decine de soins intensifs ", "to": "Pharmacie clinique"}, {"color": "lightgrey", "from": "Endocrinologie et m\u00e9tabolisme", "to": "Pharmacologie m\u00e9tabolique"}, {"color": "lightgrey", "from": "Endocrinologie et m\u00e9tabolisme", "to": "Cancer"}, {"color": "lightgrey", "from": "H\u00e9matologie", "to": "Maladies cardiovasculaires"}, {"color": "lightgrey", "from": "H\u00e9matologie", "to": "Pharmacie clinique"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Axe : Formulation et analyse du m\u00e9dicament"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Nanotechnologies"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Mat\u00e9riaux pharmaceutiques"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Axe : Formulation et analyse du m\u00e9dicament"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Cancer"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Cancer"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Nanotechnologies"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Mat\u00e9riaux pharmaceutiques"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Axe : Formulation et analyse du m\u00e9dicament"}, {"color": "lightgrey", "from": "Biochimie", "to": "Cancer"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Axe : Formulation et analyse du m\u00e9dicament"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

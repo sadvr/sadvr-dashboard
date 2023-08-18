@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Mus\u00e9ologie", "label": "Mus\u00e9ologie", "shape": "dot", "size": 7, "title": "Mus\u00e9ologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 105, "title": "\u00c9ducation\nN=105"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychop\u00e9dagogie", "label": "Psychop\u00e9dagogie", "shape": "dot", "size": 133, "title": "Psychop\u00e9dagogie\nN=133"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychologie", "label": "Psychologie", "shape": "dot", "size": 21, "title": "Psychologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 28, "title": "Sociologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psycho\u00e9ducation", "label": "Psycho\u00e9ducation", "shape": "dot", "size": 14, "title": "Psycho\u00e9ducation\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anthropologie", "label": "Anthropologie", "shape": "dot", "size": 7, "title": "Anthropologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 7, "title": "Sant\u00e9 publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration scolaire", "label": "Administration scolaire", "shape": "dot", "size": 7, "title": "Administration scolaire\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Orthop\u00e9dagogie", "label": "Orthop\u00e9dagogie", "shape": "dot", "size": 21, "title": "Orthop\u00e9dagogie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Andragogie", "label": "Andragogie", "shape": "dot", "size": 70, "title": "Andragogie\nN=70"}, {"color": "lightgrey", "font": {"size": 60}, "id": "P\u00e9diatrie", "label": "P\u00e9diatrie", "shape": "dot", "size": 7, "title": "P\u00e9diatrie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Ethnologie", "label": "Ethnologie", "shape": "dot", "size": 14, "title": "Ethnologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Didactique", "label": "Didactique", "shape": "dot", "size": 21, "title": "Didactique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes des langues", "label": "\u00c9tudes des langues", "shape": "dot", "size": 7, "title": "\u00c9tudes des langues\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 7, "title": "Informatique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Linguistique", "label": "Linguistique", "shape": "dot", "size": 7, "title": "Linguistique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "label": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "shape": "dot", "size": 7, "title": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Programmes d\u0027intervention, \u00e9valuation de programmes", "label": "Programmes d\u0027intervention, \u00e9valuation de programmes", "shape": "dot", "size": 56, "title": "Programmes d\u0027intervention, \u00e9valuation de programmes\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9ussite scolaire", "label": "R\u00e9ussite scolaire", "shape": "dot", "size": 49, "title": "R\u00e9ussite scolaire\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Motivation", "label": "Motivation", "shape": "dot", "size": 42, "title": "Motivation\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Socialisation en milieu scolaire", "label": "Socialisation en milieu scolaire", "shape": "dot", "size": 42, "title": "Socialisation en milieu scolaire\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions", "label": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions", "shape": "dot", "size": 35, "title": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Orthop\u00e9dagogie / Orthodidactique", "label": "Orthop\u00e9dagogie / Orthodidactique", "shape": "dot", "size": 35, "title": "Orthop\u00e9dagogie / Orthodidactique\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gestion de la classe, encadrement des \u00e9l\u00e8ves", "label": "Gestion de la classe, encadrement des \u00e9l\u00e8ves", "shape": "dot", "size": 35, "title": "Gestion de la classe, encadrement des \u00e9l\u00e8ves\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques", "label": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques", "shape": "dot", "size": 35, "title": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Handicap, incapacit\u00e9s et d\u00e9ficience", "label": "Handicap, incapacit\u00e9s et d\u00e9ficience", "shape": "dot", "size": 28, "title": "Handicap, incapacit\u00e9s et d\u00e9ficience\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodes de recherche", "label": "M\u00e9thodes de recherche", "shape": "dot", "size": 28, "title": "M\u00e9thodes de recherche\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Difficult\u00e9s d\u0027apprentissage", "label": "Difficult\u00e9s d\u0027apprentissage", "shape": "dot", "size": 28, "title": "Difficult\u00e9s d\u0027apprentissage\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "TIC en contexte \u00e9ducatif", "label": "TIC en contexte \u00e9ducatif", "shape": "dot", "size": 21, "title": "TIC en contexte \u00e9ducatif\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Formation des ma\u00eetres", "label": "Formation des ma\u00eetres", "shape": "dot", "size": 21, "title": "Formation des ma\u00eetres\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Changement et innovation", "label": "Changement et innovation", "shape": "dot", "size": 21, "title": "Changement et innovation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Stress professionnel, r\u00e9silience professionnelle", "label": "Stress professionnel, r\u00e9silience professionnelle", "shape": "dot", "size": 21, "title": "Stress professionnel, r\u00e9silience professionnelle\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Parcours scolaires", "label": "Parcours scolaires", "shape": "dot", "size": 21, "title": "Parcours scolaires\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement professionnel", "label": "D\u00e9veloppement professionnel", "shape": "dot", "size": 21, "title": "D\u00e9veloppement professionnel\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Enseignement et apprentissage en contextes informels", "label": "Enseignement et apprentissage en contextes informels", "shape": "dot", "size": 21, "title": "Enseignement et apprentissage en contextes informels\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Mus\u00e9ologie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Mus\u00e9ologie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Mus\u00e9ologie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Motivation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Socialisation en milieu scolaire"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "TIC en contexte \u00e9ducatif"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Stress professionnel, r\u00e9silience professionnelle"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Enseignement et apprentissage en contextes informels"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Socialisation en milieu scolaire"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Motivation"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Enseignement et apprentissage en contextes informels"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "TIC en contexte \u00e9ducatif"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Stress professionnel, r\u00e9silience professionnelle"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Psychologie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Psychologie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Psychologie", "to": "Socialisation en milieu scolaire"}, {"color": "lightgrey", "from": "Psychologie", "to": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions"}, {"color": "lightgrey", "from": "Psychologie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Psychologie", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "Psychologie", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "Psychologie", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "Psychologie", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "Sociologie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Sociologie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Sociologie", "to": "Motivation"}, {"color": "lightgrey", "from": "Sociologie", "to": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions"}, {"color": "lightgrey", "from": "Sociologie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Sociologie", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "Sociologie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Sociologie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Sociologie", "to": "Enseignement et apprentissage en contextes informels"}, {"color": "lightgrey", "from": "Sociologie", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Motivation"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Socialisation en milieu scolaire"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions"}, {"color": "lightgrey", "from": "Psycho\u00e9ducation", "to": "Enseignement et apprentissage en contextes informels"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Anthropologie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Socialisation en milieu scolaire"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Orthop\u00e9dagogie", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Andragogie", "to": "Programmes d\u0027intervention, \u00e9valuation de programmes"}, {"color": "lightgrey", "from": "Andragogie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "Andragogie", "to": "Motivation"}, {"color": "lightgrey", "from": "Andragogie", "to": "Socialisation en milieu scolaire"}, {"color": "lightgrey", "from": "Andragogie", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "Andragogie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Andragogie", "to": "Orthop\u00e9dagogie / Orthodidactique"}, {"color": "lightgrey", "from": "Andragogie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Andragogie", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "Andragogie", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "Andragogie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Andragogie", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Andragogie", "to": "Stress professionnel, r\u00e9silience professionnelle"}, {"color": "lightgrey", "from": "Andragogie", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Andragogie", "to": "TIC en contexte \u00e9ducatif"}, {"color": "lightgrey", "from": "Andragogie", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "Andragogie", "to": "Enseignement et apprentissage en contextes informels"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "R\u00e9ussite scolaire"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Motivation"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "P\u00e9diatrie", "to": "Enseignement et apprentissage en contextes informels"}, {"color": "lightgrey", "from": "Communication", "to": "Motivation"}, {"color": "lightgrey", "from": "Communication", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Communication", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Milieux d\u00e9favoris\u00e9s, in\u00e9galit\u00e9s sociales et \u00e9conomiques"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Collaboration autour de l\u0027\u00e9cole: familles, communaut\u00e9, institutions"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Didactique", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "Didactique", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "Didactique", "to": "TIC en contexte \u00e9ducatif"}, {"color": "lightgrey", "from": "Didactique", "to": "Stress professionnel, r\u00e9silience professionnelle"}, {"color": "lightgrey", "from": "Didactique", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Gestion de la classe, encadrement des \u00e9l\u00e8ves"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Handicap, incapacit\u00e9s et d\u00e9ficience"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "TIC en contexte \u00e9ducatif"}, {"color": "lightgrey", "from": "Informatique", "to": "TIC en contexte \u00e9ducatif"}, {"color": "lightgrey", "from": "Linguistique", "to": "Parcours scolaires"}, {"color": "lightgrey", "from": "Endocrinologie gyn\u00e9cologique de la reproduction et de l\u2019infertilit\u00e9", "to": "TIC en contexte \u00e9ducatif"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

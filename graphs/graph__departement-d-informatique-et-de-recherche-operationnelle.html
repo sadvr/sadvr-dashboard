@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Statistiques", "label": "Statistiques", "shape": "dot", "size": 49, "title": "Statistiques\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 441, "title": "Informatique\nN=441"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie informatique et g\u00e9nie logiciel", "label": "G\u00e9nie informatique et g\u00e9nie logiciel", "shape": "dot", "size": 98, "title": "G\u00e9nie informatique et g\u00e9nie logiciel\nN=98"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Philosophie", "label": "Philosophie", "shape": "dot", "size": 7, "title": "Philosophie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques fondamentales", "label": "Math\u00e9matiques fondamentales", "shape": "dot", "size": 63, "title": "Math\u00e9matiques fondamentales\nN=63"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 28, "title": "Neurosciences\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biom\u00e9dical", "label": "G\u00e9nie biom\u00e9dical", "shape": "dot", "size": 14, "title": "G\u00e9nie biom\u00e9dical\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 7, "title": "Physique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 7, "title": "Sociologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 21, "title": "Biologie mol\u00e9culaire\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Linguistique", "label": "Linguistique", "shape": "dot", "size": 7, "title": "Linguistique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes des langues", "label": "\u00c9tudes des langues", "shape": "dot", "size": 7, "title": "\u00c9tudes des langues\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences biom\u00e9dicales", "label": "Sciences biom\u00e9dicales", "shape": "dot", "size": 7, "title": "Sciences biom\u00e9dicales\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques appliqu\u00e9es", "label": "Math\u00e9matiques appliqu\u00e9es", "shape": "dot", "size": 63, "title": "Math\u00e9matiques appliqu\u00e9es\nN=63"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique de gestion", "label": "Informatique de gestion", "shape": "dot", "size": 49, "title": "Informatique de gestion\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Management", "label": "Management", "shape": "dot", "size": 21, "title": "Management\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Musique", "label": "Musique", "shape": "dot", "size": 14, "title": "Musique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie industriel", "label": "G\u00e9nie industriel", "shape": "dot", "size": 7, "title": "G\u00e9nie industriel\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Bio-informatique", "label": "Bio-informatique", "shape": "dot", "size": 21, "title": "Bio-informatique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 7, "title": "Biologie et autres sciences connexes\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nomique", "label": "G\u00e9nomique", "shape": "dot", "size": 14, "title": "G\u00e9nomique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 7, "title": "Biochimie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique", "label": "G\u00e9n\u00e9tique", "shape": "dot", "size": 14, "title": "G\u00e9n\u00e9tique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 14, "title": "Communication\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Traitement automatique du langage naturel (TALN)", "label": "Traitement automatique du langage naturel (TALN)", "shape": "dot", "size": 91, "title": "Traitement automatique du langage naturel (TALN)\nN=91"}, {"color": "lightblue", "font": {"size": 60}, "id": "Apprentissage profond", "label": "Apprentissage profond", "shape": "dot", "size": 70, "title": "Apprentissage profond\nN=70"}, {"color": "lightblue", "font": {"size": 60}, "id": "Intelligence artificielle", "label": "Intelligence artificielle", "shape": "dot", "size": 63, "title": "Intelligence artificielle\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "Apprentissage automatique", "label": "Apprentissage automatique", "shape": "dot", "size": 56, "title": "Apprentissage automatique\nN=56"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mod\u00e8les statistiques", "label": "Mod\u00e8les statistiques", "shape": "dot", "size": 49, "title": "Mod\u00e8les statistiques\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mod\u00e9lisation", "label": "Mod\u00e9lisation", "shape": "dot", "size": 49, "title": "Mod\u00e9lisation\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9seaux de neurones", "label": "R\u00e9seaux de neurones", "shape": "dot", "size": 42, "title": "R\u00e9seaux de neurones\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Vision par ordinateur", "label": "Vision par ordinateur", "shape": "dot", "size": 35, "title": "Vision par ordinateur\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "R\u00e9seaux de transports", "label": "R\u00e9seaux de transports", "shape": "dot", "size": 35, "title": "R\u00e9seaux de transports\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Optimisation combinatoire", "label": "Optimisation combinatoire", "shape": "dot", "size": 35, "title": "Optimisation combinatoire\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Optimistation des syst\u00e8mes de transports", "label": "Optimistation des syst\u00e8mes de transports", "shape": "dot", "size": 35, "title": "Optimistation des syst\u00e8mes de transports\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mod\u00e8les probabilistes", "label": "Mod\u00e8les probabilistes", "shape": "dot", "size": 35, "title": "Mod\u00e8les probabilistes\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Recherche op\u00e9rationnelle", "label": "Recherche op\u00e9rationnelle", "shape": "dot", "size": 28, "title": "Recherche op\u00e9rationnelle\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Science des donn\u00e9es", "label": "Science des donn\u00e9es", "shape": "dot", "size": 28, "title": "Science des donn\u00e9es\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Transports", "label": "Transports", "shape": "dot", "size": 28, "title": "Transports\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9orie de l\u0027information quantique", "label": "Th\u00e9orie de l\u0027information quantique", "shape": "dot", "size": 21, "title": "Th\u00e9orie de l\u0027information quantique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8mes de transport intelligent", "label": "Syst\u00e8mes de transport intelligent", "shape": "dot", "size": 21, "title": "Syst\u00e8mes de transport intelligent\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "COVID-19", "label": "COVID-19", "shape": "dot", "size": 21, "title": "COVID-19\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "S\u00e9curit\u00e9 informatique", "label": "S\u00e9curit\u00e9 informatique", "shape": "dot", "size": 21, "title": "S\u00e9curit\u00e9 informatique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Informatique quantique", "label": "Informatique quantique", "shape": "dot", "size": 21, "title": "Informatique quantique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Programmation non lin\u00e9aire", "label": "Programmation non lin\u00e9aire", "shape": "dot", "size": 21, "title": "Programmation non lin\u00e9aire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9gadonn\u00e9es", "label": "M\u00e9gadonn\u00e9es", "shape": "dot", "size": 21, "title": "M\u00e9gadonn\u00e9es\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Optimisation r\u00e9seau", "label": "Optimisation r\u00e9seau", "shape": "dot", "size": 21, "title": "Optimisation r\u00e9seau\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Reconnaissance de formes", "label": "Reconnaissance de formes", "shape": "dot", "size": 21, "title": "Reconnaissance de formes\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Statistiques", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Statistiques", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Statistiques", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Statistiques", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Statistiques", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "Statistiques", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Statistiques", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "Statistiques", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Statistiques", "to": "Vision par ordinateur"}, {"color": "lightgrey", "from": "Statistiques", "to": "Science des donn\u00e9es"}, {"color": "lightgrey", "from": "Statistiques", "to": "COVID-19"}, {"color": "lightgrey", "from": "Statistiques", "to": "Reconnaissance de formes"}, {"color": "lightgrey", "from": "Statistiques", "to": "Programmation non lin\u00e9aire"}, {"color": "lightgrey", "from": "Statistiques", "to": "M\u00e9gadonn\u00e9es"}, {"color": "lightgrey", "from": "Informatique", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Informatique", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Informatique", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Informatique", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Informatique", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Informatique", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "Informatique", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "Informatique", "to": "Vision par ordinateur"}, {"color": "lightgrey", "from": "Informatique", "to": "R\u00e9seaux de transports"}, {"color": "lightgrey", "from": "Informatique", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "Informatique", "to": "Optimistation des syst\u00e8mes de transports"}, {"color": "lightgrey", "from": "Informatique", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Informatique", "to": "Recherche op\u00e9rationnelle"}, {"color": "lightgrey", "from": "Informatique", "to": "Transports"}, {"color": "lightgrey", "from": "Informatique", "to": "Science des donn\u00e9es"}, {"color": "lightgrey", "from": "Informatique", "to": "Informatique quantique"}, {"color": "lightgrey", "from": "Informatique", "to": "M\u00e9gadonn\u00e9es"}, {"color": "lightgrey", "from": "Informatique", "to": "S\u00e9curit\u00e9 informatique"}, {"color": "lightgrey", "from": "Informatique", "to": "Optimisation r\u00e9seau"}, {"color": "lightgrey", "from": "Informatique", "to": "COVID-19"}, {"color": "lightgrey", "from": "Informatique", "to": "Syst\u00e8mes de transport intelligent"}, {"color": "lightgrey", "from": "Informatique", "to": "Th\u00e9orie de l\u0027information quantique"}, {"color": "lightgrey", "from": "Informatique", "to": "Reconnaissance de formes"}, {"color": "lightgrey", "from": "Informatique", "to": "Programmation non lin\u00e9aire"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Vision par ordinateur"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Science des donn\u00e9es"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "COVID-19"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Programmation non lin\u00e9aire"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "Optimisation r\u00e9seau"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "M\u00e9gadonn\u00e9es"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "S\u00e9curit\u00e9 informatique"}, {"color": "lightgrey", "from": "Philosophie", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Philosophie", "to": "M\u00e9gadonn\u00e9es"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Vision par ordinateur"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Science des donn\u00e9es"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "COVID-19"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "S\u00e9curit\u00e9 informatique"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Th\u00e9orie de l\u0027information quantique"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Informatique quantique"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Programmation non lin\u00e9aire"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "Neurosciences", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Neurosciences", "to": "COVID-19"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Programmation non lin\u00e9aire"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Vision par ordinateur"}, {"color": "lightgrey", "from": "Physique", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Sociologie", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Sociologie", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Sociologie", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "Sociologie", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "Linguistique", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Sciences biom\u00e9dicales", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Traitement automatique du langage naturel (TALN)"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Mod\u00e8les statistiques"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Optimistation des syst\u00e8mes de transports"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Vision par ordinateur"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "R\u00e9seaux de transports"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Recherche op\u00e9rationnelle"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Science des donn\u00e9es"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Transports"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Th\u00e9orie de l\u0027information quantique"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Syst\u00e8mes de transport intelligent"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "COVID-19"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Programmation non lin\u00e9aire"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Informatique quantique"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "M\u00e9gadonn\u00e9es"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "R\u00e9seaux de transports"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Optimistation des syst\u00e8mes de transports"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Science des donn\u00e9es"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Transports"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Recherche op\u00e9rationnelle"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Syst\u00e8mes de transport intelligent"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "Optimisation r\u00e9seau"}, {"color": "lightgrey", "from": "Informatique de gestion", "to": "S\u00e9curit\u00e9 informatique"}, {"color": "lightgrey", "from": "Management", "to": "Apprentissage profond"}, {"color": "lightgrey", "from": "Management", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Management", "to": "R\u00e9seaux de transports"}, {"color": "lightgrey", "from": "Management", "to": "Optimistation des syst\u00e8mes de transports"}, {"color": "lightgrey", "from": "Management", "to": "Recherche op\u00e9rationnelle"}, {"color": "lightgrey", "from": "Management", "to": "Transports"}, {"color": "lightgrey", "from": "Management", "to": "Syst\u00e8mes de transport intelligent"}, {"color": "lightgrey", "from": "Management", "to": "S\u00e9curit\u00e9 informatique"}, {"color": "lightgrey", "from": "Musique", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Musique", "to": "Apprentissage automatique"}, {"color": "lightgrey", "from": "G\u00e9nie industriel", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "R\u00e9seaux de neurones"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Mod\u00e8les probabilistes"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "COVID-19"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "COVID-19"}, {"color": "lightgrey", "from": "Biochimie", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Biochimie", "to": "COVID-19"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Optimisation combinatoire"}, {"color": "lightgrey", "from": "Communication", "to": "Syst\u00e8mes de transport intelligent"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

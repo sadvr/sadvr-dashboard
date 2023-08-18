@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 91, "title": "\u00c9ducation\nN=91"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration scolaire", "label": "Administration scolaire", "shape": "dot", "size": 63, "title": "Administration scolaire\nN=63"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sociologie", "label": "Sociologie", "shape": "dot", "size": 70, "title": "Sociologie\nN=70"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration de la sant\u00e9", "label": "Administration de la sant\u00e9", "shape": "dot", "size": 7, "title": "Administration de la sant\u00e9\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Didactique", "label": "Didactique", "shape": "dot", "size": 14, "title": "Didactique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Science politique", "label": "Science politique", "shape": "dot", "size": 21, "title": "Science politique\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 14, "title": "Histoire\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychologie", "label": "Psychologie", "shape": "dot", "size": 7, "title": "Psychologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Mesures et \u00e9valuation", "label": "Mesures et \u00e9valuation", "shape": "dot", "size": 14, "title": "Mesures et \u00e9valuation\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation compar\u00e9e", "label": "\u00c9ducation compar\u00e9e", "shape": "dot", "size": 42, "title": "\u00c9ducation compar\u00e9e\nN=42"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 14, "title": "Physiologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Philosophie", "label": "Philosophie", "shape": "dot", "size": 21, "title": "Philosophie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Orientation, information scolaire et professionnelle", "label": "Orientation, information scolaire et professionnelle", "shape": "dot", "size": 14, "title": "Orientation, information scolaire et professionnelle\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Administration publique", "label": "Administration publique", "shape": "dot", "size": 7, "title": "Administration publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Droit", "label": "Droit", "shape": "dot", "size": 7, "title": "Droit\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Psychop\u00e9dagogie", "label": "Psychop\u00e9dagogie", "shape": "dot", "size": 7, "title": "Psychop\u00e9dagogie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Andragogie", "label": "Andragogie", "shape": "dot", "size": 7, "title": "Andragogie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Management", "label": "Management", "shape": "dot", "size": 7, "title": "Management\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9conomie", "label": "\u00c9conomie", "shape": "dot", "size": 7, "title": "\u00c9conomie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 publique", "label": "Sant\u00e9 publique", "shape": "dot", "size": 7, "title": "Sant\u00e9 publique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Statistiques", "label": "Statistiques", "shape": "dot", "size": 14, "title": "Statistiques\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gestion (modes, pratiques et outils)", "label": "Gestion (modes, pratiques et outils)", "shape": "dot", "size": 63, "title": "Gestion (modes, pratiques et outils)\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "Formation des cadres et du personnel scolaire", "label": "Formation des cadres et du personnel scolaire", "shape": "dot", "size": 42, "title": "Formation des cadres et du personnel scolaire\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Formation des ma\u00eetres", "label": "Formation des ma\u00eetres", "shape": "dot", "size": 42, "title": "Formation des ma\u00eetres\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)", "label": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)", "shape": "dot", "size": 35, "title": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Fondements de l\u0027\u00e9ducation", "label": "Fondements de l\u0027\u00e9ducation", "shape": "dot", "size": 35, "title": "Fondements de l\u0027\u00e9ducation\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodes de recherche", "label": "M\u00e9thodes de recherche", "shape": "dot", "size": 35, "title": "M\u00e9thodes de recherche\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Changement et innovation", "label": "Changement et innovation", "shape": "dot", "size": 28, "title": "Changement et innovation\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Sociologie de l\u0027\u00e9ducation", "label": "Sociologie de l\u0027\u00e9ducation", "shape": "dot", "size": 28, "title": "Sociologie de l\u0027\u00e9ducation\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Politiques \u00e9ducatives", "label": "Politiques \u00e9ducatives", "shape": "dot", "size": 28, "title": "Politiques \u00e9ducatives\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique", "label": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique", "shape": "dot", "size": 28, "title": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement professionnel", "label": "D\u00e9veloppement professionnel", "shape": "dot", "size": 28, "title": "D\u00e9veloppement professionnel\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Directions d\u0027\u00e9coles", "label": "Directions d\u0027\u00e9coles", "shape": "dot", "size": 21, "title": "Directions d\u0027\u00e9coles\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Perspectives internationales et comparatives", "label": "Perspectives internationales et comparatives", "shape": "dot", "size": 21, "title": "Perspectives internationales et comparatives\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pers\u00e9v\u00e9rance scolaire", "label": "Pers\u00e9v\u00e9rance scolaire", "shape": "dot", "size": 21, "title": "Pers\u00e9v\u00e9rance scolaire\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "\u00c9ducation", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Sociologie de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Directions d\u0027\u00e9coles"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Pers\u00e9v\u00e9rance scolaire"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Sociologie de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Politiques \u00e9ducatives"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Directions d\u0027\u00e9coles"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Administration scolaire", "to": "Pers\u00e9v\u00e9rance scolaire"}, {"color": "lightgrey", "from": "Sociologie", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Sociologie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Sociologie", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Sociologie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Sociologie", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "Sociologie", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Sociologie", "to": "Sociologie de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Sociologie", "to": "Politiques \u00e9ducatives"}, {"color": "lightgrey", "from": "Sociologie", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "Sociologie", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Sociologie", "to": "Pers\u00e9v\u00e9rance scolaire"}, {"color": "lightgrey", "from": "Sociologie", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Administration de la sant\u00e9", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Didactique", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Didactique", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Didactique", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Didactique", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Didactique", "to": "Politiques \u00e9ducatives"}, {"color": "lightgrey", "from": "Didactique", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Science politique", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Science politique", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Science politique", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Science politique", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "Science politique", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Science politique", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "Science politique", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Science politique", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Histoire", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Histoire", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Histoire", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Histoire", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Psychologie", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Psychologie", "to": "Directions d\u0027\u00e9coles"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Politiques \u00e9ducatives"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Sociologie de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Mesures et \u00e9valuation", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Sociologie de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Politiques \u00e9ducatives"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Pers\u00e9v\u00e9rance scolaire"}, {"color": "lightgrey", "from": "\u00c9ducation compar\u00e9e", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Physiologie", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Physiologie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Physiologie", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Physiologie", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Physiologie", "to": "Politiques \u00e9ducatives"}, {"color": "lightgrey", "from": "Physiologie", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Philosophie", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Philosophie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Philosophie", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Philosophie", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "Gestion (modes, pratiques et outils)"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "\u00c9quit\u00e9, efficacit\u00e9 et qualit\u00e9 (des \u00e9tablissements, des syst\u00e8mes et des politiques)"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "Sociologie de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "Pers\u00e9v\u00e9rance scolaire"}, {"color": "lightgrey", "from": "Orientation, information scolaire et professionnelle", "to": "Directions d\u0027\u00e9coles"}, {"color": "lightgrey", "from": "Administration publique", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Administration publique", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Droit", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Droit", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Andragogie", "to": "Formation des ma\u00eetres"}, {"color": "lightgrey", "from": "Andragogie", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Andragogie", "to": "Immigration, minorit\u00e9s, diversit\u00e9 ethnoculturelle et linguistique"}, {"color": "lightgrey", "from": "Andragogie", "to": "D\u00e9veloppement professionnel"}, {"color": "lightgrey", "from": "Management", "to": "Formation des cadres et du personnel scolaire"}, {"color": "lightgrey", "from": "Management", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "Communication", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Communication", "to": "Changement et innovation"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "\u00c9conomie", "to": "Perspectives internationales et comparatives"}, {"color": "lightgrey", "from": "Sant\u00e9 publique", "to": "Fondements de l\u0027\u00e9ducation"}, {"color": "lightgrey", "from": "Statistiques", "to": "M\u00e9thodes de recherche"}, {"color": "lightgrey", "from": "Statistiques", "to": "Changement et innovation"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

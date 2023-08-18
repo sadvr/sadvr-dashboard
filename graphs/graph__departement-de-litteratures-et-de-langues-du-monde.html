@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes litt\u00e9raires", "label": "\u00c9tudes litt\u00e9raires", "shape": "dot", "size": 154, "title": "\u00c9tudes litt\u00e9raires\nN=154"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arts visuels et m\u00e9diatiques", "label": "Arts visuels et m\u00e9diatiques", "shape": "dot", "size": 35, "title": "Arts visuels et m\u00e9diatiques\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire des arts", "label": "Histoire des arts", "shape": "dot", "size": 21, "title": "Histoire des arts\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Histoire", "label": "Histoire", "shape": "dot", "size": 28, "title": "Histoire\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Philosophie", "label": "Philosophie", "shape": "dot", "size": 21, "title": "Philosophie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Traductologie", "label": "Traductologie", "shape": "dot", "size": 21, "title": "Traductologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes f\u00e9ministes", "label": "\u00c9tudes f\u00e9ministes", "shape": "dot", "size": 28, "title": "\u00c9tudes f\u00e9ministes\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Litt\u00e9rature", "label": "Litt\u00e9rature", "shape": "dot", "size": 147, "title": "Litt\u00e9rature\nN=147"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anthropologie", "label": "Anthropologie", "shape": "dot", "size": 7, "title": "Anthropologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Musicologie", "label": "Musicologie", "shape": "dot", "size": 7, "title": "Musicologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Th\u00e9\u00e2tre", "label": "Th\u00e9\u00e2tre", "shape": "dot", "size": 28, "title": "Th\u00e9\u00e2tre\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Science politique", "label": "Science politique", "shape": "dot", "size": 35, "title": "Science politique\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Musique", "label": "Musique", "shape": "dot", "size": 7, "title": "Musique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes des langues", "label": "\u00c9tudes des langues", "shape": "dot", "size": 49, "title": "\u00c9tudes des langues\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9tudes anciennes et \u00e9tudes classiques", "label": "\u00c9tudes anciennes et \u00e9tudes classiques", "shape": "dot", "size": 7, "title": "\u00c9tudes anciennes et \u00e9tudes classiques\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9tudes de genre", "label": "\u00c9tudes de genre", "shape": "dot", "size": 35, "title": "\u00c9tudes de genre\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Diaspora", "label": "Diaspora", "shape": "dot", "size": 28, "title": "Diaspora\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9\u00e2tre moderne et postmoderne", "label": "Th\u00e9\u00e2tre moderne et postmoderne", "shape": "dot", "size": 28, "title": "Th\u00e9\u00e2tre moderne et postmoderne\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Arts visuels", "label": "Arts visuels", "shape": "dot", "size": 28, "title": "Arts visuels\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Culture populaire", "label": "Culture populaire", "shape": "dot", "size": 28, "title": "Culture populaire\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Po\u00e9sie et po\u00e9tique", "label": "Po\u00e9sie et po\u00e9tique", "shape": "dot", "size": 21, "title": "Po\u00e9sie et po\u00e9tique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Histoire de la m\u00e9decine", "label": "Histoire de la m\u00e9decine", "shape": "dot", "size": 21, "title": "Histoire de la m\u00e9decine\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Traduction litt\u00e9raire", "label": "Traduction litt\u00e9raire", "shape": "dot", "size": 21, "title": "Traduction litt\u00e9raire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Po\u00e9sie", "label": "Po\u00e9sie", "shape": "dot", "size": 21, "title": "Po\u00e9sie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9orie de la m\u00e9taphore", "label": "Th\u00e9orie de la m\u00e9taphore", "shape": "dot", "size": 21, "title": "Th\u00e9orie de la m\u00e9taphore\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Diaspora"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Arts visuels"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Culture populaire"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Po\u00e9sie"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "\u00c9tudes litt\u00e9raires", "to": "Traduction litt\u00e9raire"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Culture populaire"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Diaspora"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Diaspora"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Culture populaire"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "Histoire des arts", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Histoire", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "Histoire", "to": "Diaspora"}, {"color": "lightgrey", "from": "Histoire", "to": "Culture populaire"}, {"color": "lightgrey", "from": "Histoire", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Histoire", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "Histoire", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "Philosophie", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "Philosophie", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Philosophie", "to": "Diaspora"}, {"color": "lightgrey", "from": "Philosophie", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Philosophie", "to": "Culture populaire"}, {"color": "lightgrey", "from": "Philosophie", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "Philosophie", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "Philosophie", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Philosophie", "to": "Traduction litt\u00e9raire"}, {"color": "lightgrey", "from": "Philosophie", "to": "Po\u00e9sie"}, {"color": "lightgrey", "from": "Traductologie", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "Traductologie", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Traductologie", "to": "Traduction litt\u00e9raire"}, {"color": "lightgrey", "from": "Traductologie", "to": "Po\u00e9sie"}, {"color": "lightgrey", "from": "Traductologie", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Traductologie", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Diaspora"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Arts visuels"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Culture populaire"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "\u00c9tudes f\u00e9ministes", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "\u00c9tudes de genre"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Diaspora"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Culture populaire"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Traduction litt\u00e9raire"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Po\u00e9sie"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "Anthropologie", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Musicologie", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Musicologie", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Musicologie", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Th\u00e9\u00e2tre", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Th\u00e9\u00e2tre", "to": "Po\u00e9sie"}, {"color": "lightgrey", "from": "Th\u00e9\u00e2tre", "to": "Traduction litt\u00e9raire"}, {"color": "lightgrey", "from": "Th\u00e9\u00e2tre", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "Science politique", "to": "Th\u00e9\u00e2tre moderne et postmoderne"}, {"color": "lightgrey", "from": "Science politique", "to": "Diaspora"}, {"color": "lightgrey", "from": "Science politique", "to": "Arts visuels"}, {"color": "lightgrey", "from": "Science politique", "to": "Po\u00e9sie et po\u00e9tique"}, {"color": "lightgrey", "from": "Science politique", "to": "Th\u00e9orie de la m\u00e9taphore"}, {"color": "lightgrey", "from": "Musique", "to": "Arts visuels"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Arts visuels"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Histoire de la m\u00e9decine"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Traduction litt\u00e9raire"}, {"color": "lightgrey", "from": "\u00c9tudes anciennes et \u00e9tudes classiques", "to": "Traduction litt\u00e9raire"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

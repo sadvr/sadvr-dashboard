@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 301, "title": "Biologie et autres sciences connexes\nN=301"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques appliqu\u00e9es", "label": "Math\u00e9matiques appliqu\u00e9es", "shape": "dot", "size": 7, "title": "Math\u00e9matiques appliqu\u00e9es\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 14, "title": "Biochimie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Eau et environnement", "label": "Eau et environnement", "shape": "dot", "size": 98, "title": "Eau et environnement\nN=98"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Environnement et d\u00e9veloppement durable", "label": "Environnement et d\u00e9veloppement durable", "shape": "dot", "size": 14, "title": "Environnement et d\u00e9veloppement durable\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique", "label": "G\u00e9n\u00e9tique", "shape": "dot", "size": 49, "title": "G\u00e9n\u00e9tique\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 49, "title": "Biologie mol\u00e9culaire\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Statistiques", "label": "Statistiques", "shape": "dot", "size": 14, "title": "Statistiques\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9pid\u00e9miologie et biostatistique", "label": "\u00c9pid\u00e9miologie et biostatistique", "shape": "dot", "size": 14, "title": "\u00c9pid\u00e9miologie et biostatistique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "label": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "shape": "dot", "size": 7, "title": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Ethnologie", "label": "Ethnologie", "shape": "dot", "size": 7, "title": "Ethnologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biochimique", "label": "G\u00e9nie biochimique", "shape": "dot", "size": 7, "title": "G\u00e9nie biochimique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Am\u00e9nagement", "label": "Am\u00e9nagement", "shape": "dot", "size": 7, "title": "Am\u00e9nagement\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie cellulaire", "label": "Biologie cellulaire", "shape": "dot", "size": 14, "title": "Biologie cellulaire\nN=14"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9nomique", "label": "G\u00e9nomique", "shape": "dot", "size": 49, "title": "G\u00e9nomique\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 21, "title": "Physiologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Microbiologie", "label": "Microbiologie", "shape": "dot", "size": 14, "title": "Microbiologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Foresterie et sciences du bois", "label": "Foresterie et sciences du bois", "shape": "dot", "size": 14, "title": "Foresterie et sciences du bois\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Bio-informatique", "label": "Bio-informatique", "shape": "dot", "size": 7, "title": "Bio-informatique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Virologie", "label": "Virologie", "shape": "dot", "size": 7, "title": "Virologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arts visuels et m\u00e9diatiques", "label": "Arts visuels et m\u00e9diatiques", "shape": "dot", "size": 7, "title": "Arts visuels et m\u00e9diatiques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Anatomie", "label": "Anatomie", "shape": "dot", "size": 7, "title": "Anatomie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 7, "title": "Neurosciences\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 7, "title": "Physique\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biodiversit\u00e9", "label": "Biodiversit\u00e9", "shape": "dot", "size": 91, "title": "Biodiversit\u00e9\nN=91"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie", "label": "\u00c9cologie", "shape": "dot", "size": 63, "title": "\u00c9cologie\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9volution", "label": "\u00c9volution", "shape": "dot", "size": 49, "title": "\u00c9volution\nN=49"}, {"color": "lightblue", "font": {"size": 60}, "id": "Qualit\u00e9 de l\u0027eau", "label": "Qualit\u00e9 de l\u0027eau", "shape": "dot", "size": 42, "title": "Qualit\u00e9 de l\u0027eau\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Phylog\u00e9n\u00e9tique", "label": "Phylog\u00e9n\u00e9tique", "shape": "dot", "size": 42, "title": "Phylog\u00e9n\u00e9tique\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cosyst\u00e8me", "label": "\u00c9cosyst\u00e8me", "shape": "dot", "size": 42, "title": "\u00c9cosyst\u00e8me\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9veloppement", "label": "D\u00e9veloppement", "shape": "dot", "size": 42, "title": "D\u00e9veloppement\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie foresti\u00e8re", "label": "\u00c9cologie foresti\u00e8re", "shape": "dot", "size": 35, "title": "\u00c9cologie foresti\u00e8re\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Plantes", "label": "Plantes", "shape": "dot", "size": 35, "title": "Plantes\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Lacs", "label": "Lacs", "shape": "dot", "size": 35, "title": "Lacs\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Changements climatiques", "label": "Changements climatiques", "shape": "dot", "size": 35, "title": "Changements climatiques\nN=35"}, {"color": "lightblue", "font": {"size": 60}, "id": "Transformation g\u00e9n\u00e9tique", "label": "Transformation g\u00e9n\u00e9tique", "shape": "dot", "size": 28, "title": "Transformation g\u00e9n\u00e9tique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Hybridation", "label": "Hybridation", "shape": "dot", "size": 28, "title": "Hybridation\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Bioinformatique", "label": "Bioinformatique", "shape": "dot", "size": 28, "title": "Bioinformatique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Pollution", "label": "Pollution", "shape": "dot", "size": 28, "title": "Pollution\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Transcriptomique", "label": "Transcriptomique", "shape": "dot", "size": 28, "title": "Transcriptomique\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Cellule v\u00e9g\u00e9tale", "label": "Cellule v\u00e9g\u00e9tale", "shape": "dot", "size": 28, "title": "Cellule v\u00e9g\u00e9tale\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Fleuves", "label": "Fleuves", "shape": "dot", "size": 28, "title": "Fleuves\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Conservation", "label": "Conservation", "shape": "dot", "size": 28, "title": "Conservation\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie des communaut\u00e9s", "label": "\u00c9cologie des communaut\u00e9s", "shape": "dot", "size": 28, "title": "\u00c9cologie des communaut\u00e9s\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique des populations", "label": "G\u00e9n\u00e9tique des populations", "shape": "dot", "size": 28, "title": "G\u00e9n\u00e9tique des populations\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie \u00e9volutive", "label": "\u00c9cologie \u00e9volutive", "shape": "dot", "size": 21, "title": "\u00c9cologie \u00e9volutive\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie microbienne", "label": "\u00c9cologie microbienne", "shape": "dot", "size": 21, "title": "\u00c9cologie microbienne\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Microscopie optique", "label": "Microscopie optique", "shape": "dot", "size": 21, "title": "Microscopie optique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Microscopie confocale", "label": "Microscopie confocale", "shape": "dot", "size": 21, "title": "Microscopie confocale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Bact\u00e9ries", "label": "Bact\u00e9ries", "shape": "dot", "size": 21, "title": "Bact\u00e9ries\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "G\u00e9n\u00e9tique du paysage", "label": "G\u00e9n\u00e9tique du paysage", "shape": "dot", "size": 21, "title": "G\u00e9n\u00e9tique du paysage\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mod\u00e9lisation", "label": "Mod\u00e9lisation", "shape": "dot", "size": 21, "title": "Mod\u00e9lisation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biog\u00e9ographie", "label": "Biog\u00e9ographie", "shape": "dot", "size": 21, "title": "Biog\u00e9ographie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Parasitisme", "label": "Parasitisme", "shape": "dot", "size": 21, "title": "Parasitisme\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie mol\u00e9culaire", "label": "\u00c9cologie mol\u00e9culaire", "shape": "dot", "size": 21, "title": "\u00c9cologie mol\u00e9culaire\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Phylog\u00e9nomique", "label": "Phylog\u00e9nomique", "shape": "dot", "size": 21, "title": "Phylog\u00e9nomique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Morphologie", "label": "Morphologie", "shape": "dot", "size": 21, "title": "Morphologie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biodiversit\u00e9 v\u00e9g\u00e9tale", "label": "Biodiversit\u00e9 v\u00e9g\u00e9tale", "shape": "dot", "size": 21, "title": "Biodiversit\u00e9 v\u00e9g\u00e9tale\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie aquatique", "label": "\u00c9cologie aquatique", "shape": "dot", "size": 21, "title": "\u00c9cologie aquatique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cologie urbaine", "label": "\u00c9cologie urbaine", "shape": "dot", "size": 21, "title": "\u00c9cologie urbaine\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Restauration", "label": "Restauration", "shape": "dot", "size": 21, "title": "Restauration\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Racine", "label": "Racine", "shape": "dot", "size": 21, "title": "Racine\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Limnologie", "label": "Limnologie", "shape": "dot", "size": 21, "title": "Limnologie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Liens terre-eau", "label": "Liens terre-eau", "shape": "dot", "size": 21, "title": "Liens terre-eau\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Interactions plantes-sol", "label": "Interactions plantes-sol", "shape": "dot", "size": 21, "title": "Interactions plantes-sol\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gaz \u00e0 effet de serre", "label": "Gaz \u00e0 effet de serre", "shape": "dot", "size": 21, "title": "Gaz \u00e0 effet de serre\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9cotoxicologie", "label": "\u00c9cotoxicologie", "shape": "dot", "size": 21, "title": "\u00c9cotoxicologie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Contamination des sols", "label": "Contamination des sols", "shape": "dot", "size": 21, "title": "Contamination des sols\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Bior\u00e9mediation", "label": "Bior\u00e9mediation", "shape": "dot", "size": 21, "title": "Bior\u00e9mediation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Agriculture durable", "label": "Agriculture durable", "shape": "dot", "size": 21, "title": "Agriculture durable\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Biologie marine", "label": "Biologie marine", "shape": "dot", "size": 21, "title": "Biologie marine\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Cyanobact\u00e9ries", "label": "Cyanobact\u00e9ries", "shape": "dot", "size": 21, "title": "Cyanobact\u00e9ries\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Dynamique des \u00e9cosyst\u00e8mes", "label": "Dynamique des \u00e9cosyst\u00e8mes", "shape": "dot", "size": 21, "title": "Dynamique des \u00e9cosyst\u00e8mes\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Stress environnemental", "label": "Stress environnemental", "shape": "dot", "size": 21, "title": "Stress environnemental\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Phosphorylation", "label": "Phosphorylation", "shape": "dot", "size": 21, "title": "Phosphorylation\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Reproduction des plantes", "label": "Reproduction des plantes", "shape": "dot", "size": 21, "title": "Reproduction des plantes\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Biologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "G\u00e9nomique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Qualit\u00e9 de l\u0027eau"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "D\u00e9veloppement"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie foresti\u00e8re"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Plantes"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Lacs"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Bioinformatique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Transformation g\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Transcriptomique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Cellule v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Conservation"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie des communaut\u00e9s"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Pollution"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Fleuves"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "G\u00e9n\u00e9tique des populations"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Hybridation"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Biologie marine"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Agriculture durable"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Morphologie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Bior\u00e9mediation"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie microbienne"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie aquatique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Dynamique des \u00e9cosyst\u00e8mes"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Cyanobact\u00e9ries"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Contamination des sols"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Biog\u00e9ographie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Parasitisme"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Stress environnemental"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Restauration"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Reproduction des plantes"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Liens terre-eau"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Interactions plantes-sol"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "G\u00e9n\u00e9tique du paysage"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Gaz \u00e0 effet de serre"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cotoxicologie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "\u00c9cologie urbaine"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Limnologie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Phylog\u00e9nomique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Racine"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Phosphorylation"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Microscopie optique"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Microscopie confocale"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "\u00c9cologie des communaut\u00e9s"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Biochimie", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Biochimie", "to": "Biologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biochimie", "to": "Lacs"}, {"color": "lightgrey", "from": "Biochimie", "to": "Fleuves"}, {"color": "lightgrey", "from": "Biochimie", "to": "Cellule v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Biochimie", "to": "Pollution"}, {"color": "lightgrey", "from": "Biochimie", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "Biochimie", "to": "Phosphorylation"}, {"color": "lightgrey", "from": "Biochimie", "to": "Microscopie optique"}, {"color": "lightgrey", "from": "Biochimie", "to": "Microscopie confocale"}, {"color": "lightgrey", "from": "Biochimie", "to": "Liens terre-eau"}, {"color": "lightgrey", "from": "Biochimie", "to": "Gaz \u00e0 effet de serre"}, {"color": "lightgrey", "from": "Biochimie", "to": "\u00c9cologie aquatique"}, {"color": "lightgrey", "from": "Biochimie", "to": "Cyanobact\u00e9ries"}, {"color": "lightgrey", "from": "Biochimie", "to": "Biologie marine"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "G\u00e9nomique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Biologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Qualit\u00e9 de l\u0027eau"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie foresti\u00e8re"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Lacs"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Pollution"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Fleuves"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie des communaut\u00e9s"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Transcriptomique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie aquatique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Parasitisme"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie microbienne"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cologie urbaine"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Restauration"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Racine"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Limnologie"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Liens terre-eau"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Interactions plantes-sol"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Gaz \u00e0 effet de serre"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "\u00c9cotoxicologie"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Morphologie"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Agriculture durable"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Biologie marine"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Bior\u00e9mediation"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Contamination des sols"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Cyanobact\u00e9ries"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Dynamique des \u00e9cosyst\u00e8mes"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Biog\u00e9ographie"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Stress environnemental"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Plantes"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Morphologie"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Biologie marine"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Parasitisme"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Restauration"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Reproduction des plantes"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Interactions plantes-sol"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Dynamique des \u00e9cosyst\u00e8mes"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9nomique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Biologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "D\u00e9veloppement"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9cologie foresti\u00e8re"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Plantes"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9n\u00e9tique des populations"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Cellule v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Conservation"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Transcriptomique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Bioinformatique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Hybridation"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Transformation g\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "G\u00e9n\u00e9tique du paysage"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Biog\u00e9ographie"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Parasitisme"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "\u00c9cologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Phylog\u00e9nomique"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Morphologie"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "G\u00e9n\u00e9tique", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Biologie cellulaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e9nomique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Biologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Microbiologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Virologie"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "D\u00e9veloppement"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Qualit\u00e9 de l\u0027eau"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Plantes"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Transformation g\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Bioinformatique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Transcriptomique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Cellule v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Conservation"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "\u00c9cologie des communaut\u00e9s"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "G\u00e9n\u00e9tique des populations"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Hybridation"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Biologie marine"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Agriculture durable"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Contamination des sols"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "\u00c9cologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Parasitisme"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Stress environnemental"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Reproduction des plantes"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Racine"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Phylog\u00e9nomique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Phosphorylation"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Microscopie optique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Microscopie confocale"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Interactions plantes-sol"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Gaz \u00e0 effet de serre"}, {"color": "lightgrey", "from": "Statistiques", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Statistiques", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "Statistiques", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Statistiques", "to": "\u00c9cologie des communaut\u00e9s"}, {"color": "lightgrey", "from": "Statistiques", "to": "G\u00e9n\u00e9tique du paysage"}, {"color": "lightgrey", "from": "Statistiques", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "Statistiques", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9cologie foresti\u00e8re"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9cologie des communaut\u00e9s"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "G\u00e9n\u00e9tique du paysage"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "\u00c9cologie \u00e9volutive"}, {"color": "lightgrey", "from": "\u00c9pid\u00e9miologie et biostatistique", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Plantes"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Restauration"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Reproduction des plantes"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Interactions plantes-sol"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Dynamique des \u00e9cosyst\u00e8mes"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Biodiversit\u00e9"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Plantes"}, {"color": "lightgrey", "from": "Ethnologie", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Lacs"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Pollution"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Fleuves"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Limnologie"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "\u00c9cotoxicologie"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "\u00c9cologie"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "\u00c9cosyst\u00e8me"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "\u00c9cologie foresti\u00e8re"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "G\u00e9n\u00e9tique du paysage"}, {"color": "lightgrey", "from": "Am\u00e9nagement", "to": "Mod\u00e9lisation"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Cellule v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Transformation g\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Phosphorylation"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Microscopie optique"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Microscopie confocale"}, {"color": "lightgrey", "from": "Biologie cellulaire", "to": "Biologie marine"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "G\u00e9nomique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Microbiologie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Foresterie et sciences du bois"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Bio-informatique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Virologie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Hybridation"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Bioinformatique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Transcriptomique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "G\u00e9n\u00e9tique des populations"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Microscopie optique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Microscopie confocale"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Biog\u00e9ographie"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Phylog\u00e9nomique"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Parasitisme"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "\u00c9cologie microbienne"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Bior\u00e9mediation"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "G\u00e9nomique", "to": "Morphologie"}, {"color": "lightgrey", "from": "Physiologie", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Physiologie", "to": "Qualit\u00e9 de l\u0027eau"}, {"color": "lightgrey", "from": "Physiologie", "to": "Changements climatiques"}, {"color": "lightgrey", "from": "Physiologie", "to": "Agriculture durable"}, {"color": "lightgrey", "from": "Physiologie", "to": "Stress environnemental"}, {"color": "lightgrey", "from": "Physiologie", "to": "Interactions plantes-sol"}, {"color": "lightgrey", "from": "Physiologie", "to": "Gaz \u00e0 effet de serre"}, {"color": "lightgrey", "from": "Physiologie", "to": "Contamination des sols"}, {"color": "lightgrey", "from": "Microbiologie", "to": "\u00c9cologie microbienne"}, {"color": "lightgrey", "from": "Microbiologie", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "\u00c9cologie foresti\u00e8re"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Transcriptomique"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Restauration"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Racine"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "\u00c9cologie urbaine"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Contamination des sols"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Bior\u00e9mediation"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Bioinformatique"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "Virologie", "to": "\u00c9cologie microbienne"}, {"color": "lightgrey", "from": "Virologie", "to": "Bact\u00e9ries"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "\u00c9volution"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Bioinformatique"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Hybridation"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "G\u00e9n\u00e9tique des populations"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Conservation"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Phylog\u00e9nomique"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "\u00c9cologie mol\u00e9culaire"}, {"color": "lightgrey", "from": "Anatomie", "to": "Phylog\u00e9n\u00e9tique"}, {"color": "lightgrey", "from": "Anatomie", "to": "Biog\u00e9ographie"}, {"color": "lightgrey", "from": "Anatomie", "to": "Parasitisme"}, {"color": "lightgrey", "from": "Anatomie", "to": "Phylog\u00e9nomique"}, {"color": "lightgrey", "from": "Anatomie", "to": "Biodiversit\u00e9 v\u00e9g\u00e9tale"}, {"color": "lightgrey", "from": "Anatomie", "to": "Morphologie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "D\u00e9veloppement"}, {"color": "lightgrey", "from": "Physique", "to": "D\u00e9veloppement"}, {"color": "lightgrey", "from": "Physique", "to": "Stress environnemental"}, {"color": "lightgrey", "from": "Physique", "to": "Reproduction des plantes"}, {"color": "lightgrey", "from": "Physique", "to": "Mod\u00e9lisation"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

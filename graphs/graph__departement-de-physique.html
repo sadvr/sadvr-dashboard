@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Physique", "label": "Physique", "shape": "dot", "size": 322, "title": "Physique\nN=322"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie physique", "label": "G\u00e9nie physique", "shape": "dot", "size": 105, "title": "G\u00e9nie physique\nN=105"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "label": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "shape": "dot", "size": 70, "title": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique\nN=70"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie m\u00e9canique", "label": "G\u00e9nie m\u00e9canique", "shape": "dot", "size": 14, "title": "G\u00e9nie m\u00e9canique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biochimique", "label": "G\u00e9nie biochimique", "shape": "dot", "size": 7, "title": "G\u00e9nie biochimique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie m\u00e9dicale", "label": "Biochimie m\u00e9dicale", "shape": "dot", "size": 14, "title": "Biochimie m\u00e9dicale\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "label": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "shape": "dot", "size": 7, "title": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Immunologie", "label": "Immunologie", "shape": "dot", "size": 7, "title": "Immunologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques fondamentales", "label": "Math\u00e9matiques fondamentales", "shape": "dot", "size": 49, "title": "Math\u00e9matiques fondamentales\nN=49"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biochimie", "label": "Biochimie", "shape": "dot", "size": 28, "title": "Biochimie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie chimique", "label": "G\u00e9nie chimique", "shape": "dot", "size": 14, "title": "G\u00e9nie chimique\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physique m\u00e9dicale", "label": "Physique m\u00e9dicale", "shape": "dot", "size": 35, "title": "Physique m\u00e9dicale\nN=35"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Eau et environnement", "label": "Eau et environnement", "shape": "dot", "size": 14, "title": "Eau et environnement\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 7, "title": "Communication\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Astronomie et astrophysique", "label": "Astronomie et astrophysique", "shape": "dot", "size": 175, "title": "Astronomie et astrophysique\nN=175"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie nucl\u00e9aire", "label": "G\u00e9nie nucl\u00e9aire", "shape": "dot", "size": 28, "title": "G\u00e9nie nucl\u00e9aire\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "label": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "shape": "dot", "size": 7, "title": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 7, "title": "\u00c9ducation\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chimie", "label": "Chimie", "shape": "dot", "size": 28, "title": "Chimie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie informatique et g\u00e9nie logiciel", "label": "G\u00e9nie informatique et g\u00e9nie logiciel", "shape": "dot", "size": 7, "title": "G\u00e9nie informatique et g\u00e9nie logiciel\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine nucl\u00e9aire", "label": "M\u00e9decine nucl\u00e9aire", "shape": "dot", "size": 7, "title": "M\u00e9decine nucl\u00e9aire\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 14, "title": "Neurosciences\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "G\u00e9nie biom\u00e9dical", "label": "G\u00e9nie biom\u00e9dical", "shape": "dot", "size": 7, "title": "G\u00e9nie biom\u00e9dical\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Foresterie et sciences du bois", "label": "Foresterie et sciences du bois", "shape": "dot", "size": 7, "title": "Foresterie et sciences du bois\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Informatique", "label": "Informatique", "shape": "dot", "size": 28, "title": "Informatique\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Math\u00e9matiques appliqu\u00e9es", "label": "Math\u00e9matiques appliqu\u00e9es", "shape": "dot", "size": 14, "title": "Math\u00e9matiques appliqu\u00e9es\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Oncologie", "label": "Oncologie", "shape": "dot", "size": 7, "title": "Oncologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Statistiques", "label": "Statistiques", "shape": "dot", "size": 7, "title": "Statistiques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Environnement et d\u00e9veloppement durable", "label": "Environnement et d\u00e9veloppement durable", "shape": "dot", "size": 14, "title": "Environnement et d\u00e9veloppement durable\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 14, "title": "Physiologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 7, "title": "Biologie et autres sciences connexes\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Radio-oncologie", "label": "Radio-oncologie", "shape": "dot", "size": 14, "title": "Radio-oncologie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sciences cliniques", "label": "Sciences cliniques", "shape": "dot", "size": 7, "title": "Sciences cliniques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie mol\u00e9culaire", "label": "Biologie mol\u00e9culaire", "shape": "dot", "size": 14, "title": "Biologie mol\u00e9culaire\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Bio-informatique", "label": "Bio-informatique", "shape": "dot", "size": 7, "title": "Bio-informatique\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine mol\u00e9culaire", "label": "M\u00e9decine mol\u00e9culaire", "shape": "dot", "size": 7, "title": "M\u00e9decine mol\u00e9culaire\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation", "label": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation", "shape": "dot", "size": 63, "title": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation\nN=63"}, {"color": "lightblue", "font": {"size": 60}, "id": "Spectroscopie et spectrophotom\u00e9trie", "label": "Spectroscopie et spectrophotom\u00e9trie", "shape": "dot", "size": 42, "title": "Spectroscopie et spectrophotom\u00e9trie\nN=42"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)", "label": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)", "shape": "dot", "size": 28, "title": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes", "label": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes", "shape": "dot", "size": 28, "title": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires", "label": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires", "shape": "dot", "size": 28, "title": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "D\u00e9tecteurs semiconducteurs", "label": "D\u00e9tecteurs semiconducteurs", "shape": "dot", "size": 28, "title": "D\u00e9tecteurs semiconducteurs\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "\u00c9toiles \u00e0 faible luminosit\u00e9, sous-naines et naines brunes", "label": "\u00c9toiles \u00e0 faible luminosit\u00e9, sous-naines et naines brunes", "shape": "dot", "size": 28, "title": "\u00c9toiles \u00e0 faible luminosit\u00e9, sous-naines et naines brunes\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard", "label": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard", "shape": "dot", "size": 28, "title": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Observations astronomiques dans l\u0027infrarouge", "label": "Observations astronomiques dans l\u0027infrarouge", "shape": "dot", "size": 28, "title": "Observations astronomiques dans l\u0027infrarouge\nN=28"}, {"color": "lightblue", "font": {"size": 60}, "id": "Gravure et nettoyage par plasma", "label": "Gravure et nettoyage par plasma", "shape": "dot", "size": 21, "title": "Gravure et nettoyage par plasma\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Techniques et instrumentation de diagnostics plasmas", "label": "Techniques et instrumentation de diagnostics plasmas", "shape": "dot", "size": 21, "title": "Techniques et instrumentation de diagnostics plasmas\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Changements conformationnels et dynamiques des biomol\u00e9cules", "label": "Changements conformationnels et dynamiques des biomol\u00e9cules", "shape": "dot", "size": 21, "title": "Changements conformationnels et dynamiques des biomol\u00e9cules\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Interactions plasma-mati\u00e8re", "label": "Interactions plasma-mati\u00e8re", "shape": "dot", "size": 21, "title": "Interactions plasma-mati\u00e8re\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Faisceaux de particules charg\u00e9es", "label": "Faisceaux de particules charg\u00e9es", "shape": "dot", "size": 21, "title": "Faisceaux de particules charg\u00e9es\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique", "label": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique", "shape": "dot", "size": 21, "title": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9canique quantique", "label": "M\u00e9canique quantique", "shape": "dot", "size": 21, "title": "M\u00e9canique quantique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "M\u00e9thodes de simulation num\u00e9rique", "label": "M\u00e9thodes de simulation num\u00e9rique", "shape": "dot", "size": 21, "title": "M\u00e9thodes de simulation num\u00e9rique\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Structure des biomol\u00e9cules", "label": "Structure des biomol\u00e9cules", "shape": "dot", "size": 21, "title": "Structure des biomol\u00e9cules\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Semiconducteurs, m\u00e9taux et alliages amorphes", "label": "Semiconducteurs, m\u00e9taux et alliages amorphes", "shape": "dot", "size": 21, "title": "Semiconducteurs, m\u00e9taux et alliages amorphes\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mati\u00e8re sombre", "label": "Mati\u00e8re sombre", "shape": "dot", "size": 21, "title": "Mati\u00e8re sombre\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Boson de Higgs du mod\u00e8le standard", "label": "Boson de Higgs du mod\u00e8le standard", "shape": "dot", "size": 21, "title": "Boson de Higgs du mod\u00e8le standard\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Intelligence artificielle", "label": "Intelligence artificielle", "shape": "dot", "size": 21, "title": "Intelligence artificielle\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Apprentissage machine et apprentissage profond", "label": "Apprentissage machine et apprentissage profond", "shape": "dot", "size": 21, "title": "Apprentissage machine et apprentissage profond\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Perte de masse et vents stellaires", "label": "Perte de masse et vents stellaires", "shape": "dot", "size": 21, "title": "Perte de masse et vents stellaires\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Formation d\u0027\u00e9toiles", "label": "Formation d\u0027\u00e9toiles", "shape": "dot", "size": 21, "title": "Formation d\u0027\u00e9toiles\nN=21"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Physique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Physique", "to": "Spectroscopie et spectrophotom\u00e9trie"}, {"color": "lightgrey", "from": "Physique", "to": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes"}, {"color": "lightgrey", "from": "Physique", "to": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Physique", "to": "\u00c9toiles \u00e0 faible luminosit\u00e9, sous-naines et naines brunes"}, {"color": "lightgrey", "from": "Physique", "to": "D\u00e9tecteurs semiconducteurs"}, {"color": "lightgrey", "from": "Physique", "to": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires"}, {"color": "lightgrey", "from": "Physique", "to": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)"}, {"color": "lightgrey", "from": "Physique", "to": "Observations astronomiques dans l\u0027infrarouge"}, {"color": "lightgrey", "from": "Physique", "to": "Perte de masse et vents stellaires"}, {"color": "lightgrey", "from": "Physique", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "Physique", "to": "Interactions plasma-mati\u00e8re"}, {"color": "lightgrey", "from": "Physique", "to": "Mati\u00e8re sombre"}, {"color": "lightgrey", "from": "Physique", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "Physique", "to": "Formation d\u0027\u00e9toiles"}, {"color": "lightgrey", "from": "Physique", "to": "Semiconducteurs, m\u00e9taux et alliages amorphes"}, {"color": "lightgrey", "from": "Physique", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Physique", "to": "Techniques et instrumentation de diagnostics plasmas"}, {"color": "lightgrey", "from": "Physique", "to": "Apprentissage machine et apprentissage profond"}, {"color": "lightgrey", "from": "Physique", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Physique", "to": "M\u00e9canique quantique"}, {"color": "lightgrey", "from": "Physique", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "Physique", "to": "Boson de Higgs du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Physique", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Physique", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Spectroscopie et spectrophotom\u00e9trie"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "D\u00e9tecteurs semiconducteurs"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "\u00c9toiles \u00e0 faible luminosit\u00e9, sous-naines et naines brunes"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Observations astronomiques dans l\u0027infrarouge"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Interactions plasma-mati\u00e8re"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Mati\u00e8re sombre"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Semiconducteurs, m\u00e9taux et alliages amorphes"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Techniques et instrumentation de diagnostics plasmas"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "M\u00e9canique quantique"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Boson de Higgs du mod\u00e8le standard"}, {"color": "lightgrey", "from": "G\u00e9nie physique", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Interactions plasma-mati\u00e8re"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Techniques et instrumentation de diagnostics plasmas"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "Semiconducteurs, m\u00e9taux et alliages amorphes"}, {"color": "lightgrey", "from": "G\u00e9nie des mat\u00e9riaux et g\u00e9nie m\u00e9tallurgique", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "G\u00e9nie m\u00e9canique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "G\u00e9nie biochimique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biochimie m\u00e9dicale", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie \u00e9lectrique et g\u00e9nie \u00e9lectronique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Immunologie", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Spectroscopie et spectrophotom\u00e9trie"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "D\u00e9tecteurs semiconducteurs"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Observations astronomiques dans l\u0027infrarouge"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Boson de Higgs du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "M\u00e9canique quantique"}, {"color": "lightgrey", "from": "Math\u00e9matiques fondamentales", "to": "Apprentissage machine et apprentissage profond"}, {"color": "lightgrey", "from": "Biochimie", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Biochimie", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Biochimie", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biochimie", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Techniques et instrumentation de diagnostics plasmas"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Interactions plasma-mati\u00e8re"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "G\u00e9nie chimique", "to": "Semiconducteurs, m\u00e9taux et alliages amorphes"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "Physique m\u00e9dicale", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Eau et environnement", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Communication", "to": "Mat\u00e9riaux nanostructur\u00e9s : fabrication et caract\u00e9risation"}, {"color": "lightgrey", "from": "Communication", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Spectroscopie et spectrophotom\u00e9trie"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "\u00c9toiles \u00e0 faible luminosit\u00e9, sous-naines et naines brunes"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "D\u00e9tecteurs semiconducteurs"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Observations astronomiques dans l\u0027infrarouge"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Caract\u00e9ristiques et propri\u00e9t\u00e9s stellaires"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Apprentissage machine et apprentissage profond"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Semiconducteurs, m\u00e9taux et alliages amorphes"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Boson de Higgs du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Formation d\u0027\u00e9toiles"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Mati\u00e8re sombre"}, {"color": "lightgrey", "from": "Astronomie et astrophysique", "to": "Perte de masse et vents stellaires"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "Spectroscopie et spectrophotom\u00e9trie"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "D\u00e9tecteurs semiconducteurs"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "M\u00e9canique quantique"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "Boson de Higgs du mod\u00e8le standard"}, {"color": "lightgrey", "from": "G\u00e9nie nucl\u00e9aire", "to": "Semiconducteurs, m\u00e9taux et alliages amorphes"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Spectroscopie et spectrophotom\u00e9trie"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Syst\u00e8mes plan\u00e9taires extrasolaires (exoplan\u00e8tes)"}, {"color": "lightgrey", "from": "Sciences de la terre (g\u00e9ologie, g\u00e9ographie physique, etc.)", "to": "Observations astronomiques dans l\u0027infrarouge"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Th\u00e9ories unifi\u00e9es et mod\u00e8les des interactions \u00e9lectrofaibles et fortes"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Mod\u00e8les au-del\u00e0 du mod\u00e8le standard"}, {"color": "lightgrey", "from": "Chimie", "to": "Techniques et instrumentation de diagnostics plasmas"}, {"color": "lightgrey", "from": "Chimie", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Chimie", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Chimie", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Chimie", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "Chimie", "to": "Interactions plasma-mati\u00e8re"}, {"color": "lightgrey", "from": "G\u00e9nie informatique et g\u00e9nie logiciel", "to": "M\u00e9canique quantique"}, {"color": "lightgrey", "from": "M\u00e9decine nucl\u00e9aire", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "G\u00e9nie biom\u00e9dical", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Foresterie et sciences du bois", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Informatique", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Informatique", "to": "M\u00e9canique quantique"}, {"color": "lightgrey", "from": "Informatique", "to": "Apprentissage machine et apprentissage profond"}, {"color": "lightgrey", "from": "Informatique", "to": "Mati\u00e8re sombre"}, {"color": "lightgrey", "from": "Math\u00e9matiques appliqu\u00e9es", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "Oncologie", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "Statistiques", "to": "Apprentissage machine et apprentissage profond"}, {"color": "lightgrey", "from": "Statistiques", "to": "Mati\u00e8re sombre"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Dynamique mol\u00e9culaire et m\u00e9thodes de simulation au niveau atomique"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Interactions plasma-mati\u00e8re"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Environnement et d\u00e9veloppement durable", "to": "Techniques et instrumentation de diagnostics plasmas"}, {"color": "lightgrey", "from": "Physiologie", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Physiologie", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Radio-oncologie", "to": "Intelligence artificielle"}, {"color": "lightgrey", "from": "Radio-oncologie", "to": "Faisceaux de particules charg\u00e9es"}, {"color": "lightgrey", "from": "Sciences cliniques", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Gravure et nettoyage par plasma"}, {"color": "lightgrey", "from": "Biologie mol\u00e9culaire", "to": "Structure des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "Bio-informatique", "to": "M\u00e9thodes de simulation num\u00e9rique"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Changements conformationnels et dynamiques des biomol\u00e9cules"}, {"color": "lightgrey", "from": "M\u00e9decine mol\u00e9culaire", "to": "Structure des biomol\u00e9cules"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"physics": {"barnesHut": {"theta": 0.75, "gravitationalConstant": -30000, "centralGravity": 1.1, "springLength": 50, "springConstant": 0.001}, "maxVelocity": 61, "minVelocity": 0.01, "timestep": 0.67}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
