@@ -75,7 +75,7 @@ etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etab
 nbEtablissementsAffilies = len(etablissementsAffilies)
 
 # Genre
-mapping = {'M': 'Hommes', 'F': 'Femmes', 'A': 'Autres'}
+mapping = {'M': 'Homme', 'F': 'Femme', 'A': 'Autre'}
 genre = data[['idsadvr', 'sexe']]
 
 genre['genre'] = genre['sexe'].map(mapping)
@@ -140,7 +140,7 @@ defaultcat = freqGenreDepartement['Département'].unique()[0]
 fig.add_traces(
     figs[defaultcat].data
     ).update_traces(visible=True).update_layout(
-        legend=dict(yanchor="bottom",y=0.3,xanchor="left", x=-1.5))
+        legend=dict(yanchor="bottom",y=0.6,xanchor="left", x=0))
 
 # integrate figures per category into one figure
 for k in figs.keys():
@@ -148,11 +148,8 @@ for k in figs.keys():
         fig.add_traces(figs[k].data)
 
 fig.update_layout(height=445)
-
-fig.update_layout(
-    legend=dict(yanchor="bottom",y=0.3,xanchor="left", x=-1.5),
-    margin=dict(l=0, r=0, t=0, b=20)
-)
+fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
+fig.update_layout(legend=dict(yanchor="bottom",y=0.6,xanchor="left", x=-1))
 
 # finally build dropdown menu
 fig.update_layout(
@@ -178,35 +175,13 @@ figGenreDepartement = fig
 
 # Pays d'obtention du dernier diplôme
 paysFormation = pd.DataFrame(plotVariable(demographics, 'formations.institutions.paysNom'))
-paysFormation = groupOtherValues(paysFormation, 8)
-
-order = [x for x in paysFormation['labels'] if not (x == 'Autre')] + ['Autre']
-
-figPaysDiplome = px.pie(
-    paysFormation, 
-    values= paysFormation['count'], 
-    names= paysFormation['labels'], 
-    title="Lieu d'obtention du dernier diplôme",
-    hole=0.6,
-    category_orders= {'labels':
-        order
-    }
-)
-
-figPaysDiplome.update_traces(
-    textposition='inside')
-
-figPaysDiplome.update_layout(
-    uniformtext_minsize=12, 
-    uniformtext_mode='hide',
-    legend=dict(font=dict(size= 12)),
-    margin=dict(l=0)
-)
 
 # Année d'obtention du dernier diplôme - selon le genre
 # D'abord filtrer pour ne conserver que le dernier diplôme obtenu
+mapping = {'M': 'Homme', 'F': 'Femme', 'A': 'Autre'}
 anneeDiplome = demographics.sort_values(['idsadvr', 'formations.annee'], ascending=[True, False])
-anneeDiplome = anneeDiplome[['idsadvr', 'sexe', 'formations.annee']].dropna(subset='formations.annee')
+anneeDiplome['genre'] = anneeDiplome['sexe'].map(mapping)
+anneeDiplome = anneeDiplome[['idsadvr', 'genre', 'formations.annee']].dropna(subset='formations.annee')
 anneeDiplome = anneeDiplome.drop_duplicates(subset=['idsadvr', 'formations.annee'])
 
 anneeDiplomeGenre =  pd.DataFrame(anneeDiplome.drop(columns='idsadvr').value_counts()).reset_index().sort_values(by='formations.annee', ascending=True)
@@ -215,19 +190,20 @@ figAnneDiplomeGenre = px.line(
     anneeDiplomeGenre, 
     x = 'formations.annee', 
     y = 'count',
-    color = 'sexe',
+    color = 'genre',
     title = "Année d'obtention du dernier diplôme selon le genre",
     line_shape = 'spline')
 
 #figAnneDiplomeGenre.update_traces(mode="markers+lines", hovertemplate=None)
 figAnneDiplomeGenre.update_layout(
+    title_x=0.005,
     hovermode="x unified",
     xaxis_title=None,  # Hide x-axis title
     yaxis_title=None,   # Hide y-axis title
     legend=dict(font=dict(size= 12))
 )
 
-figAnneDiplomeGenre.update_layout(width=1080, margin=dict(l=15))
+figAnneDiplomeGenre.update_layout(margin=dict(l=30))
 
 # Rang professoral par genre
 fonctionGenre = demographics[['idsadvr', 'sexe', 'affiliations.fonction.codeSad']].drop_duplicates()
@@ -237,25 +213,25 @@ mapping = pd.read_csv('tables/SADVR_fonctions.csv')[['codeSad', 'nomM']].to_dict
 mapping = {x['codeSad'] : x['nomM'] for x in mapping}
 
 freqFonctionGenre['fonction'] = freqFonctionGenre['affiliations.fonction.codeSad'].map(mapping)
+mappingGenre = {'M': 'Homme', 'F': 'Femme', 'A': 'Autre'}
+freqFonctionGenre['genre'] = freqFonctionGenre['sexe'].map(mappingGenre)
 
-freqFonctionGenre = freqFonctionGenre[['sexe', 'fonction', 'count']]
-freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['sexe'] != 'A']
+freqFonctionGenre = freqFonctionGenre[['genre', 'fonction', 'count']]
+freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['genre'] != 'Autres']
 freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['fonction'] != 'Professeur de formation pratique titulaire'] # anomalie
-freqFonctionGenre = freqFonctionGenre.sort_values(by='count', ascending=True)
-freqFonctionGenre
+freqFonctionGenre = freqFonctionGenre.sort_values(by='count', ascending=False)
 
 freqFonctionGenre['noms'] = freqFonctionGenre['fonction'].apply(lambda x: renameLongLabels(x))
 figFonctionGenre = px.bar(
-    freqFonctionGenre,
-    y = 'fonction',
+    freqFonctionGenre.sort_values(by="count", ascending=True),
+    y = 'noms',
     x = 'count',
-    labels = 'noms',
     hover_name='fonction',
     title = 'Rang professoral par genre',
-    color = 'sexe',
+    color = 'genre',
     barmode='group',
-    height= 800,
     orientation = 'h',
+    height = 1800
 )
 
 figFonctionGenre.update_layout(
@@ -263,8 +239,13 @@ figFonctionGenre.update_layout(
      xaxis_title=None
 )
 
-figFonctionGenre.update_layout(margin=dict(l=20, r=20, t=30, b=20), title_x=0.02)
-figFonctionGenre.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-1))
+figFonctionGenre.update_layout(margin=dict(l=60, r=40, t=30, b=0), title_x=0.02)
+figFonctionGenre.update_layout(legend=dict(yanchor="top",y=1,xanchor="right", x=1.15))
+
+# Adjust the bar width and spacing
+figFonctionGenre.update_traces(
+    width = 0.2  # Set the bar width (0.8 is the default, adjust as needed)
+)
 
 # Langues parlées
 langueParle = demographics[demographics['langues.medium'] == 'Oral'].drop(columns=['langues.medium'])
@@ -326,6 +307,7 @@ figPaysFormation = px.scatter_geo(
     hover_name = 'nomPaysFR',
     size="count",
     size_max = 50,
+    height=440,
     projection = 'equirectangular',
     
 )
@@ -341,9 +323,8 @@ figPaysFormation.update_geos(
 )
 
 figPaysFormation = figPaysFormation.update_layout( 
-    margin=dict(t=0, l=0, r=0),
+    margin=dict(t=0, l=0, r=0, b=0),
     title_x=0.2, 
-    width=800,
 )
 
 paysFormation = paysFormation[['nomPaysFR', 'count']].rename(columns={'nomPaysFR': 'Pays', 'count': 'N'})
@@ -427,7 +408,7 @@ figDepartements = px.bar(
     orientation = 'h',
     hover_name = "Département",
     hover_data = ['Département', 'N'],
-    height = 1200
+    height = 2000
 )
 
 # Adjust the bar width and spacing
@@ -437,9 +418,11 @@ figDepartements.update_traces(
 
 # Hide axis names (labels)
 figDepartements.update_layout(
+    title_x=0.01, # Move title to the left
     xaxis_title=None,  # Hide x-axis title
     yaxis_title=None,   # Hide y-axis title
-    legend=dict(font=dict(size= 12))
+    legend=dict(font=dict(size= 12)),
+    margin=dict(b=0, l=60, t=30)
 )
 
 # Principales disicplines de recherche par département
@@ -456,21 +439,6 @@ disciplines = disciplines.drop_duplicates(subset='expertise.disciplines.uid', ke
 
 disciplines = disciplines[['expertise.disciplines.nom', 'count']]
 tableDisciplines = disciplines.rename(columns={'expertise.disciplines.nom':'Discipline', 'count':'N'})
-
-# disciplines = groupOtherValues(disciplines, 30)[:30]
-# figDisciplines = go.Figure(
-#     go.Treemap(
-#         labels= disciplines['expertise.disciplines.nom'],
-#         parents= [''] * len(disciplines),
-#         values = disciplines['count'],
-#     )
-# )
-
-# figDisciplines = figDisciplines.update_layout(
-#     height = 600,
-#     margin = dict(t=20, l=20, b=50)
-# )
-
 
 # Dropdown: principales disciplines de recherche par faculté
 mappingDisciplines = pd.read_csv('tables/SADVR_disciplines.csv')
@@ -537,11 +505,11 @@ for k in figs.keys():
 
 fig.update_layout(height=445)
 fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
-fig.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-1))
+fig.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.55))
 
 # finally build dropdown menu
 fig.update_layout(
-    title_x=0.02,  # Adjust this value to move the title to the left,
+    title_x=0.015,  # Adjust this value to move the title to the left,
     updatemenus=[
         {
             "buttons": [

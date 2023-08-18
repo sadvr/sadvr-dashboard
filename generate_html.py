@@ -2,6 +2,7 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objects as go
 import pandas as pd
+import re
 import dash_bootstrap_components as dbc
 from utils.sadvr_utils import *
 from generate_figures import *
@@ -15,29 +16,39 @@ with open('./html/header.html', encoding='utf-8') as f:
 with open('./html/footer.html') as f:
     footer = f.read()
 
+with open("html/iframes__dropdown.html") as f:
+    iFrames = f.read()
+
 ### Générer le fichier html pour les professeurs
 with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     f.write(header)
     f.write('<h2>Professeur·e·s - Portrait sociodémographique</h2></div>')
 
     f.write('<h3>Identité de genre</h3>')
+    # Conteneur gauche
     f.write(
         """
-        <div class="grid">
-            <div class="col-md-4" style="float:left; max-height:425px; overflow-y:scroll;">
-        """)
+        <div class="grid" style="padding-bottom:30px;">
+            <div class="col-md-4" 
+                style="float:left; padding-right:5px;
+                margin-top:10px; max-height:450px; overflow-y:scroll;">
+        """
+    )
     
-    # Conteneur gauche
     freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']].rename(columns={'count':'N',  'genre':'Genre'})
     f.write(freqGenreDepartement.to_html(index=False, classes=tableClasses, justify='left'))
 
     # Conteneur droit
-    f.write('</div><div class="col-md-8" style="float:right; padding-right:15px; padding-left:15px">')
+    f.write("""</div>
+        <div class="col-md-8" style="float:right; 
+         padding-right:35px; padding-left:45px;">
+    """)
+
     f.write(figGenreDepartement.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('</div></div>')
 
     # Année d'obtention du diplôme - selon le genre
-    f.write('<div style="margin-top:475px; margin-bottom:20px;"><hr/></div>')
+    f.write('<div style="margin-top:475px; width=100%; margin-bottom:20px;"><hr/></div>')
     f.write('<h3>Formation académique</h3>')
     f.write(figAnneDiplomeGenre.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('<div style="margin-top:30px; margin-bottom:20px;"><hr/></div>')
@@ -45,45 +56,46 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     f.write("<h4>Pays d'obtention du dernier diplôme</h4>")
     f.write(
         """
-        <div class="grid"><div class="col-md-4"
-             style="float:left; margin-top: 25px;  
-             padding-right:5px; max-height:425px; overflow-y:scroll;">
+        <div class="grid" style="margin-top:25px; height:435px;">
+        <div class="col-md-4" style="float:left; padding-right:5px; padding-bottom:2px;
+        max-height:435px; overflow-y:scroll;">
         """
     )
 
     # Conteneur gauche
     f.write(paysFormation.to_html(index=False, classes=tableClasses, justify='left'))
+    f.write("</div>")
     
     # Conteneur droit
-    f.write("""</div><div class="col-md-7" 
-        style="float:right; height:425px; border: 1px solid lightgrey; border-radius:8px;
-        max-height:425px; overflow-y:scroll;" margin-top:80px;">""")
+    f.write(
+    """
+    <div class="col-md-8" style="float:right; width:65%; padding:0px; margin-top:-10px;
+    border: 1px solid lightgrey; border-radius:8px;">
+    """)
     
     f.write(figPaysFormation.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('</div></div>')
-    f.write('<div style="margin-top:500px; margin-bottom:20px;"><hr/></div>')
+    f.write('<div style="margin-top:50px; margin-bottom:20px;"><hr/></div>')
 
     # Rang professoral selon le genre
     f.write('<h3>Rang professoral selon le genre</h3>')
     # Conteneur gauche
     f.write(
         """
-        <div class="grid">
-            <div class="col-md-4" 
-                style="float:left; padding-right:5px; 
-                margin-top:10px; max-height:450px; overflow-y:scroll;">
+        <div class="grid" style="margin-top:10px;">
+        <div class="col-md-4" style="float:left; padding-right:5px; max-height:450px; overflow-y:scroll;">
         """
     )
 
-
     freqFonctionGenre = freqFonctionGenre.rename(
-        columns={'sexe':'Genre', 'fonction': 'Rang professoral', 'count':'N'}
+        columns={'genre':'Genre', 'fonction': 'Rang professoral', 'count':'N'}
     )
     f.write(freqFonctionGenre[['Genre', 'Rang professoral', 'N']].to_html(index=False, classes=tableClasses, justify='left'))
-    
+    f.write("</div>")
+
     # Conteneur droit
-    f.write("""</div><div class="col-md-8" 
-        style="float:right; margin:0px; max-height:425px; overflow-y:scroll;">
+    f.write("""<div class="col-md-8" style="float:right;
+         margin:0px; padding-left:30px; max-height:450px; overflow-y:scroll;">
         """)
     f.write(figFonctionGenre.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('</div></div>')
@@ -163,10 +175,10 @@ with open('html/affiliations.html', 'w', encoding='utf-8') as f:
     f.write('<h3>Départements</h3>')
     f.write(
         """
-        <div class="grid">
+        <div class="grid" style="margin-top:10px;">
             <div class="col-md-4" 
                 style="float:left; padding-right:5px; 
-                margin-top:10px; height:430px; max-height:430px; overflow-y:scroll;">
+                height:430px; max-height:430px; overflow-y:scroll;">
         """
     )
     f.write(departements[['Département', 'N']].to_html(
@@ -175,12 +187,12 @@ with open('html/affiliations.html', 'w', encoding='utf-8') as f:
     
     f.write("""
         </div><div class="col-md-8" 
-        style="float:right; padding-left:10px; max-height:430px; overflow-y:scroll;">
+        style="float:right; padding-left:30px; max-height:430px; overflow-y:scroll;">
     """)
 
     f.write(figDepartements.to_html(full_html=False, include_plotlyjs='cdn'))
     f.write('</div></div>')
-    f.write('<div style="margin-top:600px;"><hr/>')
+    f.write('<div style="margin-top:500px;"><hr/>')
 
     f.write(footer)
 
@@ -197,7 +209,7 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
         """
         <div class="grid">
             <div class="col-md-4" 
-                style="float:left; padding-right:5px; 
+                style="float:left; 
                 margin-top:10px; max-height:450px; overflow-y:scroll;">
         """
     )
@@ -212,7 +224,7 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     )
 
     # Conteneur droit
-    f.write('</div><div class="col-md-8" style="float:right; padding-right:15px; padding-left:15px">')
+    f.write('</div><div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">')
     f.write(figDisciplinesFacultes.to_html(full_html=False, include_plotlyjs='cdn'))
 
     f.write('</div></div>')
@@ -220,4 +232,5 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
 
      # Disciplines de recherche
     f.write('<h3>Mots-clés</h3>')
+    f.write(iFrames)
     f.write(footer)
