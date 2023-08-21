@@ -1,24 +1,28 @@
 from utils.sadvr_utils import *
 import pandas as pd
-import dash_bootstrap_components as dbc
-from dash import html, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
+import networkx as nx
+from pyvis.network import Network
+import matplotlib.pyplot as plt
+from slugify import slugify
 
 # Charger les données
 data = updateInfoProfs()
 
-expertises = data[['idsadvr', 'affiliations', 'etablissementsAffilies', 'expertise']]
+# Expertises de recherche
+expertises = data[[
+    'idsadvr',
+    'affiliations',
+    'etablissementsAffilies',
+    'expertise'
+]]
 
 toNormalize = [
     'affiliations',
     'etablissementsAffilies',
     'expertise',
-    'expertise.secteursRecherche',
-    'expertise.disciplines',
-    'expertise.pays',
-    'expertise.continents',
-    'expertise.periodesChronologiques'
+    'expertise.disciplines'
 ]
 
 for c in toNormalize:
@@ -41,10 +45,75 @@ drop = [
 
 expertises = expertises.drop(columns=drop)
 
-demographics = data[['idsadvr', 'sexe', 'langues', 'formations', 'affiliations']]
+### Expertises de recherche - mots-clés
+motsCles = data[['idsadvr', 'expertise']]
+departements = getTable('individus')[['idsadvr', 'uniteAdmin']]
+motsCles = motsCles.merge(departements, on='idsadvr')
+
+motsCles['département'] = motsCles['uniteAdmin'].astype(str).apply(uniteAdminDepartement)
+motsCles = motsCles.drop(columns='uniteAdmin')
+
+## Normalisation des données
+toNormalize = ['expertise', 'expertise.disciplines']
+for c in toNormalize:
+    motsCles = explodeNormalize(motsCles, c)
+
+motsCles = motsCles.dropna(subset = 'expertise.disciplines.uid') 
+motsCles = motsCles[motsCles['expertise.motsCles'].astype(str) != '[]']
+motsCles = motsCles[motsCles['département'].astype(str) != 'None']
+
+motsCles = explodeNormalize(motsCles, 'expertise.motsCles')
+
+motsCles = motsCles[motsCles['expertise.motsCles.ordre'].astype(int) <=3]
+motsCles.loc[:, 'expertise.motsCles.nom'] = motsCles['expertise.motsCles.nom'].apply(lambda x: x.replace("COVID19", "COVID-19"))
+
+motsCles = motsCles[[
+    'idsadvr',
+    'département',
+    'expertise.disciplines.uid',
+    'expertise.disciplines.codeLangue',
+    'expertise.disciplines.nom', 
+    'expertise.motsCles.uid', 
+    'expertise.motsCles.nom', 
+    'expertise.motsCles.codeLangue'
+]]
+
+motsCles = motsCles.sort_values(by=[
+    'expertise.disciplines.uid',
+    'expertise.disciplines.codeLangue',
+    'expertise.motsCles.uid',
+    'expertise.motsCles.codeLangue'], 
+    ascending=[True, False, True, False])
+
+motsCles = motsCles.drop_duplicates(subset=[
+    'idsadvr',
+    'expertise.motsCles.uid',
+    'expertise.disciplines.uid'
+])
+
+motsCles = motsCles.drop(columns=[
+    'expertise.disciplines.codeLangue', 
+    'expertise.motsCles.codeLangue']
+)
+
+# Données sociodémographiques
+demographics = data[[
+    'idsadvr',
+    'sexe',
+    'langues',
+    'formations',
+    'affiliations'
+]]
 
 fonctionsProf = pd.read_csv('utils/fonctionsProfs.csv')['codeSad'].tolist()
-toNormalize = ['langues', 'affiliations', 'formations', 'formations.disciplines', 'formations.institutions']
+toNormalize = [
+    'langues',
+    'affiliations',
+    'formations',
+    'formations.disciplines',
+    'formations.institutions'
+]
+
 for c in toNormalize:
     demographics = explodeNormalize(demographics, c)
 
@@ -54,7 +123,6 @@ demographics = demographics[[x for x in demographics.columns if x in columns]]
 demographics = demographics[demographics['affiliations.fonction.codeSad'].isin(fonctionsProf)]
 
 ### Analyses sociodémographiques
-
 ### 1e visuel : 4 mesures "Count"
 # 1: nombre de professeurs
 nbProfs = len(data.drop_duplicates(subset='idsadvr'))
@@ -67,7 +135,11 @@ nbDepartements = len(getTable('departements'))
 
 
 # 4: Nombre d'établissements affiliés
-etablissementsAffilies = data[['idsadvr', 'etablissementsAffilies']]
+etablissementsAffilies = data[[
+    'idsadvr',
+    'etablissementsAffilies'
+]]
+
 etablissementsAffilies = explodeNormalize(etablissementsAffilies, 'etablissementsAffilies')
 etablissementsAffilies = etablissementsAffilies.dropna(subset='etablissementsAffilies.nom')
 etablissementsAffilies = etablissementsAffilies.drop_duplicates(subset=(['idsadvr', 'etablissementsAffilies.nom']))
@@ -75,16 +147,24 @@ etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etab
 nbEtablissementsAffilies = len(etablissementsAffilies)
 
 # Genre
-mapping = {'M': 'Homme', 'F': 'Femme', 'A': 'Autre'}
+mappingGenre = {
+    'M': 'Homme', 
+    'F': 'Femme', 
+    'A': 'Autre'
+}
 genre = data[['idsadvr', 'sexe']]
 
-genre['genre'] = genre['sexe'].map(mapping)
+genre['genre'] = genre['sexe'].map(mappingGenre)
 
-freqGenre = pd.DataFrame(plotVariable(genre, 'genre', mapping=mapping))
+freqGenre = pd.DataFrame(plotVariable(genre, 'genre'))
 
 # Créer la table de fréquence
-genreDepartement = expertises.merge(genre, on='idsadvr')[['idsadvr', 'genre', 'affiliations.departement.nom']]
-genreDepartement = genreDepartement.dropna(subset=['genre', 'affiliations.departement.nom']).drop_duplicates()
+genreDepartement = expertises.merge(genre, on='idsadvr')[
+    ['idsadvr', 'genre', 'affiliations.departement.nom']
+]
+genreDepartement = genreDepartement.dropna(
+    subset=['genre', 'affiliations.departement.nom']
+).drop_duplicates()
 
 # Group by 'faculty' and 'discipline' and count the number of professors in each group
 freqGenreDepartement = genreDepartement.groupby(['affiliations.departement.nom', 'genre'])['idsadvr'].count().reset_index()
@@ -104,8 +184,18 @@ for g in freqGenre:
 
 freqGenreDepartement = pd.DataFrame(freqGenreDepartement)
 freqGenreDepartement['noms'] = freqGenreDepartement['Département'].apply(renameLongLabels)
-freqGenreDepartement = freqGenreDepartement.sort_values(by=['count','genre'], ascending=[False, True])
-freqGenreDepartement[['Département', 'genre', 'count']]
+
+freqGenreDepartement = freqGenreDepartement.sort_values(
+    by=['count','genre'], 
+    ascending=[False, True]
+)
+
+freqGenreDepartement[
+    ['Département',
+    'genre',
+    'count']
+]
+
 freqGenreDepartement = freqGenreDepartement[~freqGenreDepartement['Département'].str.contains('Direction de')]
 
 defaultCat = 'Tous les départements'
@@ -147,9 +237,11 @@ for k in figs.keys():
     if k != defaultcat:
         fig.add_traces(figs[k].data)
 
-fig.update_layout(height=445)
-fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
-fig.update_layout(legend=dict(yanchor="bottom",y=0.6,xanchor="left", x=-1))
+fig.update_layout(
+    height=445,
+    margin=dict(l=20, r=20, t=30, b=20),
+    legend=dict(yanchor="bottom",y=0.6,xanchor="left", x=-1)
+)
 
 # finally build dropdown menu
 fig.update_layout(
@@ -178,10 +270,15 @@ paysFormation = pd.DataFrame(plotVariable(demographics, 'formations.institutions
 
 # Année d'obtention du dernier diplôme - selon le genre
 # D'abord filtrer pour ne conserver que le dernier diplôme obtenu
-mapping = {'M': 'Homme', 'F': 'Femme', 'A': 'Autre'}
 anneeDiplome = demographics.sort_values(['idsadvr', 'formations.annee'], ascending=[True, False])
-anneeDiplome['genre'] = anneeDiplome['sexe'].map(mapping)
-anneeDiplome = anneeDiplome[['idsadvr', 'genre', 'formations.annee']].dropna(subset='formations.annee')
+anneeDiplome['genre'] = anneeDiplome['sexe'].map(mappingGenre)
+
+anneeDiplome = anneeDiplome[
+    ['idsadvr',
+    'genre',
+    'formations.annee']
+].dropna(subset='formations.annee')
+
 anneeDiplome = anneeDiplome.drop_duplicates(subset=['idsadvr', 'formations.annee'])
 
 anneeDiplomeGenre =  pd.DataFrame(anneeDiplome.drop(columns='idsadvr').value_counts()).reset_index().sort_values(by='formations.annee', ascending=True)
@@ -206,17 +303,29 @@ figAnneDiplomeGenre.update_layout(
 figAnneDiplomeGenre.update_layout(margin=dict(l=30))
 
 # Rang professoral par genre
-fonctionGenre = demographics[['idsadvr', 'sexe', 'affiliations.fonction.codeSad']].drop_duplicates()
-freqFonctionGenre = pd.DataFrame(fonctionGenre[['sexe', 'affiliations.fonction.codeSad']].value_counts()).reset_index()
+fonctionGenre = demographics[[
+    'idsadvr', 
+    'sexe',
+    'affiliations.fonction.codeSad']
+    ].drop_duplicates()
+
+freqFonctionGenre = pd.DataFrame(fonctionGenre[
+    ['sexe', 'affiliations.fonction.codeSad']
+    ].value_counts()).reset_index()
 
 mapping = pd.read_csv('tables/SADVR_fonctions.csv')[['codeSad', 'nomM']].to_dict('records')
 mapping = {x['codeSad'] : x['nomM'] for x in mapping}
 
 freqFonctionGenre['fonction'] = freqFonctionGenre['affiliations.fonction.codeSad'].map(mapping)
-mappingGenre = {'M': 'Homme', 'F': 'Femme', 'A': 'Autre'}
+
 freqFonctionGenre['genre'] = freqFonctionGenre['sexe'].map(mappingGenre)
 
-freqFonctionGenre = freqFonctionGenre[['genre', 'fonction', 'count']]
+freqFonctionGenre = freqFonctionGenre[
+    ['genre', 
+    'fonction',  
+    'count']
+]
+
 freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['genre'] != 'Autres']
 freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['fonction'] != 'Professeur de formation pratique titulaire'] # anomalie
 freqFonctionGenre = freqFonctionGenre.sort_values(by='count', ascending=False)
@@ -235,12 +344,12 @@ figFonctionGenre = px.bar(
 )
 
 figFonctionGenre.update_layout(
-     yaxis_title=None,
-     xaxis_title=None
+    yaxis_title=None,
+    xaxis_title=None,
+    margin=dict(l=60, r=40, t=30, b=0), 
+    title_x=0.02,
+    legend=dict(yanchor="top",y=1,xanchor="right", x=1.15)
 )
-
-figFonctionGenre.update_layout(margin=dict(l=60, r=40, t=30, b=0), title_x=0.02)
-figFonctionGenre.update_layout(legend=dict(yanchor="top",y=1,xanchor="right", x=1.15))
 
 # Adjust the bar width and spacing
 figFonctionGenre.update_traces(
@@ -248,7 +357,10 @@ figFonctionGenre.update_traces(
 )
 
 # Langues parlées
-langueParle = demographics[demographics['langues.medium'] == 'Oral'].drop(columns=['langues.medium'])
+langueParle = demographics[demographics['langues.medium'] == 'Oral'].drop(
+    columns=['langues.medium']
+)
+
 langueParle = pd.DataFrame(plotVariable(langueParle, 'langues.nom'))
 langueParle = groupOtherValues(langueParle)
 
@@ -259,8 +371,14 @@ figLanguesParlees = px.pie(
     title='Langues parlées',
     hole=0.6,
     category_orders={'langues.nom': 
-        ['Français', 'Anglais', 'Espagnol; castillan', 
-         'Allemand', 'Italien', 'Arabe', 'Autre']},
+        ['Français', 
+        'Anglais',
+        'Espagnol; castillan', 
+        'Allemand', 
+        'Italien',
+        'Arabe',
+        'Autre']
+    }
 )
 
 
@@ -286,8 +404,13 @@ mappingIso = pd.read_csv('utils/mappingPays_iso.csv', sep=';').to_dict('records'
 mappingIso = {x['Alpha-2 code'] : x['Alpha-3 code'] for x in mappingIso}
 
 # Dresser le mapping entre les codes iso-2 aux noms de pays
-mappingNomsPays = (demographics[['formations.institutions.paysNom', 'formations.institutions.paysCode']].drop_duplicates()).to_dict('records')
-mappingNomsPays = {x['formations.institutions.paysCode'] : x['formations.institutions.paysNom'] for x in mappingNomsPays}
+mappingNomsPays = (demographics[
+    ['formations.institutions.paysNom', 
+    'formations.institutions.paysCode']
+    ].drop_duplicates()).to_dict('records')
+mappingNomsPays = {
+    x['formations.institutions.paysCode'] : x['formations.institutions.paysNom'] for x in mappingNomsPays
+}
 
 mappingPays = pd.read_csv('utils/mappingPays_iso.csv', sep=';', encoding='utf-8')
 mappingPays['nomPaysFr'] = mappingPays['Alpha-2 code'].map(mappingNomsPays)
@@ -370,8 +493,16 @@ def groupEtablissements(etablissementNom : str) -> str :
 etablissementsAffilies = expertises.dropna(subset='etablissementsAffilies.nom')
 etablissementsAffilies = etablissementsAffilies.drop_duplicates(subset=(['idsadvr', 'etablissementsAffilies.nom']))
 etablissementsAffilies.loc[:, 'etablissementsAffilies.nom'] = etablissementsAffilies['etablissementsAffilies.nom'].apply(lambda x : x.split(' – ')[0])
-etablissementsAffilies = pd.DataFrame(plotVariable(etablissementsAffilies, 'etablissementsAffilies.nom')).sort_values(by='count', ascending = False)
-etablissementsAffilies = etablissementsAffilies.rename(columns={'labels':'Établissement', 'count':'N'})
+etablissementsAffilies = pd.DataFrame(
+    plotVariable(etablissementsAffilies, 'etablissementsAffilies.nom')
+    ).sort_values(by='count', ascending = False)
+
+etablissementsAffilies = etablissementsAffilies.rename(
+    columns={
+        'labels':'Établissement', 
+        'count':'N'
+    }
+)
 
 # Secteurs
 etablissementsAffilies['noms'] = etablissementsAffilies['Établissement'].apply(lambda x: renameLongLabels(x))
@@ -413,7 +544,7 @@ figDepartements = px.bar(
 
 # Adjust the bar width and spacing
 figDepartements.update_traces(
-    width = 0.6  # Set the bar width (0.8 is the default, adjust as needed)
+    width = 0.6  # Set the bar width
 )
 
 # Hide axis names (labels)
@@ -431,8 +562,11 @@ disciplines = expertises[[
     'expertise.disciplines.uid', 'expertise.disciplines.codeLangue'
 ]].dropna(subset='expertise.disciplines.uid').drop_duplicates()
 
-disciplines = disciplines.groupby(['expertise.disciplines.nom', 'expertise.disciplines.uid', 
-                    'expertise.disciplines.codeLangue'])['idsadvr'].count().reset_index().rename(columns={'idsadvr': 'count'})
+disciplines = disciplines.groupby([
+    'expertise.disciplines.nom', 
+    'expertise.disciplines.uid', 
+    'expertise.disciplines.codeLangue'
+    ])['idsadvr'].count().reset_index().rename(columns={'idsadvr': 'count'})
 
 disciplines = disciplines.sort_values(by=['expertise.disciplines.uid', 'expertise.disciplines.codeLangue'], ascending=[True, False])
 disciplines = disciplines.drop_duplicates(subset='expertise.disciplines.uid', keep='first').sort_values(by='count', ascending=False)
@@ -446,7 +580,9 @@ mappingDisciplines = mappingDisciplines[mappingDisciplines['noms.codeLangue'] ==
 mappingDisciplines = {str(x['id']): x['noms.nom'] for x in mappingDisciplines.to_dict('records')}
 
 disciplines = expertises[
-    ['idsadvr', 'affiliations.faculte.nom', 'expertise.disciplines.uid']
+    ['idsadvr', 
+    'affiliations.faculte.nom', 
+    'expertise.disciplines.uid']
 ].dropna(subset='expertise.disciplines.uid').drop_duplicates()
 
 disciplines['expertise.disciplines.nom'] = disciplines['expertise.disciplines.uid'].astype(str).map(mappingDisciplines)
@@ -462,7 +598,13 @@ faculty_discipline_counts = disciplines.groupby(['affiliations.faculte.nom', 'ex
 
 # Rename the 'id' column to 'professor_count' for clarity
 faculty_discipline_counts = faculty_discipline_counts.rename(
-    columns={'idsadvr': 'count', 'affiliations.faculte.nom' : 'Faculté', 'expertise.disciplines.nom': 'Discipline'})
+    columns={
+        'idsadvr': 'count', 
+        'affiliations.faculte.nom' : 'Faculté',
+        'expertise.disciplines.nom': 'Discipline'
+    }
+)
+
 faculty_discipline_counts = faculty_discipline_counts.sort_values(by='count', ascending=False)
 faculty_discipline_counts['noms'] = faculty_discipline_counts['Discipline'].apply(renameLongLabels)
 
@@ -503,9 +645,11 @@ for k in figs.keys():
     if k != defaultcat:
         fig.add_traces(figs[k].data)
 
-fig.update_layout(height=445)
-fig.update_layout(margin=dict(l=20, r=20, t=30, b=20))
-fig.update_layout(legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.55))
+fig.update_layout(
+    height=445,
+    margin=dict(l=20, r=20, t=30, b=20),
+    legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.55)
+    )
 
 # finally build dropdown menu
 fig.update_layout(
@@ -527,7 +671,113 @@ fig.update_layout(
     
 )
 
-
 figDisciplinesFacultes = fig
 
 # Cartographie des expertises de recherche: mots-clés associés aux principales disciplines de recherche de l'UdeM 
+
+## Extraire les fréquences associées aux disciplines et aux mots-clés: elles vont permettre d'assigner
+# une taille aux noeuds dans le graphe (plus fréquent = plus gros )
+def freqVariable(variable: str, df: pd.DataFrame = motsCles) -> pd.DataFrame:
+    output = df[[
+        'idsadvr',
+        f'expertise.{variable}.nom', 
+        f'expertise.{variable}.uid']
+    ].dropna(subset=f'expertise.{variable}.uid').drop_duplicates()
+
+    output = output.groupby([f'expertise.{variable}.nom', f'expertise.{variable}.uid'])['idsadvr'].count().reset_index().rename(columns={'idsadvr': 'count'})
+    output = output[[f'expertise.{variable}.nom', 'count']]
+
+    return output
+
+listeDepartements = [x for x in motsCles['département'].unique().tolist() if 
+    (not "Direction" in x) and 
+    (not "bureau" in x) and 
+    (not "dir" in x) and 
+    (not "rectorat" in x)
+]
+
+graphs = []
+for departement in listeDepartements:
+    nx_graph = nx.Graph()
+    subdf = motsCles[motsCles['département'] == departement].dropna()
+
+    # Disciplines
+    freqDisciplines = freqVariable('disciplines', subdf)
+    freqDisciplines = {x['expertise.disciplines.nom'] : x['count'] for x in freqDisciplines.to_dict('records')}
+
+    # Mots-clés
+    freqMotsCles = freqVariable('motsCles', subdf)
+    freqMotsCles = {x['expertise.motsCles.nom'] : x['count'] for x in freqMotsCles.to_dict('records')}
+
+    subdf['freqDiscipline'] = subdf['expertise.disciplines.nom'].map(freqDisciplines)
+    subdf['freqMotCle'] = subdf['expertise.motsCles.nom'].map(freqMotsCles)
+
+    subdf = subdf[subdf['freqMotCle'].astype(int) > 2]
+    subdf = subdf[['département', 'expertise.disciplines.nom', 'freqDiscipline', 'expertise.motsCles.nom', 'freqMotCle']]
+    subdf
+
+    records = (subdf.sort_values(by='freqMotCle', ascending=False).to_dict('records'))
+    recordsD = (pd.DataFrame(records).drop_duplicates(subset='expertise.disciplines.nom')).to_dict('records')
+
+    # Noeuds pour les disciplines
+    tuples = [(r['expertise.disciplines.nom'], {"color": "lightgrey", "size": 7*int(r['freqDiscipline'])}) for r in recordsD]
+    sizes = [r['freqDiscipline'] for r in recordsD]
+
+    # Noeuds pour les mots-clés
+    tuples += [(r['expertise.motsCles.nom'], {"color": "lightblue", "size": 7*int(r['freqMotCle'])}) for r in records]
+    sizes += [r['freqMotCle'] for r in records]
+
+    # Liens 
+    edges = [(r['expertise.disciplines.nom'], r['expertise.motsCles.nom']) for r in records]
+
+    nx_graph.add_nodes_from(tuples)
+    nx_graph.add_edges_from(edges)
+
+    # Set node attributes (colors)
+    nx.set_node_attributes(nx_graph, {node: attr_dict for node, attr_dict in tuples})
+
+    # Create a Pyvis Network instance
+    pyvis_graph = Network(notebook=True, height="800px", width="100%", cdn_resources='remote')
+
+    # Add nodes and edges to Pyvis Network
+    for node, attr in nx_graph.nodes(data=True):
+        pyvis_graph.add_node(
+            node, 
+            color=attr['color'], 
+            size=attr['size'], 
+            font={'size': 60},
+            title=f"{node}\nN={int(attr['size'])}",
+            )
+
+
+    for edge in nx_graph.edges():
+        pyvis_graph.add_edge(edge[0], edge[1], color='lightgrey')
+
+    # Set layout to forceAtlas2Based for better node spacing
+    pyvis_graph.barnes_hut(gravity=-8000, central_gravity=0.3, spring_length=50)
+    # pyvis_graph.show_buttons(filter_=['physics'])
+    pyvis_graph.set_options(
+        """
+        const options = {
+        "physics": {
+            "barnesHut": {
+            "theta": 0.75,
+            "gravitationalConstant": -30000,
+            "centralGravity": 1.1,
+            "springLength": 50,
+            "springConstant": 0.001
+            },
+            "maxVelocity": 61,
+            "minVelocity": 0.01,
+            "timestep": 0.67
+            }
+        }
+        """)
+
+    # Save the graph to an HTML file
+    name = slugify(departement)
+    output_html = f"graphs/graph__{name}.html"
+
+    graphs.append({"Département": departement, "Fichier": f"../{output_html}"})
+
+

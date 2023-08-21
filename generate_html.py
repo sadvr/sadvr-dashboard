@@ -2,7 +2,6 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objects as go
 import pandas as pd
-import re
 import dash_bootstrap_components as dbc
 from utils.sadvr_utils import *
 from generate_figures import *
@@ -230,9 +229,46 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     f.write('</div></div>')
     f.write('<div style="margin-top:500px;"><hr/></div>')
 
-     # Disciplines de recherche
+    # Expertises de recherche : mots-clés
     f.write('<h3>Mots-clés</h3>')
-    f.write('<div style="height:800px;">')
+    # Conteneur gauche
+    f.write(
+        """
+        <div class="grid">
+            <div class="col-md-6" 
+                style="float:left; 
+                margin-top:10px;">
+        """
+    )
+    
+    f.write('<div style="height:800px; max-height:600px; overflow-y:scroll;">')
+
+    iFrames ='<select id="fileSelector" onchange="changeIframeSource()"><p>&nbps;</p>'
+    iFrames += "\n"
+    iFrames += '<option value="graphs\graph__departement-d-histoire.html">Sélectionner un département</option>'
+
+    for graph in graphs:
+        departement = graph['Département']
+        fichier = graph['Fichier']
+        iFrames += ("\n")
+        iFrames += (f'<option value="{fichier}">{departement}</option>')
+
+
+    iFrames += """
+        </select>
+
+        <iframe id="embeddedFrame" width="100%" height="700" frameborder="0"></iframe>
+
+        <script>
+            function changeIframeSource() {
+                var selectedFile = document.getElementById("fileSelector").value;
+                document.getElementById("embeddedFrame").src = selectedFile;
+            }
+        </script>
+    """
     f.write(iFrames)
-    f.write('</div>')
+
+    # Conteneur droit
+    f.write('</div><div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">')
+    f.write("Nombre de professeur-e-s par champ d'expertise")
     f.write(footer)
