@@ -328,7 +328,9 @@ freqFonctionGenre = freqFonctionGenre[
 ]
 
 freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['genre'] != 'Autres']
-freqFonctionGenre = freqFonctionGenre[freqFonctionGenre['fonction'] != 'Professeur de formation pratique titulaire'] # anomalie
+freqFonctionGenre = freqFonctionGenre[
+    freqFonctionGenre['fonction'] != 'Professeur de formation pratique titulaire'] # anomalie
+
 freqFonctionGenre = freqFonctionGenre.sort_values(by='count', ascending=False)
 
 freqFonctionGenre['noms'] = freqFonctionGenre['fonction'].apply(lambda x: renameLongLabels(x))
@@ -337,7 +339,6 @@ figFonctionGenre = px.bar(
     y = 'noms',
     x = 'count',
     hover_name='fonction',
-    title = 'Rang professoral par genre',
     color = 'genre',
     barmode='group',
     orientation = 'h',
@@ -348,7 +349,6 @@ figFonctionGenre.update_layout(
     yaxis_title=None,
     xaxis_title=None,
     margin=dict(l=60, r=40, t=30, b=0), 
-    title_x=0.02,
     legend=dict(yanchor="top",y=1,xanchor="right", x=1.15)
 )
 
@@ -557,7 +557,7 @@ figDepartements.update_layout(
     margin=dict(b=0, l=60, t=30)
 )
 
-# Principales disicplines de recherche par département
+# Principales disicplines de recherche 
 disciplines = expertises[[
     'idsadvr', 'expertise.disciplines.nom', 
     'expertise.disciplines.uid', 'expertise.disciplines.codeLangue'
@@ -610,11 +610,12 @@ faculty_discipline_counts = faculty_discipline_counts.sort_values(by='count', as
 faculty_discipline_counts['noms'] = faculty_discipline_counts['Discipline'].apply(renameLongLabels)
 
 def generate_pie_chart(selected_faculty):
-    filtered_df = faculty_discipline_counts[faculty_discipline_counts['Faculté'] == selected_faculty]
+    filtered_df = faculty_discipline_counts[faculty_discipline_counts['Faculté'] == selected_faculty].dropna()
 
     # Extraire les dix principales disciplines associées à une faculté
     filtered_df = filtered_df.sort_values(by='count', ascending=False)
-    filtered_df = groupOtherValues(filtered_df, 10)[:10]
+    if(len(filtered_df) > 10):
+        filtered_df = groupOtherValues(filtered_df, 10)[:10]
     fig = go.Figure(go.Pie(
         labels= filtered_df['Discipline'], 
         # names = filtered_df['noms'],
