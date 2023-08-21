@@ -227,7 +227,7 @@ function highlightFilter(filter) {
 
              #mynetwork {
                  width: 100%;
-                 height: 800px;
+                 height: 575px;
                  background-color: #ffffff;
                  border: 1px solid lightgray;
                  position: relative;
@@ -282,8 +282,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([]);
-                  edges = new vis.DataSet([]);
+                  nodes = new vis.DataSet([{"color": "lightblue", "font": {"size": 60}, "id": "Dentisterie de restauration", "label": "Dentisterie de restauration", "shape": "dot", "size": 42, "title": "Dentisterie de restauration\nN=6"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Sant\u00e9 buccale", "label": "Sant\u00e9 buccale", "shape": "dot", "size": 7, "title": "Sant\u00e9 buccale\nN=1"}, {"color": "lightgrey", "font": {"size": 60}, "id": "M\u00e9decine dentaire", "label": "M\u00e9decine dentaire", "shape": "dot", "size": 42, "title": "M\u00e9decine dentaire\nN=6"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Dentisterie", "label": "Dentisterie", "shape": "dot", "size": 7, "title": "Dentisterie\nN=1"}, {"color": "lightblue", "font": {"size": 60}, "id": "Mat\u00e9riaux dentaires", "label": "Mat\u00e9riaux dentaires", "shape": "dot", "size": 21, "title": "Mat\u00e9riaux dentaires\nN=3"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Dentisterie de restauration", "to": "Dentisterie de restauration"}, {"color": "lightgrey", "from": "Dentisterie de restauration", "to": "Sant\u00e9 buccale"}, {"color": "lightgrey", "from": "Dentisterie de restauration", "to": "M\u00e9decine dentaire"}, {"color": "lightgrey", "from": "Dentisterie de restauration", "to": "Mat\u00e9riaux dentaires"}, {"color": "lightgrey", "from": "Sant\u00e9 buccale", "to": "Mat\u00e9riaux dentaires"}, {"color": "lightgrey", "from": "M\u00e9decine dentaire", "to": "Mat\u00e9riaux dentaires"}, {"color": "lightgrey", "from": "Dentisterie", "to": "Mat\u00e9riaux dentaires"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

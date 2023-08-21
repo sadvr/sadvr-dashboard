@@ -227,7 +227,7 @@ function highlightFilter(filter) {
 
              #mynetwork {
                  width: 100%;
-                 height: 800px;
+                 height: 575px;
                  background-color: #ffffff;
                  border: 1px solid lightgray;
                  position: relative;
@@ -282,8 +282,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([]);
-                  edges = new vis.DataSet([]);
+                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "dot", "size": 7, "title": "\u00c9ducation\nN=1"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Archivistique et biblioth\u00e9conomie", "label": "Archivistique et biblioth\u00e9conomie", "shape": "dot", "size": 133, "title": "Archivistique et biblioth\u00e9conomie\nN=19"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Arts visuels et m\u00e9diatiques", "label": "Arts visuels et m\u00e9diatiques", "shape": "dot", "size": 14, "title": "Arts visuels et m\u00e9diatiques\nN=2"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Communication", "label": "Communication", "shape": "dot", "size": 28, "title": "Communication\nN=4"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Musique", "label": "Musique", "shape": "dot", "size": 14, "title": "Musique\nN=2"}, {"color": "lightblue", "font": {"size": 60}, "id": "Comportements informationnels", "label": "Comportements informationnels", "shape": "dot", "size": 21, "title": "Comportements informationnels\nN=3"}, {"color": "lightblue", "font": {"size": 60}, "id": "Archives", "label": "Archives", "shape": "dot", "size": 21, "title": "Archives\nN=3"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "\u00c9ducation", "to": "Comportements informationnels"}, {"color": "lightgrey", "from": "Archivistique et biblioth\u00e9conomie", "to": "Archives"}, {"color": "lightgrey", "from": "Archivistique et biblioth\u00e9conomie", "to": "Comportements informationnels"}, {"color": "lightgrey", "from": "Arts visuels et m\u00e9diatiques", "to": "Archives"}, {"color": "lightgrey", "from": "Communication", "to": "Archives"}, {"color": "lightgrey", "from": "Communication", "to": "Comportements informationnels"}, {"color": "lightgrey", "from": "Musique", "to": "Comportements informationnels"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

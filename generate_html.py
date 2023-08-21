@@ -228,7 +228,7 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
 
     # Expertises de recherche : mots-clés
     f.write('<h3>Mots-clés</h3>')   
-    f.write('<div>')
+    f.write('<div class="grid">')
 
     iFrames ='<select id="fileSelector" onchange="changeIframeSource()" style="margin-bottom:10px;"><p>&nbps;</p>'
     iFrames += "\n"
@@ -264,6 +264,6 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     f.write(iFrames)
 
     f.write('</div></div>')
-    f.write('<div style="margin-top:500px;"><hr/></div>')
+    f.write('<div style="margin-top:500px;"><hr/></div></div>')
 
     f.write(footer)

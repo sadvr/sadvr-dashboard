@@ -227,7 +227,7 @@ function highlightFilter(filter) {
 
              #mynetwork {
                  width: 100%;
-                 height: 800px;
+                 height: 575px;
                  background-color: #ffffff;
                  border: 1px solid lightgray;
                  position: relative;
@@ -282,8 +282,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacie", "label": "Pharmacie", "shape": "dot", "size": 14, "title": "Pharmacie\nN=14"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Pharmacologie", "label": "Pharmacologie", "shape": "dot", "size": 28, "title": "Pharmacologie\nN=28"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Physiologie", "label": "Physiologie", "shape": "dot", "size": 7, "title": "Physiologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Statistiques", "label": "Statistiques", "shape": "dot", "size": 7, "title": "Statistiques\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Biologie et autres sciences connexes", "label": "Biologie et autres sciences connexes", "shape": "dot", "size": 7, "title": "Biologie et autres sciences connexes\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Cardiologie", "label": "Cardiologie", "shape": "dot", "size": 21, "title": "Cardiologie\nN=21"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Chimie", "label": "Chimie", "shape": "dot", "size": 7, "title": "Chimie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Endocrinologie", "label": "Endocrinologie", "shape": "dot", "size": 7, "title": "Endocrinologie\nN=7"}, {"color": "lightgrey", "font": {"size": 60}, "id": "Neurosciences", "label": "Neurosciences", "shape": "dot", "size": 7, "title": "Neurosciences\nN=7"}, {"color": "lightblue", "font": {"size": 60}, "id": "Toxicologie", "label": "Toxicologie", "shape": "dot", "size": 21, "title": "Toxicologie\nN=21"}, {"color": "lightblue", "font": {"size": 60}, "id": "Syst\u00e8me cardiovasculaire", "label": "Syst\u00e8me cardiovasculaire", "shape": "dot", "size": 21, "title": "Syst\u00e8me cardiovasculaire\nN=21"}]);
-                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Pharmacie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Pharmacologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Physiologie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Statistiques", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Biologie et autres sciences connexes", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Syst\u00e8me cardiovasculaire"}, {"color": "lightgrey", "from": "Cardiologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Chimie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Endocrinologie", "to": "Toxicologie"}, {"color": "lightgrey", "from": "Neurosciences", "to": "Syst\u00e8me cardiovasculaire"}]);
+                  nodes = new vis.DataSet([]);
+                  edges = new vis.DataSet([]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

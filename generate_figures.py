@@ -730,11 +730,16 @@ for departement in listeDepartements:
     recordsD = (pd.DataFrame(records).drop_duplicates(subset='expertise.disciplines.nom')).to_dict('records')
 
     # Noeuds pour les disciplines
-    tuples = [(r['expertise.disciplines.nom'], {"color": "lightgrey", "size": 7*int(r['freqDiscipline'])}) for r in recordsD]
+    tuples = [(r['expertise.disciplines.nom'], {"color": "lightgrey", "size": r['freqDiscipline']}) for r in recordsD]
     sizes = [r['freqDiscipline'] for r in recordsD]
 
     # Noeuds pour les mots-clés
-    tuples += [(r['expertise.motsCles.nom'], {"color": "lightblue", "size": 7*int(r['freqMotCle'])}) for r in records]
+    tuples += [
+        (r['expertise.motsCles.nom'], 
+        {"color": "lightblue",
+         "size": int(r['freqMotCle'])
+        }) for r in records]
+
     sizes += [r['freqMotCle'] for r in records]
 
     # Liens 
@@ -754,9 +759,9 @@ for departement in listeDepartements:
         pyvis_graph.add_node(
             node, 
             color=attr['color'], 
-            size=attr['size'], 
+            size= 7*int(attr['size']), 
             font={'size': 60},
-            title=f"{node}\nN={int(attr['size'])}",
+            title=f"{node}\nN={attr['size']}",
             )
 
 
@@ -764,7 +769,7 @@ for departement in listeDepartements:
         pyvis_graph.add_edge(edge[0], edge[1], color='lightgrey')
 
     # Set layout to forceAtlas2Based for better node spacing
-    pyvis_graph.barnes_hut(gravity=-8000, central_gravity=0.3, spring_length=50)
+    pyvis_graph.barnes_hut(gravity=-9000, central_gravity=0.3, spring_length=50)
     # pyvis_graph.show_buttons(filter_=['physics'])
     pyvis_graph.set_options(
         """
@@ -789,6 +794,7 @@ for departement in listeDepartements:
     output_html = f"graphs/graph__{name}.html"
 
     graphs.append({"Département": departement, "Fichier": f"../{output_html}"})
+    pyvis_graph.show(output_html) 
 
     # Create the table to display aside from the graph
     tableG = subdf.rename(columns = mappingTables)
