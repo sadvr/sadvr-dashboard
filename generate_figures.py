@@ -726,7 +726,7 @@ for departement in listeDepartements:
     subdf['freqDiscipline'] = subdf['expertise.disciplines.nom'].map(freqDisciplines)
     subdf['freqMotCle'] = subdf['expertise.motsCles.nom'].map(freqMotsCles)
     topMotsCles = subdf[['expertise.motsCles.nom','freqMotCle']].drop_duplicates()
-    topMotsCles = topMotsCles.sort_values(by='freqMotCle', ascending=False)[:15]['expertise.motsCles.nom'].tolist()
+    topMotsCles = topMotsCles.sort_values(by='freqMotCle', ascending=False)[:20]['expertise.motsCles.nom'].tolist()
 
     subdf = subdf[subdf['expertise.motsCles.nom'].isin(topMotsCles)]
 
@@ -815,13 +815,15 @@ for departement in listeDepartements:
     # Create the table to display aside from the graph
     tableG = subdf.rename(columns = mappingTables)
     tableG = tableG.drop(columns = ['département'])
+    tableG = tableG.groupby(['Discipline','Mot-Clé']).max()
+
     tableG = tableG.drop_duplicates()
     tableG = tableG.sort_values(
         by = ['freqDiscipline', 'N'], 
         ascending = [False, False]
     ).drop(columns="freqDiscipline")
 
-    tablesGraphs[f"../{output_html}"] = tableG.to_html(index=False, classes = tableClasses, justify='left')
+    tablesGraphs[f"../{output_html}"] = tableG.to_html(classes = tableClasses, justify='left')
 
 tablesGraphs = str(tablesGraphs)
 

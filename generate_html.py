@@ -228,6 +228,7 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
 
     # Expertises de recherche : mots-clés
     f.write('<h3>Mots-clés</h3>')
+    f.write('<p>Principales expertises de recherche par département</p>')
 
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
