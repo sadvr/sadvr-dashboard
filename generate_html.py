@@ -15,9 +15,6 @@ with open('./html/header.html', encoding='utf-8') as f:
 with open('./html/footer.html') as f:
     footer = f.read()
 
-with open("html/iframes__dropdown.html") as f:
-    iFrames = f.read()
-
 ### Générer le fichier html pour les professeurs
 with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     f.write(header)
@@ -230,22 +227,12 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     f.write('<div style="margin-top:500px;"><hr/></div>')
 
     # Expertises de recherche : mots-clés
-    f.write('<h3>Mots-clés</h3>')
-    # Conteneur gauche
-    f.write(
-        """
-        <div class="grid">
-            <div class="col-md-6" 
-                style="float:left; 
-                margin-top:10px;">
-        """
-    )
-    
-    f.write('<div style="height:800px; max-height:600px; overflow-y:scroll;">')
+    f.write('<h3>Mots-clés</h3>')   
+    f.write('<div>')
 
-    iFrames ='<select id="fileSelector" onchange="changeIframeSource()"><p>&nbps;</p>'
+    iFrames ='<select id="fileSelector" onchange="changeIframeSource()" style="margin-bottom:10px;"><p>&nbps;</p>'
     iFrames += "\n"
-    iFrames += '<option value="graphs\graph__departement-d-histoire.html">Sélectionner un département</option>'
+    iFrames += '<option value="">Sélectionner un département</option>'
 
     for graph in graphs:
         departement = graph['Département']
@@ -254,21 +241,29 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
         iFrames += (f'<option value="{fichier}">{departement}</option>')
 
 
-    iFrames += """
+    iFrames += f"""
         </select>
-
-        <iframe id="embeddedFrame" width="100%" height="700" frameborder="0"></iframe>
-
+        <div id="container">
+            <iframe id="embeddedFrame" style="width:50%; float:left;"  height="600"; frameborder="0"></iframe>
+            <div id="dataTable" 
+                style="width: 50%; float:right; padding-left:20px; height=600; max-height:600; overflow-y: scroll;">
+            </div>
+        </div>
         <script>
-            function changeIframeSource() {
+            var data = {tablesGraphs};
+            function changeIframeSource() {{
                 var selectedFile = document.getElementById("fileSelector").value;
                 document.getElementById("embeddedFrame").src = selectedFile;
-            }
+            
+                var selectedData = data[selectedFile];
+                document.getElementById("dataTable").innerHTML = selectedData;
+                document.getElementById("dataTable").style.height = "600px"
+            }}
         </script>
     """
     f.write(iFrames)
 
-    # Conteneur droit
-    f.write('</div><div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">')
-    f.write("Nombre de professeur-e-s par champ d'expertise")
+    f.write('</div></div>')
+    f.write('<div style="margin-top:500px;"><hr/></div>')
+
     f.write(footer)

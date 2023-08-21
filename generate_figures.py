@@ -6,6 +6,7 @@ import networkx as nx
 from pyvis.network import Network
 import matplotlib.pyplot as plt
 from slugify import slugify
+import json
 
 # Charger les données
 data = updateInfoProfs()
@@ -697,6 +698,15 @@ listeDepartements = [x for x in motsCles['département'].unique().tolist() if
 ]
 
 graphs = []
+tablesGraphs = {}
+mappingTables = {
+    'expertise.disciplines.nom': 'Discipline',
+    'expertise.motsCles.nom': 'Mot-Clé',
+    'freqMotCle': 'N'
+}
+
+tableClasses = ['table', 'table-hover']
+
 for departement in listeDepartements:
     nx_graph = nx.Graph()
     subdf = motsCles[motsCles['département'] == departement].dropna()
@@ -714,7 +724,6 @@ for departement in listeDepartements:
 
     subdf = subdf[subdf['freqMotCle'].astype(int) > 2]
     subdf = subdf[['département', 'expertise.disciplines.nom', 'freqDiscipline', 'expertise.motsCles.nom', 'freqMotCle']]
-    subdf
 
     records = (subdf.sort_values(by='freqMotCle', ascending=False).to_dict('records'))
     recordsD = (pd.DataFrame(records).drop_duplicates(subset='expertise.disciplines.nom')).to_dict('records')
@@ -737,7 +746,7 @@ for departement in listeDepartements:
     nx.set_node_attributes(nx_graph, {node: attr_dict for node, attr_dict in tuples})
 
     # Create a Pyvis Network instance
-    pyvis_graph = Network(notebook=True, height="800px", width="100%", cdn_resources='remote')
+    pyvis_graph = Network(notebook=True, height="575px", width="100%", cdn_resources='remote')
 
     # Add nodes and edges to Pyvis Network
     for node, attr in nx_graph.nodes(data=True):
@@ -780,4 +789,16 @@ for departement in listeDepartements:
 
     graphs.append({"Département": departement, "Fichier": f"../{output_html}"})
 
+    # Create the table to display aside from the graph
+    tableG = subdf.rename(columns = mappingTables)
+    tableG = tableG.drop(columns = ['département'])
+    tableG = tableG.drop_duplicates()
+    tableG = tableG.sort_values(
+        by = ['freqDiscipline', 'N'], 
+        ascending = [False, False]
+    ).drop(columns="freqDiscipline")
+
+    tablesGraphs[f"../{output_html}"] = tableG.to_html(index=False, classes = tableClasses, justify='left')
+
+tablesGraphs = str(tablesGraphs)
 
