@@ -282,8 +282,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([]);
-                  edges = new vis.DataSet([]);
+                  nodes = new vis.DataSet([{"color": "#0b113a", "font": {"size": 70}, "id": "\u00c9tudes des langues", "label": "\u00c9tudes des langues", "shape": "square", "size": 0.0, "title": "\u00c9tudes des langues\nN=1"}, {"color": "#0b113a", "font": {"size": 70}, "id": "Litt\u00e9rature", "label": "Litt\u00e9rature", "shape": "square", "size": 0.0, "title": "Litt\u00e9rature\nN=1"}, {"color": "#ffca40", "font": {"size": 70}, "id": "Litt\u00e9rature fran\u00e7aise (Moyen \u00c2ge)", "label": "Litt\u00e9rature fran\u00e7aise (Moyen \u00c2ge)", "shape": "dot", "size": 0.0, "title": "Litt\u00e9rature fran\u00e7aise (Moyen \u00c2ge)\nN=1"}, {"color": "#ffca40", "font": {"size": 70}, "id": "Philologie romane", "label": "Philologie romane", "shape": "dot", "size": 0.0, "title": "Philologie romane\nN=1"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Litt\u00e9rature fran\u00e7aise (Moyen \u00c2ge)"}, {"color": "lightgrey", "from": "\u00c9tudes des langues", "to": "Philologie romane"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Litt\u00e9rature fran\u00e7aise (Moyen \u00c2ge)"}, {"color": "lightgrey", "from": "Litt\u00e9rature", "to": "Philologie romane"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

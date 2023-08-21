@@ -282,8 +282,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([]);
-                  edges = new vis.DataSet([]);
+                  nodes = new vis.DataSet([{"color": "#0b113a", "font": {"size": 70}, "id": "Science politique", "label": "Science politique", "shape": "square", "size": 0.0, "title": "Science politique\nN=1"}, {"color": "#ffca40", "font": {"size": 70}, "id": "Politique \u00e9trang\u00e8re et de d\u00e9fense", "label": "Politique \u00e9trang\u00e8re et de d\u00e9fense", "shape": "dot", "size": 0.0, "title": "Politique \u00e9trang\u00e8re et de d\u00e9fense\nN=1"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Science politique", "to": "Politique \u00e9trang\u00e8re et de d\u00e9fense"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

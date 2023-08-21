@@ -282,8 +282,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([]);
-                  edges = new vis.DataSet([]);
+                  nodes = new vis.DataSet([{"color": "#0b113a", "font": {"size": 70}, "id": "Psychop\u00e9dagogie", "label": "Psychop\u00e9dagogie", "shape": "square", "size": 0.0, "title": "Psychop\u00e9dagogie\nN=1"}, {"color": "#0b113a", "font": {"size": 70}, "id": "\u00c9ducation", "label": "\u00c9ducation", "shape": "square", "size": 0.0, "title": "\u00c9ducation\nN=1"}, {"color": "#ffca40", "font": {"size": 70}, "id": "Enseignement sup\u00e9rieur - gestion, parcours, p\u00e9dagogie, syst\u00e8me", "label": "Enseignement sup\u00e9rieur - gestion, parcours, p\u00e9dagogie, syst\u00e8me", "shape": "dot", "size": 0.0, "title": "Enseignement sup\u00e9rieur - gestion, parcours, p\u00e9dagogie, syst\u00e8me\nN=1"}, {"color": "#ffca40", "font": {"size": 70}, "id": "Adaptation scolaire", "label": "Adaptation scolaire", "shape": "dot", "size": 0.0, "title": "Adaptation scolaire\nN=1"}, {"color": "#ffca40", "font": {"size": 70}, "id": "Difficult\u00e9s d\u0027apprentissage", "label": "Difficult\u00e9s d\u0027apprentissage", "shape": "dot", "size": 0.0, "title": "Difficult\u00e9s d\u0027apprentissage\nN=1"}]);
+                  edges = new vis.DataSet([{"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Enseignement sup\u00e9rieur - gestion, parcours, p\u00e9dagogie, syst\u00e8me"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Adaptation scolaire"}, {"color": "lightgrey", "from": "Psychop\u00e9dagogie", "to": "Difficult\u00e9s d\u0027apprentissage"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Enseignement sup\u00e9rieur - gestion, parcours, p\u00e9dagogie, syst\u00e8me"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Adaptation scolaire"}, {"color": "lightgrey", "from": "\u00c9ducation", "to": "Difficult\u00e9s d\u0027apprentissage"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

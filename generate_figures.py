@@ -7,6 +7,7 @@ from pyvis.network import Network
 import matplotlib.pyplot as plt
 from slugify import slugify
 import json
+import math
 
 # Charger les données
 data = updateInfoProfs()
@@ -686,16 +687,18 @@ def freqVariable(variable: str, df: pd.DataFrame = motsCles) -> pd.DataFrame:
         f'expertise.{variable}.uid']
     ].dropna(subset=f'expertise.{variable}.uid').drop_duplicates()
 
-    output = output.groupby([f'expertise.{variable}.nom', f'expertise.{variable}.uid'])['idsadvr'].count().reset_index().rename(columns={'idsadvr': 'count'})
+    output = output.groupby([f'expertise.{variable}.nom', f'expertise.{variable}.uid'])['idsadvr'].count().reset_index()
+    output = output.rename(columns={'idsadvr': 'count'})
     output = output[[f'expertise.{variable}.nom', 'count']]
 
     return output
 
 listeDepartements = [x for x in motsCles['département'].unique().tolist() if 
-    (not "Direction" in x) and 
-    (not "bureau" in x) and 
-    (not "dir" in x) and 
-    (not "rectorat" in x)
+    ((not "Direction" in x) and 
+    (not "Bureau" in x) and 
+    (not "Dir" in x) and 
+    (not "rectorat" in x) and
+    (not "recteur" in x))
 ]
 
 graphs = []
@@ -722,22 +725,34 @@ for departement in listeDepartements:
 
     subdf['freqDiscipline'] = subdf['expertise.disciplines.nom'].map(freqDisciplines)
     subdf['freqMotCle'] = subdf['expertise.motsCles.nom'].map(freqMotsCles)
+    topMotsCles = subdf[['expertise.motsCles.nom','freqMotCle']].drop_duplicates()
+    topMotsCles = topMotsCles.sort_values(by='freqMotCle', ascending=False)[:15]['expertise.motsCles.nom'].tolist()
 
-    subdf = subdf[subdf['freqMotCle'].astype(int) > 2]
+    subdf = subdf[subdf['expertise.motsCles.nom'].isin(topMotsCles)]
+
     subdf = subdf[['département', 'expertise.disciplines.nom', 'freqDiscipline', 'expertise.motsCles.nom', 'freqMotCle']]
 
     records = (subdf.sort_values(by='freqMotCle', ascending=False).to_dict('records'))
     recordsD = (pd.DataFrame(records).drop_duplicates(subset='expertise.disciplines.nom')).to_dict('records')
 
     # Noeuds pour les disciplines
-    tuples = [(r['expertise.disciplines.nom'], {"color": "lightgrey", "size": r['freqDiscipline']}) for r in recordsD]
+    tuples = [
+        (r['expertise.disciplines.nom'], 
+        {"color": "#0b113a", 
+         "shape": "square", 
+         "size": 10*math.log(int(r['freqDiscipline'])),
+         "n": int(r['freqDiscipline'])
+         }) for r in recordsD]
+    
     sizes = [r['freqDiscipline'] for r in recordsD]
 
     # Noeuds pour les mots-clés
     tuples += [
         (r['expertise.motsCles.nom'], 
-        {"color": "lightblue",
-         "size": int(r['freqMotCle'])
+        {"color": "#ffca40",
+         "shape": "dot",
+         "size": 15*math.log(int(r['freqMotCle'])),
+         "n": int(r['freqMotCle'])
         }) for r in records]
 
     sizes += [r['freqMotCle'] for r in records]
@@ -758,10 +773,11 @@ for departement in listeDepartements:
     for node, attr in nx_graph.nodes(data=True):
         pyvis_graph.add_node(
             node, 
+            shape= attr['shape'],
             color=attr['color'], 
-            size= 7*int(attr['size']), 
-            font={'size': 60},
-            title=f"{node}\nN={attr['size']}",
+            size=  attr['size'], 
+            font= {'size': 70},
+            title=f"{node}\nN={attr['n']}",
             )
 
 

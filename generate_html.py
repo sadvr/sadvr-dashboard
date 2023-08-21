@@ -227,27 +227,31 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     f.write('<div style="margin-top:500px;"><hr/></div>')
 
     # Expertises de recherche : mots-clés
-    f.write('<h3>Mots-clés</h3>')   
-    f.write('<div class="grid">')
+    f.write('<h3>Mots-clés</h3>')
 
-    iFrames ='<select id="fileSelector" onchange="changeIframeSource()" style="margin-bottom:10px;"><p>&nbps;</p>'
-    iFrames += "\n"
-    iFrames += '<option value="">Sélectionner un département</option>'
+    # Conteneur principal
+    f.write('<div style="clear: both;"></div>')
+    f.write('<select id="fileSelector" onchange="changeIframeSource()">')
+    f.write('<option value="">Sélectionner un département</option><p>&nbps;</p>')
 
+    iFrames = ""
     for graph in graphs:
         departement = graph['Département']
         fichier = graph['Fichier']
         iFrames += ("\n")
         iFrames += (f'<option value="{fichier}">{departement}</option>')
 
-
     iFrames += f"""
         </select>
-        <div id="container">
-            <iframe id="embeddedFrame" style="width:50%; float:left;"  height="600"; frameborder="0"></iframe>
-            <div id="dataTable" 
-                style="width: 50%; float:right; padding-left:20px; height=600; max-height:600; overflow-y: scroll;">
-            </div>
+        <div style="clear: both;"></div>
+        <!-- Conteneur gauche -->
+        <div id="container" class="col-md-6" style="float: left; margin-top:10px; padding-bottom:20px;">
+            <iframe id="embeddedFrame" height="600" width="100%" style="margin:-10px; padding:0px; overflow-y:scroll;" frameborder="0"></iframe>
+        </div>
+
+        <!-- Conteneur droit -->
+        <div id="dataTable" class="col-md-6" style="float:right; width:50%; margin-top:10px; max-height:575px; overflow-y:scroll;
+            padding-left:20px; height=600;">
         </div>
         <script>
             var data = {tablesGraphs};
@@ -262,8 +266,6 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
         </script>
     """
     f.write(iFrames)
-
-    f.write('</div></div>')
-    f.write('<div style="margin-top:500px;"><hr/></div></div>')
+    f.write('<div style="clear: both; margin-top:500px;"><hr/></div>')
 
     f.write(footer)
