@@ -12,8 +12,44 @@ tableClasses = ['table', 'table-hover']
 with open('./html/header.html', encoding='utf-8') as f:
     header = f.read()
 
+with open('./html/header_index.html') as f:
+    header_index = f.read()
+
 with open('./html/footer.html') as f:
     footer = f.read()
+
+### Générer la page d'accueil 
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(header_index)
+
+    ## Ajouter contenu
+    f.write(
+    """
+    <div class="grid" style="padding-bottom:30px;">
+        <p>Bienvenue sur le tableau de bord du SADVR!</p>
+    </div>
+    """)
+
+    f.write(
+    """ 
+        <div class="grid" style="padding-bottom:30px; width:100%;">
+            <div class="col-md-3">
+                <p>Colonne 1</p>
+            </div>
+            <div class="col-md-3">
+                <p>Colonne 2</p>
+            </div>
+            <div class="col-md-3">
+                <p>Colonne 3</p>
+            </div>
+            <div class="col-md-3">
+                <p>Colonne 4</p>
+            </div>  
+
+        </div>
+    """)
+
+    f.write(footer)
 
 ### Générer le fichier html pour les professeurs
 with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
@@ -31,7 +67,9 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
         """
     )
     
-    freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']].rename(columns={'count':'N',  'genre':'Genre'})
+    freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']]
+    freqGenreDepartement = freqGenreDepartement.rename(columns={'count':'N',  'genre':'Genre'})
+    
     f.write(freqGenreDepartement.to_html(index=False, classes=tableClasses, justify='left'))
 
     # Conteneur droit
@@ -247,12 +285,14 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
         <div style="clear: both;"></div>
         <!-- Conteneur gauche -->
         <div id="container" class="col-md-6" style="float: left; margin-top:10px; padding-bottom:20px;">
-            <iframe id="embeddedFrame" height="600" width="100%" style="margin:-10px; padding:0px; overflow-y:scroll;" frameborder="0"></iframe>
+            <iframe id="embeddedFrame" height="600" width="100%" 
+                style="margin:-10px; padding:0px; overflow-y:scroll;" frameborder="0">
+            </iframe>
         </div>
 
         <!-- Conteneur droit -->
-        <div id="dataTable" class="col-md-6" style="float:right; width:50%; margin-top:10px; max-height:575px; overflow-y:scroll;
-            padding-left:20px; height=600;">
+        <div id="dataTable" class="col-md-6" 
+            style="float:right; width:50%; margin-top:10px; max-height:575px; overflow-y:scroll; padding-left:20px; height=600;">
         </div>
         <script>
             var data = {tablesGraphs};

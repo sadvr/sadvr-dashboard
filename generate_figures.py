@@ -494,7 +494,8 @@ def groupEtablissements(etablissementNom : str) -> str :
 # Etablissements affiliés
 etablissementsAffilies = expertises.dropna(subset='etablissementsAffilies.nom')
 etablissementsAffilies = etablissementsAffilies.drop_duplicates(subset=(['idsadvr', 'etablissementsAffilies.nom']))
-etablissementsAffilies.loc[:, 'etablissementsAffilies.nom'] = etablissementsAffilies['etablissementsAffilies.nom'].apply(lambda x : x.split(' – ')[0])
+etablissementsAffilies.loc[:, 'etablissementsAffilies.nom'] = etablissementsAffilies['etablissementsAffilies.nom'].apply(
+    lambda x : x.split(' – ')[0])
 etablissementsAffilies = pd.DataFrame(
     plotVariable(etablissementsAffilies, 'etablissementsAffilies.nom')
     ).sort_values(by='count', ascending = False)
@@ -677,7 +678,6 @@ fig.update_layout(
 figDisciplinesFacultes = fig
 
 # Cartographie des expertises de recherche: mots-clés associés aux principales disciplines de recherche de l'UdeM 
-
 ## Extraire les fréquences associées aux disciplines et aux mots-clés: elles vont permettre d'assigner
 # une taille aux noeuds dans le graphe (plus fréquent = plus gros )
 def freqVariable(variable: str, df: pd.DataFrame = motsCles) -> pd.DataFrame:
@@ -726,7 +726,7 @@ for departement in listeDepartements:
     subdf['freqDiscipline'] = subdf['expertise.disciplines.nom'].map(freqDisciplines)
     subdf['freqMotCle'] = subdf['expertise.motsCles.nom'].map(freqMotsCles)
     topMotsCles = subdf[['expertise.motsCles.nom','freqMotCle']].drop_duplicates()
-    topMotsCles = topMotsCles.sort_values(by='freqMotCle', ascending=False)[:20]['expertise.motsCles.nom'].tolist()
+    topMotsCles = topMotsCles.sort_values(by='freqMotCle', ascending=False)[:15]['expertise.motsCles.nom'].tolist()
 
     subdf = subdf[subdf['expertise.motsCles.nom'].isin(topMotsCles)]
 
@@ -740,7 +740,7 @@ for departement in listeDepartements:
         (r['expertise.disciplines.nom'], 
         {"color": "#0b113a", 
          "shape": "square", 
-         "size": 10*math.log(int(r['freqDiscipline'])),
+         "size": 1+(10*math.log(int(r['freqDiscipline']))),
          "n": int(r['freqDiscipline'])
          }) for r in recordsD]
     
@@ -751,7 +751,7 @@ for departement in listeDepartements:
         (r['expertise.motsCles.nom'], 
         {"color": "#ffca40",
          "shape": "dot",
-         "size": 15*math.log(int(r['freqMotCle'])),
+         "size": 1+(15*math.log(int(r['freqMotCle']))),
          "n": int(r['freqMotCle'])
         }) for r in records]
 
@@ -815,15 +815,16 @@ for departement in listeDepartements:
     # Create the table to display aside from the graph
     tableG = subdf.rename(columns = mappingTables)
     tableG = tableG.drop(columns = ['département'])
-    tableG = tableG.groupby(['Discipline','Mot-Clé']).max()
+    tableG = tableG.groupby(['Discipline','Mot-Clé']).max() 
 
-    tableG = tableG.drop_duplicates()
-    tableG = tableG.sort_values(
-        by = ['freqDiscipline', 'N'], 
-        ascending = [False, False]
-    ).drop(columns="freqDiscipline")
+    # tableG = tableG.drop_duplicates()
+    tableG.sort_values(by=["freqDiscipline", 'N'], ascending=[False, False])
+    tableG = tableG.drop(columns="freqDiscipline")
 
     tablesGraphs[f"../{output_html}"] = tableG.to_html(classes = tableClasses, justify='left')
+
+    # Réinitialiser le graphe
+    nx_graph.clear()
 
 tablesGraphs = str(tablesGraphs)
 
