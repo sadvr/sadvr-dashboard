@@ -818,7 +818,7 @@ for departement in listeDepartements:
     tableG = tableG.groupby(['Discipline','Mot-Clé']).max() 
 
     # tableG = tableG.drop_duplicates()
-    tableG.sort_values(by=["freqDiscipline", 'N'], ascending=[False, False])
+    tableG = tableG.sort_values(by=["freqDiscipline", 'N'], ascending=[False, False])
     tableG = tableG.drop(columns="freqDiscipline")
 
     tablesGraphs[f"../{output_html}"] = tableG.to_html(classes = tableClasses, justify='left')
