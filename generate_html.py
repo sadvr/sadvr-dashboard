@@ -23,27 +23,31 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write(header_index)
 
     ## Ajouter contenu
+    f.write("<h2>Vitrine de la recherche UdeM</h2></div>")
+    f.write("<p>Bienvenue sur le tableau de bord du SADVR!</p>")
     f.write(
-    """
-    <div class="grid" style="padding-bottom:30px;">
-        <p>Bienvenue sur le tableau de bord du SADVR!</p>
-    </div>
-    """)
-
-    f.write(
-    """ 
-        <div class="grid" style="padding-bottom:30px; width:100%;">
-            <div class="col-md-3">
-                <p>Colonne 1</p>
+    f""" 
+        <div class="grid" 
+            style="padding-bottom:30px; width:100%; height:800px; margin-top:40px;">
+            <div class="col-md-3" 
+                style="float:left; border: 1px solid lightgrey; margin-right:10px; width:22%; border-radius:5px;
+                background-color: #F7F7F7; box-shadow: 5px 10px 10px lightgrey;">
+                <p style="text-align: center; margin-top:40px; margin-bottom:40px;"><b style="font-size:24px;">{nbProfs}</b><br/>Professeurs</p>
             </div>
-            <div class="col-md-3">
-                <p>Colonne 2</p>
+            <div class="col-md-3" 
+                style="float:left; border: 1px solid lightgrey; margin-left:10px; margin-right:10px; width:22%; border-radius:5px;
+                background-color: #F7F7F7; box-shadow: 5px 10px 10px lightgrey;">
+                <p style="text-align: center; margin-top:40px; margin-bottom:40px;"><b style="font-size:24px;">{nbDepartements}</b><br/>Départements</p>
             </div>
-            <div class="col-md-3">
-                <p>Colonne 3</p>
+            <div class="col-md-3" 
+                style="float:left; border: 1px solid lightgrey; margin-left:10px; margin-right:10px; width:22%; border-radius:5px;
+                background-color: #F7F7F7; box-shadow: 5px 10px 10px lightgrey;">
+                <p style="text-align: center; margin-top:40px; margin-bottom:40px;"><b style="font-size:24px;">{nbFacultes}</b><br/>Facultés</p>
             </div>
-            <div class="col-md-3">
-                <p>Colonne 4</p>
+            <div class="col-md-3"
+                style="float:left; border: 1px solid lightgrey; margin-left:10px; width:22%; border-radius:5px;
+                background-color: #F7F7F7; box-shadow: 5px 10px 10px lightgrey;">
+                <p style="text-align: center; margin-top:40px; margin-bottom:40px;"><b style="font-size:24px;">{nbEtablissementsAffilies}</b><br/>Établissements affiliés</p>
             </div>  
 
         </div>
