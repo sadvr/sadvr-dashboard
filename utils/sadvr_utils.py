@@ -229,6 +229,10 @@ def plotVariable(df: pd.DataFrame, variable: str, mapping=None) -> dict:
     return output
 
 def renameLongLabels(text):
+    """ 
+    Cette fonction prends en paramètre une chaîne de texte et en retourne une version écourtée, ceci pour améliorer
+    l'affichage de certaines figures dans le tableau de bord dans le cas où les libellés des catégories sont trop longs--- finir documenter
+    """
     if len(text) > 30:
         return (str(text)[:30] + "...")
     else: return text
