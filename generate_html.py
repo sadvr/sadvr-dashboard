@@ -275,10 +275,10 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
     f.write('<select id="fileSelector" onchange="changeIframeSource()">')
-    f.write('<option value="">Sélectionner un département</option><p>&nbps;</p>')
+    f.write('<option value="../graphs/graph__departement-de-sciences-economiques.html" select>Département de sciences économiques</option><p>&nbps;</p>')
 
     iFrames = ""
-    for graph in graphs:
+    for graph in graphs[1:]:
         departement = graph['Département']
         fichier = graph['Fichier']
         iFrames += ("\n")
@@ -311,6 +311,9 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
         </script>
     """
     f.write(iFrames)
+    f.write("""
+        <script>changeIframeSource()</script>
+            """)
     f.write('<div style="clear: both; margin-top:500px;"><hr/></div>')
 
     f.write(footer)

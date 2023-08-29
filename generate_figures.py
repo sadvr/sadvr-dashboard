@@ -210,13 +210,21 @@ freqGenreDepartement = pd.DataFrame(pd.concat([
 
 def generate_pie_chart(selected_department):
     filtered_df = freqGenreDepartement[freqGenreDepartement['Département'] == selected_department]
-
     filtered_df = filtered_df.sort_values(by='count', ascending=False)
+    
+    # Define colors for each category
+    category_colors = {'Homme': '#636efa', 'Femme': '#ef553b', 'Autre': 'lightgray'}
+    
+    # Create a list of colors for each label in the dataframe
+    colors = [category_colors.get(label, 'lightgray') for label in filtered_df['genre']]
+    
     fig = go.Figure(go.Pie(
-        labels= filtered_df['genre'], 
-        values = filtered_df['count'],
-        hole = 0.6)
-    )
+        labels=filtered_df['genre'], 
+        values=filtered_df['count'],
+        hole=0.6,
+        marker=dict(colors=colors)  # Set the colors for each category
+    ))
+
     return fig
 
 # Create a figure for each category
