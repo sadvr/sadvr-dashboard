@@ -78,8 +78,7 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
 
     # Conteneur droit
     f.write("""</div>
-        <div class="col-md-8" style="float:right; 
-         padding-right:35px; padding-left:45px;">
+        <div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">
     """)
 
     f.write(figGenreDepartement.to_html(full_html=False, include_plotlyjs='cdn'))

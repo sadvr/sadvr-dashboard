@@ -239,8 +239,8 @@ fig = go.Figure()
 defaultcat = freqGenreDepartement['Département'].unique()[0]
 fig.add_traces(
     figs[defaultcat].data
-    ).update_traces(visible=True).update_layout(
-        legend=dict(yanchor="bottom",y=0.6,xanchor="left", x=0))
+    ).update_traces(visible=True)
+
 
 # integrate figures per category into one figure
 for k in figs.keys():
@@ -248,9 +248,9 @@ for k in figs.keys():
         fig.add_traces(figs[k].data)
 
 fig.update_layout(
-    height=445,
     margin=dict(l=20, r=20, t=30, b=20),
-    legend=dict(yanchor="bottom",y=0.6,xanchor="left", x=-1)
+    legend=dict(yanchor="bottom",y=0,xanchor="left", x=-1),
+    title=go.layout.Title(text="Proportion du genre des professeur-e-s par département")
 )
 
 # finally build dropdown menu
@@ -658,9 +658,8 @@ for k in figs.keys():
         fig.add_traces(figs[k].data)
 
 fig.update_layout(
-    height=445,
     margin=dict(l=20, r=20, t=30, b=20),
-    legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.55)
+    legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.75)
     )
 
 # finally build dropdown menu
