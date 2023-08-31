@@ -174,8 +174,6 @@ freqGenreDepartement = genreDepartement.groupby(['affiliations.departement.nom',
 freqGenreDepartement = freqGenreDepartement.rename(
     columns={'idsadvr': 'count', 'affiliations.departement.nom' : 'Département'})
 
-freqGenreDepartement
-
 # Ajouter une option pour voir tous les départements confondus (default)
 freqGenre = freqGenre.to_dict('records')
 freqGenre
@@ -192,11 +190,6 @@ freqGenreDepartement = freqGenreDepartement.sort_values(
     ascending=[False, True]
 )
 
-freqGenreDepartement[
-    ['Département',
-    'genre',
-    'count']
-]
 
 freqGenreDepartement = freqGenreDepartement[~freqGenreDepartement['Département'].str.contains('Direction de')]
 
@@ -226,55 +219,28 @@ def generate_pie_chart(selected_department):
         )
     )
 
+    fig.update_layout(
+        margin=dict(l=0, r=70, t=10, b=10),
+        legend=dict(
+            x=0,  # Position the legend to the left
+            y=0.5  
+        )
+    )
+
     return fig
 
 # Create a figure for each category
-figs = {
-    c: generate_pie_chart(c).update_traces(name=c, visible=False)
-    for c in freqGenreDepartement['Département'].unique()
-}
+genreDepartement = {}
 
-fig = go.Figure()
+for departement in freqGenreDepartement['Département'].unique():
+    fileName = f'figures/genreDepartement/{slugify(departement)}.html'
+    with open(fileName, 'w', encoding='utf-8') as f:
+        f.write(generate_pie_chart(departement).to_html(full_html=False, include_plotlyjs='cdn'))
 
-# Default category
-defaultcat = freqGenreDepartement['Département'].unique()[0]
-fig.add_traces(
-    figs[defaultcat].data
-    ).update_traces(visible=True)
+    genreDepartement[departement] = "../"+fileName
 
-
-# integrate figures per category into one figure
-for k in figs.keys():
-    if k != defaultcat:
-        fig.add_traces(figs[k].data)
-
-fig.update_layout(
-    margin=dict(l=20, r=20, t=30, b=20),
-    legend=dict(yanchor="bottom",y=0,xanchor="left", x=-1),
-    title=go.layout.Title(text="Proportion du genre des professeur-e-s par département")
-)
-
-# finally build dropdown menu
-fig.update_layout(
-    title_x=0.02,  # Adjust this value to move the title to the left,
-    updatemenus=[
-        {
-            "buttons": [
-                {
-                    "label": k,
-                    "method": "update",
-                    
-                    # list comprehension for which traces are visible
-                    "args": [{"visible": [kk == k for kk in figs.keys()]}],
-                }
-                for k in figs.keys()
-            ]
-        }
-    ],
-    
-)
-
-figGenreDepartement = fig
+freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']]
+freqGenreDepartement = freqGenreDepartement.rename(columns={'count':'N',  'genre':'Genre'})
 
 # Pays d'obtention du dernier diplôme
 paysFormation = pd.DataFrame(plotVariable(demographics, 'formations.institutions.paysNom'))
@@ -642,12 +608,6 @@ def generate_pie_chart(selected_faculty):
 
 # Create a figure for each category
 disciplinesFacultes = {}
-
-{
-    c: generate_pie_chart(c).update_traces(name=c, visible=False)
-    for c in faculty_discipline_counts['Faculté'].unique()
-}
-
 for faculte in faculty_discipline_counts['Faculté'].unique():
     fileName = f'figures/disciplinesFaculte/{slugify(faculte)}.html'
     with open(fileName, 'w', encoding='utf-8') as f:

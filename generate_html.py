@@ -59,7 +59,6 @@ with open('index.html', 'w', encoding='utf-8') as f:
 with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
     f.write(header)
     f.write('<h2>Professeur·e·s - Portrait sociodémographique</h2></div>')
-
     f.write('<h3>Identité de genre</h3>')
     # Conteneur gauche
     f.write(
@@ -71,9 +70,6 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
         """
     )
     
-    freqGenreDepartement = freqGenreDepartement[['Département',	'genre', 'count']]
-    freqGenreDepartement = freqGenreDepartement.rename(columns={'count':'N',  'genre':'Genre'})
-    
     f.write(freqGenreDepartement.to_html(index=False, classes=tableClasses, justify='left'))
 
     # Conteneur droit
@@ -81,7 +77,30 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
         <div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">
     """)
 
-    f.write(figGenreDepartement.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('<div style="width:40%">')
+    f.write('<select class="form-select" style="margin-bottom:20px;" id="depSelector" onchange="changeDepartment()">')
+    for departement in genreDepartement.keys():
+        f.write(f'<option value="{genreDepartement[departement]}">{departement}</option>')
+        
+    f.write('</select></div>')
+
+    f.write("""
+        <iframe height="425" width="100%" style="padding:20px;" id="figDepartement" frameborder="0">
+        </iframe>
+    """)
+
+    f.write(f"""
+        <script>
+            var figsDepartements = {genreDepartement};
+            function changeDepartment() {{
+                var selectedDepartment = document.getElementById("depSelector").value;
+                document.getElementById("figDepartement").src = selectedDepartment;
+            }}
+
+            changeDepartment()
+        </script>
+    """)
+
     f.write('</div></div>')
 
     # Année d'obtention du diplôme - selon le genre
