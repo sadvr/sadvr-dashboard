@@ -261,8 +261,31 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
     )
 
     # Conteneur droit
-    f.write('</div><div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">')
-    f.write(figDisciplinesFacultes.to_html(full_html=False, include_plotlyjs='cdn'))
+    f.write('</div><div class="col-md-8" style="float:right;padding-left:45px;">')
+
+    f.write('<div style="width:40%">')
+    f.write('<select class="form-select" style="margin-bottom:20px;" id="facultySelector" onchange="changeFaculty()">')
+    for faculte in disciplinesFacultes.keys():
+        f.write(f'<option value="{disciplinesFacultes[faculte]}">{faculte}</option>')
+        
+    f.write('</select></div>')
+
+    f.write("""
+        <iframe height="425" width="100%" style="padding:20px;" id="figFaculte" frameborder="0">
+        </iframe>
+    """)
+
+    f.write(f"""
+        <script>
+            var figsFacultes = {disciplinesFacultes};
+            function changeFaculty() {{
+                var selectedFaculty = document.getElementById("facultySelector").value;
+                document.getElementById("figFaculte").src = selectedFaculty;
+            }}
+
+            changeFaculty()
+        </script>
+    """)
 
     f.write('</div></div>')
     f.write('<div style="margin-top:500px;"><hr/></div>')
@@ -273,8 +296,9 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
 
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
-    f.write('<select id="fileSelector" onchange="changeIframeSource()">')
-    f.write('<option value="../graphs/graph__departement-de-sciences-economiques.html" select>Département de sciences économiques</option><p>&nbps;</p>')
+    f.write('<div style="width:40%">')
+    f.write('<select class="form-select" style="margin-bottom:20px;" id="fileSelector" onchange="changeIframeSource()">')
+    f.write('<option value="../figures/graphs/graph__departement-de-sciences-economiques.html" select>Département de sciences économiques</option><p>&nbps;</p>')
 
     iFrames = ""
     for graph in graphs[1:]:
@@ -284,7 +308,7 @@ with open('html/expertises.html', 'w', encoding='utf-8') as f:
         iFrames += (f'<option value="{fichier}">{departement}</option>')
 
     iFrames += f"""
-        </select>
+        </select></div>
         <div style="clear: both;"></div>
         <!-- Conteneur gauche -->
         <div id="container" class="col-md-6" style="float: left; margin-top:10px; padding-bottom:20px;">

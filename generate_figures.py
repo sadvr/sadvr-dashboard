@@ -215,15 +215,16 @@ def generate_pie_chart(selected_department):
     # Define colors for each category
     category_colors = {'Homme': '#636efa', 'Femme': '#ef553b', 'Autre': 'lightgray'}
     
-    # Create a list of colors for each label in the dataframe
-    colors = [category_colors.get(label, 'lightgray') for label in filtered_df['genre']]
-    
-    fig = go.Figure(go.Pie(
-        labels=filtered_df['genre'], 
+    fig = go.Figure(px.pie(
+        filtered_df,
+        names= 'genre', 
+        color = 'genre',
         values=filtered_df['count'],
         hole=0.6,
-        marker=dict(colors=colors)  # Set the colors for each category
-    ))
+        color_discrete_map = category_colors,
+        category_orders = {'genre': ["Homme", "Femme", "Autre"]} 
+        )
+    )
 
     return fig
 
@@ -626,63 +627,33 @@ def generate_pie_chart(selected_faculty):
     filtered_df = filtered_df.sort_values(by='count', ascending=False)
     if(len(filtered_df) > 10):
         filtered_df = groupOtherValues(filtered_df, 10)[:10]
-    fig = go.Figure(go.Pie(
-        labels= filtered_df['Discipline'], 
-        # names = filtered_df['noms'],
-        values = filtered_df['count'],
-        hole = 0.6)
+    fig = px.pie(
+        filtered_df,
+        hover_name = 'Discipline', 
+        names = 'noms',
+        values = 'count',
+        hole = 0.6,
     )
+
+    fig.update_layout(margin=dict(l=0, r=70, t=10, b=10))
+
+
     return fig
 
 # Create a figure for each category
-figs = {
+disciplinesFacultes = {}
+
+{
     c: generate_pie_chart(c).update_traces(name=c, visible=False)
     for c in faculty_discipline_counts['Faculté'].unique()
 }
 
-fig = go.Figure(
-    layout=go.Layout(
-        title=go.layout.Title(text="Principales disciplines de recherche par faculté")
-    )
-)
+for faculte in faculty_discipline_counts['Faculté'].unique():
+    fileName = f'figures/disciplinesFaculte/{slugify(faculte)}.html'
+    with open(fileName, 'w', encoding='utf-8') as f:
+        f.write(generate_pie_chart(faculte).to_html(full_html=False, include_plotlyjs='cdn'))
 
-# Default category
-defaultcat = faculty_discipline_counts['Faculté'].unique()[0]
-fig.add_traces(
-    figs[defaultcat].data
-    ).update_traces(visible=True)
-
-# integrate figures per category into one figure
-for k in figs.keys():
-    if k != defaultcat:
-        fig.add_traces(figs[k].data)
-
-fig.update_layout(
-    margin=dict(l=20, r=20, t=30, b=20),
-    legend=dict(yanchor="bottom",y=0,xanchor="left", x=-0.75)
-    )
-
-# finally build dropdown menu
-fig.update_layout(
-    title_x=0.015,  # Adjust this value to move the title to the left,
-    updatemenus=[
-        {
-            "buttons": [
-                {
-                    "label": k,
-                    "method": "update",
-                    
-                    # list comprehension for which traces are visible
-                    "args": [{"visible": [kk == k for kk in figs.keys()]}],
-                }
-                for k in figs.keys()
-            ]
-        }
-    ],
-    
-)
-
-figDisciplinesFacultes = fig
+    disciplinesFacultes[faculte] = "../"+fileName
 
 # Cartographie des expertises de recherche: mots-clés associés aux principales disciplines de recherche de l'UdeM 
 ## Extraire les fréquences associées aux disciplines et aux mots-clés: elles vont permettre d'assigner
@@ -814,7 +785,7 @@ for departement in listeDepartements:
 
     # Save the graph to an HTML file
     name = slugify(departement)
-    output_html = f"graphs/graph__{name}.html"
+    output_html = f"figures/graphs/graph__{name}.html"
 
     graphs.append({"Département": departement, "Fichier": f"../{output_html}"})
     pyvis_graph.show(output_html) 
