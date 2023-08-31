@@ -222,7 +222,7 @@ def generate_pie_chart(selected_department):
     fig.update_layout(
         margin=dict(l=0, r=70, t=10, b=10),
         legend=dict(
-            x=0,  # Position the legend to the left
+            x=-0.5,  # Position the legend to the left
             y=0.5  
         )
     )

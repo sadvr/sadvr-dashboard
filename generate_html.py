@@ -77,7 +77,7 @@ with open('html/professeur-e-s.html', 'w', encoding='utf-8') as f:
         <div class="col-md-8" style="float:right; padding-right:35px; padding-left:45px;">
     """)
 
-    f.write('<div style="width:40%">')
+    f.write('<div style="width:50%">')
     f.write('<select class="form-select" style="margin-bottom:20px;" id="depSelector" onchange="changeDepartment()">')
     for departement in genreDepartement.keys():
         f.write(f'<option value="{genreDepartement[departement]}">{departement}</option>')
