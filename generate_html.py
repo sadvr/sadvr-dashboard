@@ -25,6 +25,11 @@ with open('index.html', 'w', encoding='utf-8') as f:
     ## Ajouter contenu
     f.write("<h2>Vitrine de la recherche UdeM</h2></div>")
     f.write("<p>Bienvenue sur le tableau de bord du SADVR!</p>")
+    f.write(""" 
+        <div class="alert alert-warning">
+            <strong>Attention!</strong> Ce projet est actuellement un prototype interne. Il ne doit pas être partagé publiquement puisqu'il contient des données qui pourraient être sensibles.
+        </div>
+    """)
     f.write(
     f""" 
         <div class="grid" 
